@@ -13,6 +13,7 @@ import { haversineKm } from "@/lib/geo";
 import { DeliveryLine, KeyFacts, LocationLine, PriceBlock, RatingStars, SaveButton, SellerMini, SocialProof } from "./atoms";
 import { CardMenu, HideGate } from "./CardActions";
 import { CardPhotos } from "./CardPhotos";
+import { Tilt } from "@/components/motion/Tilt";
 
 /* ListingCard (spec §5.1–5.2) in eBay's order: photo with the heart, condition, title,
    rating, price, delivery and total, location, demand, then seller and the ⋮ menu.
@@ -88,7 +89,8 @@ export function ListingCard({ listing, variant = "grid", anchor, sizes, load = "
   }
 
   const distanceKm = anchor ? haversineKm(anchor, listing.location) : undefined;
-  return gate(
+  const tilt = (card: ReactNode) => (variant === "grid" ? <Tilt>{card}</Tilt> : card);
+  return gate(tilt(
     <Card as="article" interactive className={cx("ws-card", `ws-card--${variant}`)}>
       <div className="ws-card__media">
         {variant === "rail" ? (
@@ -105,7 +107,7 @@ export function ListingCard({ listing, variant = "grid", anchor, sizes, load = "
             )}
           </>
         ) : (
-          <CardPhotos media={listing.media} href={href} sizes={sizes ?? SIZES[variant]} load={load} />
+          <CardPhotos listingId={listing.id} media={listing.media} href={href} sizes={sizes ?? SIZES[variant]} load={load} />
         )}
         <div className="ws-card__save">
           <SaveButton listingId={listing.id} title={listing.title} />
@@ -147,7 +149,7 @@ export function ListingCard({ listing, variant = "grid", anchor, sizes, load = "
         </div>
       </div>
     </Card>,
-  );
+  ));
 }
 
 /** Same box as the card, so swapping it in causes no layout shift (spec §5.2). */

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, type MouseEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { ArrowLeftIcon, ArrowRightIcon, ImageIcon } from "@/components/icons";
+import { Morph } from "@/components/motion/Morph";
 import { rules } from "@/config/marketplace-rules";
 import type { ListingMedia } from "@/lib/data/types";
 import { plural } from "@/lib/format";
@@ -20,6 +21,8 @@ import { spring } from "@/lib/motion/tokens";
  */
 
 type Props = {
+  /** Names the photo for the card → listing morph (React ViewTransition). */
+  listingId: string;
   media: readonly ListingMedia[];
   href: string;
   sizes: string;
@@ -33,7 +36,7 @@ const slide = {
   exit: (dir: number) => ({ x: dir > 0 ? "-35%" : "35%", opacity: 0, scale: 0.96 }),
 };
 
-export function CardPhotos({ media, href, sizes, load, quality }: Props) {
+export function CardPhotos({ listingId, media, href, sizes, load, quality }: Props) {
   const router = useRouter();
   const photos = media.slice(0, rules.card.photosMax);
   const [[index, dir], setIndex] = useState<[number, number]>([0, 0]);
@@ -70,65 +73,73 @@ export function CardPhotos({ media, href, sizes, load, quality }: Props) {
     />
   );
 
-  if (!many) return image(photo, 0);
+  if (!many) {
+    return (
+      <Morph name={`photo-${listingId}`}>
+        <div className="ws-photos">{image(photo, 0)}</div>
+      </Morph>
+    );
+  }
 
   return (
-    <div className="ws-photos" onPointerEnter={() => setAwake(true)} onTouchStart={() => setAwake(true)}>
-      <m.div
-        className="ws-photos__track"
-        drag={awake ? "x" : false}
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.35}
-        dragSnapToOrigin
-        onDragEnd={onDragEnd}
-        onTap={open}
-      >
-        <AnimatePresence initial={false} custom={dir} mode="popLayout">
-          <m.div
-            key={index}
-            className="ws-photos__slide"
-            custom={dir}
-            variants={slide}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ x: spring.snappy, scale: spring.soft, opacity: { duration: 0.2 } }}
-          >
-            {image(photo, index)}
-          </m.div>
-        </AnimatePresence>
-      </m.div>
+    <Morph name={`photo-${listingId}`}>
+      <div className="ws-photos" onPointerEnter={() => setAwake(true)} onTouchStart={() => setAwake(true)}>
+        <m.div
+          className="ws-photos__track"
+          drag={awake ? "x" : false}
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.35}
+          dragSnapToOrigin
+          onDragEnd={onDragEnd}
+          onTap={open}
+        >
+          <AnimatePresence initial={false} custom={dir} mode="popLayout">
+            <m.div
+              key={index}
+              className="ws-photos__slide"
+              custom={dir}
+              variants={slide}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ x: spring.snappy, scale: spring.soft, opacity: { duration: 0.2 } }}
+            >
+              {image(photo, index)}
+            </m.div>
+          </AnimatePresence>
+        </m.div>
 
-      {awake && (
-        <>
-          <button type="button" tabIndex={-1} aria-hidden="true" className="ws-photos__arrow ws-photos__arrow--prev" onPointerDown={stop} onClick={(e) => (stop(e), go(-1))}>
-            <ArrowLeftIcon />
-          </button>
-          <button type="button" tabIndex={-1} aria-hidden="true" className="ws-photos__arrow ws-photos__arrow--next" onPointerDown={stop} onClick={(e) => (stop(e), go(1))}>
-            <ArrowRightIcon />
-          </button>
-          <div className="ws-photos__dots" aria-hidden="true">
-            {photos.map((p, i) => (
-              <m.span key={p.url + i} className="ws-photos__dot" animate={{ scale: i === index ? 1 : 0.6, opacity: i === index ? 1 : 0.55 }} transition={spring.snappy} />
-            ))}
-          </div>
-        </>
-      )}
+        {awake && (
+          <>
+            <button type="button" tabIndex={-1} aria-hidden="true" className="ws-photos__arrow ws-photos__arrow--prev" onPointerDown={stop} onClick={(e) => (stop(e), go(-1))}>
+              <ArrowLeftIcon />
+            </button>
+            <button type="button" tabIndex={-1} aria-hidden="true" className="ws-photos__arrow ws-photos__arrow--next" onPointerDown={stop} onClick={(e) => (stop(e), go(1))}>
+              <ArrowRightIcon />
+            </button>
+            <div className="ws-photos__dots" aria-hidden="true">
+              {photos.map((p, i) => (
+                <m.span key={p.url + i} className="ws-photos__dot" animate={{ scale: i === index ? 1 : 0.6, opacity: i === index ? 1 : 0.55 }} transition={spring.snappy} />
+              ))}
+            </div>
+          </>
+        )}
 
-      {/* eBay/spec PhotoCount: "2/6" (counts every photo, not only the steppable ones). */}
-      <span className="ws-card__photos">
-        <ImageIcon />
-        <span aria-hidden="true">
-          {index + 1}/{media.length}
+        {/* eBay/spec PhotoCount: "2/6" (counts every photo, not only the steppable ones). */}
+        <span className="ws-card__photos">
+          <ImageIcon />
+          <span aria-hidden="true">
+            {index + 1}/{media.length}
+          </span>
+          <span className="cx-sr-only">{plural(media.length, "photo")}</span>
         </span>
-        <span className="cx-sr-only">{plural(media.length, "photo")}</span>
-      </span>
-      {/* Preload the next photo once awake, so a step never waits on the network. */}
-      {awake && photos[(index + 1) % photos.length] && (
-        <div className="ws-photos__preload" aria-hidden="true">
-          {image(photos[(index + 1) % photos.length], 1)}
-        </div>
-      )}
-    </div>
+        {/* Preload the next photo once awake, so a step never waits on the network. */}
+        {awake && photos[(index + 1) % photos.length] && (
+          <div className="ws-photos__preload" aria-hidden="true">
+            {image(photos[(index + 1) % photos.length], 1)}
+          </div>
+        )}
+      </div>
+    </Morph>
   );
 }

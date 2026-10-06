@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { CheckShieldIcon, InfoCircleIcon } from "@/components/icons";
+import { Morph } from "@/components/motion/Morph";
 import { Card } from "@/components/ui";
 import { ConditionChip, DeliveryLine, PriceBlock, SaveButton, SellerMini, conditionLabel } from "@/features/listing-card/atoms";
 import { getAnchor } from "@/features/location/server";
@@ -48,12 +49,15 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
 
   return (
     <article className="ws-listing-stub">
-      <div className="ws-listing-stub__media">
-        {photo && <Image src={photo.url} alt={photo.alt} fill sizes="(min-width: 768px) 480px, 100vw" priority />}
-        <div className="ws-card__save">
-          <SaveButton listingId={listing.id} title={listing.title} />
+      {/* Same name as the card photo: the photo morphs from the card into place. */}
+      <Morph name={`photo-${listing.id}`}>
+        <div className="ws-listing-stub__media">
+          {photo && <Image src={photo.url} alt={photo.alt} fill sizes="(min-width: 768px) 480px, 100vw" loading="eager" fetchPriority="high" />}
+          <div className="ws-card__save">
+            <SaveButton listingId={listing.id} title={listing.title} />
+          </div>
         </div>
-      </div>
+      </Morph>
       <div className="ws-listing-stub__body">
         {listing.category.kind !== "property" && <ConditionChip condition={listing.condition} />}
         <h1 className="ws-listing-stub__title">{listing.title}</h1>

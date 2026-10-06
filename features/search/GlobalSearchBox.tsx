@@ -1,11 +1,14 @@
 "use client";
 
+import { AnimatePresence, m } from "motion/react";
 import Form from "next/form";
 import { useEffect, useId, useRef, useState, type FocusEvent, type KeyboardEvent } from "react";
 import { flushSync } from "react-dom";
 import { ArrowUpGraphIncreaseIcon, ClockIcon, MagnifyingGlassIcon, XmarkCircleIcon } from "@/components/icons";
+import { useMagnetic } from "@/components/motion/useMagnetic";
 import { buttonClass } from "@/components/ui";
 import { rules } from "@/config/marketplace-rules";
+import { spring } from "@/lib/motion/tokens";
 import { suggestionMatch } from "@/lib/search/words";
 import { addRecentSearch, clearRecentSearches, removeRecentSearch, useRecentSearches } from "./recent";
 import { SuggestionText } from "./SuggestionText";
@@ -38,6 +41,8 @@ export function GlobalSearchBox({ defaultValue = "", trending, keep = {}, sugges
   const listId = `${id}-list`;
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const submitRef = useRef<HTMLButtonElement>(null);
+  useMagnetic(submitRef);
   /** What the buyer typed (filters the list) and what the field shows (follows ↑ ↓). */
   const [typed, setTyped] = useState(defaultValue);
   const [value, setValue] = useState(defaultValue);
@@ -133,9 +138,12 @@ export function GlobalSearchBox({ defaultValue = "", trending, keep = {}, sugges
             const i = offset + n;
             const Icon = o.kind === "recent" ? ClockIcon : ArrowUpGraphIncreaseIcon;
             return (
-              <li
+              <m.li
                 key={o.term}
                 id={optionId(i)}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ ...spring.soft, delay: i * 0.025 }}
                 role="option"
                 aria-selected={i === active}
                 className="ws-suggest__option"
@@ -162,7 +170,7 @@ export function GlobalSearchBox({ defaultValue = "", trending, keep = {}, sugges
                     <XmarkCircleIcon />
                   </span>
                 )}
-              </li>
+              </m.li>
             );
           })}
         </ul>
@@ -217,21 +225,34 @@ export function GlobalSearchBox({ defaultValue = "", trending, keep = {}, sugges
         {Object.entries(keep).map(([k, v]) => (
           <input key={k} type="hidden" name={k} value={v} />
         ))}
-        <button type="submit" className={buttonClass({ size: "sm", className: "ws-search__submit" })}>
+        <button ref={submitRef} type="submit" className={buttonClass({ size: "sm", className: "ws-search__submit" })}>
           Search
         </button>
       </div>
-      <div className="ws-suggest" hidden={!expanded}>
-        <ul id={listId} role="listbox" aria-label="Search suggestions">
-          {group("Recent searches", recent, 0)}
-          {group("Trending", popular, recent.length)}
-        </ul>
-        {recent.length > 0 && (
-          <button type="button" className="ws-suggest__clear" onMouseDown={(e) => e.preventDefault()} onClick={clearRecentSearches}>
-            Clear recent searches
-          </button>
+      {/* Opens from the field with a spring; rows stagger in. */}
+      <AnimatePresence>
+        {expanded && (
+          <m.div
+            key="panel"
+            className="ws-suggest"
+            style={{ transformOrigin: "top center" }}
+            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.98, transition: { duration: 0.12 } }}
+            transition={spring.snappy}
+          >
+            <ul id={listId} role="listbox" aria-label="Search suggestions">
+              {group("Recent searches", recent, 0)}
+              {group("Trending", popular, recent.length)}
+            </ul>
+            {recent.length > 0 && (
+              <button type="button" className="ws-suggest__clear" onMouseDown={(e) => e.preventDefault()} onClick={clearRecentSearches}>
+                Clear recent searches
+              </button>
+            )}
+          </m.div>
         )}
-      </div>
+      </AnimatePresence>
     </Form>
   );
 }

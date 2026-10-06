@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MagnifyingGlassIcon, WarningIcon, XmarkCircleIcon } from "@/components/icons";
+import { RollingCount } from "@/components/motion/RollingCount";
 import { EmptyState, buttonClass } from "@/components/ui";
 import { rules } from "@/config/marketplace-rules";
 import type { Anchor } from "@/lib/areas";
@@ -36,12 +37,12 @@ export function ResultsHeader({ query, anchor, total, shown, sortMenu, near = tr
         ? <>No results for “{query}”{near && ` near ${anchor.label}`}</>
         : `Nothing listed near ${anchor.label} yet`
       : query
-        ? <>{plural(total, "result")} for “{query}”</>
-        : `${plural(total, "listing")} near ${anchor.label}`;
+        ? <><RollingCount value={total} /> {total === 1 ? "result" : "results"} for “{query}”</>
+        : <><RollingCount value={total} /> {total === 1 ? "listing" : "listings"} near {anchor.label}</>;
   return (
     <div className="ws-results-head">
       <div>
-        <h1 className="ws-results-head__title" aria-live="polite">
+        <h1 className="ws-results-head__title">
           {title}
         </h1>
         {shown < total && (

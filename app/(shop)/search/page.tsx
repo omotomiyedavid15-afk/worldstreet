@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { rules } from "@/config/marketplace-rules";
+import { Morph } from "@/components/motion/Morph";
+import { RevealOnScroll } from "@/components/motion/RevealOnScroll";
 import { ListingCard } from "@/features/listing-card/ListingCard";
 import { setLocation } from "@/features/location/actions";
 import { LocationBar } from "@/features/location/LocationBar";
@@ -110,18 +112,23 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
         />
       ) : (
         <>
-          <ul className="ws-card-grid ws-results" aria-label="Listings">
-            {result.shown.map((l, i) => (
-              <li key={l.id}>
-                <ListingCard
-                  listing={l}
-                  anchor={anchor}
-                  headingLevel="h2"
-                  load={i < rules.media.highPriorityCards ? "high" : i < rules.media.eagerCards ? "eager" : "lazy"}
-                />
-              </li>
-            ))}
-          </ul>
+          {/* Cards rise in on scroll (GSAP); a sort or filter change crossfades (View Transitions). */}
+          <Morph>
+            <RevealOnScroll count={result.shown.length}>
+              <ul className="ws-card-grid ws-results" aria-label="Listings">
+                {result.shown.map((l, i) => (
+                  <li key={l.id}>
+                    <ListingCard
+                      listing={l}
+                      anchor={anchor}
+                      headingLevel="h2"
+                      load={i < rules.media.highPriorityCards ? "high" : i < rules.media.eagerCards ? "eager" : "lazy"}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </RevealOnScroll>
+          </Morph>
           {result.shown.length < result.total ? (
             <div className="ws-results-more">
               <p className="ws-results-more__progress">

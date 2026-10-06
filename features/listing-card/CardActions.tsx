@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { AnimatePresence, m } from "motion/react";
+import { type ReactNode } from "react";
 import { DotsVerticalIcon, StoreIcon, XmarkCircleIcon } from "@/components/icons";
 import { buttonClass, Menu } from "@/components/ui";
 import { hiddenThisVisit, hideListing, hideSeller, unhide, useHidden } from "@/features/hidden/store";
+import { spring } from "@/lib/motion/tokens";
 
 /* The card's overflow menu (spec §5.1 item 10) and the gate that removes hidden cards.
    eBay's card menu offers hiding; "Find similar" and "Report" join when their pages
@@ -24,6 +26,11 @@ export function CardMenu({ listingId, title, sellerId, shopName }: Target) {
   );
 }
 
+/** A stable callback ref, so it runs once on mount, not on every render. */
+function focusOnMount(el: HTMLElement | null) {
+  el?.focus();
+}
+
 /**
  * Renders the card unless it's hidden. Something hidden just now leaves a short note
  * with Undo in its place, and focus moves to Undo so keyboard users aren't dropped;
@@ -31,23 +38,25 @@ export function CardMenu({ listingId, title, sellerId, shopName }: Target) {
  */
 export function HideGate({ listingId, sellerId, shopName, children }: Omit<Target, "title"> & { children: ReactNode }) {
   const hidden = useHidden();
-  const undoRef = useRef<HTMLButtonElement>(null);
   const kind = hidden.listings.includes(listingId) ? "listing" : hidden.sellers.includes(sellerId) ? "seller" : null;
   const recent = hiddenThisVisit();
   const justNow = kind !== null && recent?.kind === kind && recent.from === listingId;
 
-  useEffect(() => {
-    if (justNow) undoRef.current?.focus();
-  }, [justNow]);
-
-  if (kind === null) return children;
-  if (!justNow) return null;
+  // The card shrinks away (the note mounts after, mode="wait", so Undo takes focus on mount) and the note springs in; Undo brings the card back.
   return (
-    <div className="cx-card ws-card-hidden" role="status">
-      <p>{kind === "listing" ? "Hidden. You won't see this listing again." : `Hidden. You won't see listings from ${shopName}.`}</p>
-      <button ref={undoRef} type="button" className={buttonClass({ variant: "ghost", size: "sm" })} onClick={() => unhide(kind, kind === "listing" ? listingId : sellerId)}>
-        Undo
-      </button>
-    </div>
+    <AnimatePresence initial={false} mode="wait">
+      {kind === null ? (
+        <m.div key="card" className="ws-hide-wrap" initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9, filter: "blur(4px)" }} transition={spring.soft}>
+          {children}
+        </m.div>
+      ) : justNow ? (
+        <m.div key="note" className="cx-card ws-card-hidden" role="status" initial={{ opacity: 0, scale: 0.96, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0 }} transition={spring.soft}>
+          <p>{kind === "listing" ? "Hidden. You won't see this listing again." : `Hidden. You won't see listings from ${shopName}.`}</p>
+          <button ref={focusOnMount} type="button" className={buttonClass({ variant: "ghost", size: "sm" })} onClick={() => unhide(kind, kind === "listing" ? listingId : sellerId)}>
+            Undo
+          </button>
+        </m.div>
+      ) : null}
+    </AnimatePresence>
   );
 }

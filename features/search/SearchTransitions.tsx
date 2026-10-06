@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { createContext, useContext, useState, useTransition, type MouseEvent, type ReactNode } from "react";
+import { createContext, useContext, useRef, useState, useTransition, type MouseEvent, type ReactNode } from "react";
+import { useMagnetic } from "@/components/motion/useMagnetic";
 import { buttonClass } from "@/components/ui";
 
 /*
@@ -48,8 +49,10 @@ export function SearchTransitions({ pathname, children }: { pathname: string; ch
 export function ShowMoreLink({ href }: { href: string }) {
   const { kind } = useContext(PendingContext);
   const loading = kind === "more";
+  const ref = useRef<HTMLAnchorElement>(null);
+  useMagnetic(ref);
   return (
-    <a href={href} data-show-more className={buttonClass({ variant: "ghost" })} aria-disabled={loading || undefined} aria-busy={loading || undefined}>
+    <a ref={ref} href={href} data-show-more className={buttonClass({ variant: "ghost" })} aria-disabled={loading || undefined} aria-busy={loading || undefined}>
       {loading ? "Loading more…" : "Show more results"}
     </a>
   );

@@ -211,3 +211,82 @@ html[data-theme=light] {
     font-size: var(--cx-body);
   }
 }
+
+/* Toasts animate with Motion (components/ui/Toast.tsx), so the DS CSS rise is off. */
+.cx-toast {
+  animation: none;
+}
+
+/* Interaction motion (owner's "expressive" choice, 6 Oct). Everything here sits behind
+   prefers-reduced-motion: no-preference; Motion components follow MotionConfig. */
+@media (prefers-reduced-motion: no-preference) {
+  /* Buttons press in on the DS spring and spring back on release. */
+  .cx-btn {
+    transition: transform var(--cx-dur) var(--cx-spring-bouncy), background-color var(--cx-dur) var(--cx-ease), box-shadow var(--cx-dur) var(--cx-ease);
+  }
+
+  .cx-btn:active {
+    transform: translateY(1px) scale(0.96);
+    transition-duration: 80ms;
+  }
+
+  /* Menus drop in from their anchor; phone sheets rise on the spring. */
+  .cx-menu[popover] {
+    transition: opacity 160ms var(--cx-ease), transform var(--cx-dur) var(--cx-spring-snappy), overlay var(--cx-dur) allow-discrete, display var(--cx-dur) allow-discrete;
+    transform-origin: top left;
+  }
+
+  .cx-menu[popover]:not(:popover-open) {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+
+  @starting-style {
+    .cx-menu[popover]:popover-open {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.97);
+    }
+  }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+  .cx-menu.ws-sheet[popover] {
+    transition: transform 420ms var(--cx-spring), overlay 420ms allow-discrete, display 420ms allow-discrete;
+  }
+
+  .cx-menu.ws-sheet[popover]:not(:popover-open) {
+    opacity: 1;
+    transform: translateY(100%);
+  }
+
+  @starting-style {
+    .cx-menu.ws-sheet[popover]:popover-open {
+      opacity: 1;
+      transform: translateY(100%);
+    }
+  }
+
+  .cx-menu.ws-sheet::backdrop {
+    transition: background-color var(--cx-dur), overlay var(--cx-dur) allow-discrete, display var(--cx-dur) allow-discrete;
+  }
+
+  @starting-style {
+    .cx-menu.ws-sheet:popover-open::backdrop {
+      background: transparent;
+    }
+  }
+}
+
+/* Card → listing morphs (React ViewTransition) cut instantly under reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+::view-transition-group(*) {
+  animation-duration: 380ms;
+  animation-timing-function: var(--cx-ease);
+}

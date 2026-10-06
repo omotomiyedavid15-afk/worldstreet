@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, m } from "motion/react";
 import Link from "next/link";
 import { useEffect, useRef, useSyncExternalStore, type ReactNode } from "react";
 import { cx } from "@/lib/cx";
@@ -41,9 +42,13 @@ export function ToastViewport() {
   const list = useSyncExternalStore(subscribe, () => toasts, () => EMPTY);
   return (
     <div className="cx-toast-stack" role="status" aria-live="polite" aria-label="Notifications">
-      {list.map((t) => (
-        <ToastItem key={t.id} toast={t} />
-      ))}
+      {/* Toasts spring in from below, the stack slides up to make room, and leaving
+          ones slip away to the side (Motion layout + presence). */}
+      <AnimatePresence initial={false}>
+        {list.map((t) => (
+          <ToastItem key={t.id} toast={t} />
+        ))}
+      </AnimatePresence>
     </div>
   );
 }
@@ -66,7 +71,18 @@ function ToastItem({ toast: t }: { toast: Toast }) {
 
   const action = t.action;
   return (
-    <div className={cx("cx-toast", t.tone && t.tone !== "gain" && `cx-toast--${t.tone}`)} onMouseEnter={stop} onMouseLeave={start} onFocus={stop} onBlur={start}>
+    <m.div
+      layout
+      initial={{ opacity: 0, y: 24, scale: 0.94 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 48, scale: 0.96, transition: { duration: 0.2 } }}
+      transition={{ type: "spring", stiffness: 420, damping: 30 }}
+      className={cx("cx-toast", t.tone && t.tone !== "gain" && `cx-toast--${t.tone}`)}
+      onMouseEnter={stop}
+      onMouseLeave={start}
+      onFocus={stop}
+      onBlur={start}
+    >
       <span className="dot" aria-hidden="true" />
       <span>{t.message}</span>
       {action &&
@@ -79,6 +95,6 @@ function ToastItem({ toast: t }: { toast: Toast }) {
             {action.label}
           </button>
         ))}
-    </div>
+    </m.div>
   );
 }

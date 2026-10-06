@@ -1712,3 +1712,79 @@ a.ws-seller__name:hover {
   opacity: 0;
   pointer-events: none;
 }
+
+/* SaveButton motion: the icon pops (Motion), a ring and six sparks burst from it. */
+.ws-save {
+  overflow: visible;
+}
+
+.ws-save__icon {
+  display: grid;
+  place-items: center;
+}
+
+.ws-save__burst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ws-save__ring {
+  position: absolute;
+  inset: 4px;
+  border: 2px solid var(--cx-ember);
+  border-radius: 50%;
+}
+
+.ws-save__spoke {
+  position: absolute;
+  inset: 0;
+}
+
+.ws-save__spark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: var(--cx-ember);
+}
+
+/* Card motion wrappers (components/motion/Tilt, CardActions' hide gate) fill the grid
+   cell so cards in a row stay the same height. */
+.ws-tilt,
+.ws-hide-wrap {
+  height: 100%;
+}
+
+/* Grid cards tilt towards the pointer and lift; the photo eases in a touch. Mouse and
+   trackpad only, never under reduced motion. */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .ws-tilt {
+    perspective: 900px;
+  }
+
+  .ws-tilt > .ws-card {
+    transform: rotateX(var(--ws-rx, 0deg)) rotateY(var(--ws-ry, 0deg)) translateY(0);
+    transition: transform 500ms var(--cx-spring), box-shadow var(--cx-dur) var(--cx-ease);
+    will-change: transform;
+    /* Smooths the tilted edges (no stair-stepping on the photo's top edge). */
+    backface-visibility: hidden;
+    outline: 1px solid transparent;
+  }
+
+  .ws-tilt:hover > .ws-card.cx-card--interactive {
+    transform: rotateX(var(--ws-rx, 0deg)) rotateY(var(--ws-ry, 0deg)) translateY(-4px);
+    transition-duration: 160ms, var(--cx-dur);
+  }
+
+  .ws-card__media img {
+    transition: transform 700ms var(--cx-ease);
+  }
+
+  .ws-card:hover .ws-card__media img {
+    transform: scale(1.05);
+  }
+}

@@ -151,8 +151,9 @@ test("on phones, sort opens as a bottom sheet with a title", async ({ page }) =>
   await page.getByRole("button", { name: /^Sort/ }).click();
   const sheet = page.locator(".ws-sheet");
   await expect(sheet.getByRole("heading", { name: "Sort by" })).toBeVisible();
-  const box = (await sheet.boundingBox())!;
-  expect(Math.round(box.x)).toBe(0);
-  expect(Math.round(box.width)).toBe(375);
-  expect(Math.round(box.y + box.height)).toBe(760);
+  // It rises on a spring; measure once it has settled.
+  await expect.poll(async () => {
+    const box = (await sheet.boundingBox())!;
+    return [box.x, box.width, box.y + box.height].map(Math.round);
+  }).toEqual([0, 375, 760]);
 });

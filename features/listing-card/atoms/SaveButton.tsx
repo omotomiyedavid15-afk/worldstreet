@@ -1,11 +1,13 @@
 "use client";
 
+import { AnimatePresence, m } from "motion/react";
 import { HeartIcon } from "@/components/icons";
 import { buttonClass, toast } from "@/components/ui";
 import { rules } from "@/config/marketplace-rules";
 import { cx } from "@/lib/cx";
 import { requireAuth } from "@/features/auth/session";
 import { saveListing, unsaveListing, useIsSaved } from "@/features/saved/store";
+import { spring } from "@/lib/motion/tokens";
 
 /* SaveButton (spec §5.3), eBay's heart over the photo. The DS quiet icon button: 36px to
    the eye, 44px to the finger. It's a toggle, so the name stays "Save {title}" and
@@ -27,6 +29,8 @@ function apply(listingId: string, save: boolean) {
   }
 }
 
+const SPARKS = [0, 60, 120, 180, 240, 300];
+
 type Props = { listingId: string; title: string; className?: string };
 
 export function SaveButton({ listingId, title, className }: Props) {
@@ -42,7 +46,27 @@ export function SaveButton({ listingId, title, className }: Props) {
         requireAuth("save listings", () => apply(listingId, wanted));
       }}
     >
-      <HeartIcon />
+      {/* Pop on save, settle on remove; a gold ring and sparks burst out when saved. */}
+      <m.span className="ws-save__icon" initial={false} animate={saved ? { scale: [1, 1.35, 1] } : { scale: 1 }} transition={saved ? { duration: 0.45, times: [0, 0.35, 1] } : spring.snappy}>
+        <HeartIcon />
+      </m.span>
+      <AnimatePresence initial={false}>
+        {saved && (
+          <m.span key="burst" className="ws-save__burst" aria-hidden="true" initial={{ opacity: 1 }} animate={{ opacity: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.6, delay: 0.25 }}>
+            <m.span className="ws-save__ring" initial={{ scale: 0.4, opacity: 0.9 }} animate={{ scale: 1.9, opacity: 0 }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }} />
+            {SPARKS.map((deg) => (
+              <span key={deg} className="ws-save__spoke" style={{ transform: `rotate(${deg}deg)` }}>
+                <m.span
+                  className="ws-save__spark"
+                  initial={{ y: 0, scale: 0.6, opacity: 1 }}
+                  animate={{ y: -22, scale: 1, opacity: 0 }}
+                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                />
+              </span>
+            ))}
+          </m.span>
+        )}
+      </AnimatePresence>
     </button>
   );
 }

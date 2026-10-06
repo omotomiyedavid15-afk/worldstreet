@@ -1,5 +1,6 @@
 import type { Preview } from "@storybook/nextjs-vite";
 import { withThemeByDataAttribute } from "@storybook/addon-themes";
+import { MotionGlobalConfig } from "motion/react";
 import { MotionProvider } from "../components/motion/MotionProvider";
 import { fontVariables } from "../app/fonts";
 import "../app/globals.css";
@@ -16,6 +17,15 @@ const viewports = {
 document.documentElement.classList.add(...fontVariables.split(" "));
 document.body.classList.add("cx-root");
 document.body.dataset.brand = "worldstreet";
+
+// Story tests (a driven browser) settle every animation at once, so axe and focus
+// checks see the end state rather than a half-faded frame.
+if (navigator.webdriver) {
+  MotionGlobalConfig.skipAnimations = true;
+  const style = document.createElement("style");
+  style.textContent = "*, *::before, *::after { transition: none !important; animation: none !important; }";
+  document.head.append(style);
+}
 
 const preview: Preview = {
   parameters: {

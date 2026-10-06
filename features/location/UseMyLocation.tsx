@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
+import { useMagnetic } from "@/components/motion/useMagnetic";
 import { useFormStatus } from "react-dom";
 import { LocationIcon } from "@/components/icons";
 import { buttonClass } from "@/components/ui";
@@ -53,8 +54,10 @@ export function UseMyLocation({ selectId }: { selectId: string }) {
 /** The selector's submit, which says it's working while the new area loads. */
 export function ApplyButton() {
   const { pending } = useFormStatus();
+  const ref = useRef<HTMLButtonElement>(null);
+  useMagnetic(ref);
   return (
-    <button type="submit" className={buttonClass({})} aria-disabled={pending || undefined} aria-busy={pending || undefined}>
+    <button ref={ref} type="submit" className={buttonClass({})} aria-disabled={pending || undefined} aria-busy={pending || undefined}>
       {pending ? "Applying…" : "Apply"}
     </button>
   );
