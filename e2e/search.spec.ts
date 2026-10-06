@@ -47,12 +47,19 @@ test("a prohibited search shows a neutral no-results with the policy link (EC-00
 
 test("sorting by price is monotonic and Back restores the previous order (Sprint 0 #3, R-011)", async ({ page }) => {
   await page.goto("/search?q=phone&radius=all");
-  await page.locator(".ws-filterbar").getByRole("button", { name: /^Sort/ }).click();
-  await page.getByRole("menuitemradio", { name: "Price: lowest first" }).click();
+  await page.getByRole("button", { name: /^Sort/ }).filter({ visible: true }).click();
+  await page.getByRole("menuitemradio", { name: "Price + delivery: lowest first" }).click();
   await expect(page).toHaveURL(/sort=price_asc/);
-  const prices = (await cards(page).locator(".ws-price__now").allTextContents()).map((t) => Number(t.replace(/[^\d]/g, "")));
-  expect(prices.length).toBeGreaterThan(2);
-  expect(prices).toEqual([...prices].sort((a, b) => a - b));
+  // What the buyer pays: the card's "Total" when delivery adds to the price, else the price.
+  const totals = await cards(page).evaluateAll((els) =>
+    els.map((el) => {
+      const total = /Total[^₦]*₦([\d,]+)/.exec(el.textContent ?? "")?.[1];
+      const price = el.querySelector(".ws-price__now")?.textContent ?? "";
+      return Number((total ?? price).replace(/[^\d]/g, ""));
+    }),
+  );
+  expect(totals.length).toBeGreaterThan(2);
+  expect(totals).toEqual([...totals].sort((a, b) => a - b));
   await page.goBack();
   await expect(page).not.toHaveURL(/sort=/);
 });

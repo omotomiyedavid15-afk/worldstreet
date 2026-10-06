@@ -242,6 +242,8 @@
 
 .ws-filterbar > .cx-btn {
   flex: 1;
+  min-width: 0;
+  padding-inline: var(--cx-s-3);
 }
 
 .ws-filterbar__n {
@@ -329,14 +331,44 @@
   }
 }
 
+@keyframes ws-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+/* Phones: the sheet rises from the bottom instead of sliding in from the side. */
 @media (max-width: 767px) {
   .ws-fsheet {
     max-width: none;
   }
 
-  @keyframes ws-sheet-in {
-    from {
-      transform: translateY(100%);
-    }
+  .ws-fsheet[open] .ws-fsheet__panel {
+    animation-name: ws-sheet-up;
   }
+}
+
+/* ViewToggle: two icon buttons in one pill; the pressed one is filled. */
+.ws-view {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: var(--cx-r-pill);
+  box-shadow: inset 0 0 0 1px var(--cx-field-border);
+}
+
+.ws-view [aria-pressed=true] {
+  background: var(--cx-surface-3);
+  color: var(--cx-text);
+}
+
+@media (min-width: 1024px) {
+  .ws-results-head__sort {
+    display: flex;
+    align-items: center;
+    gap: var(--cx-s-2);
+  }
+}
+
+.ws-filterbar__view {
+  flex: none;
 }

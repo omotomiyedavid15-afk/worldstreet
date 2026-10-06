@@ -67,3 +67,15 @@ test("axe: no serious or critical issues with filters applied and the sheet open
   const bad = violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   expect(bad.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
 });
+
+test("the grid/list choice is remembered (spec §6 ViewToggle)", async ({ page }) => {
+  await page.goto("/search?q=phone", { waitUntil: "networkidle" });
+  const list = page.getByRole("button", { name: "List view" }).filter({ visible: true });
+  await list.click();
+  await expect(list).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("ul.ws-card-list.ws-results")).toBeVisible();
+  await page.goto("/search?q=head");
+  await expect(page.locator("ul.ws-card-list.ws-results")).toBeVisible();
+  await page.getByRole("button", { name: "Grid view" }).filter({ visible: true }).click();
+  await expect(page.locator("ul.ws-card-grid.ws-results")).toBeVisible();
+});

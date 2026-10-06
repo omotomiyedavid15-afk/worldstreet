@@ -1,19 +1,22 @@
 import { rules } from "@/config/marketplace-rules";
 import type { ListingWithSeller } from "@/lib/data/types";
 import { haversineKm, type LatLng } from "@/lib/geo";
+import { deliveryFee, summariseDelivery } from "@/lib/delivery";
 import { discountPercent } from "@/lib/money";
 
 /*
  * Sort orders (flows B2 "Sort", spec §6 SortMenu), eBay's set minus auctions. Every
- * order works on canonical NGN kobo (R-002). Price sorts use the item price for now;
- * "Price + delivery" replaces them once delivery quotes exist (PLAN C10). Ties break
- * on id so a sort is deterministic, which keeps paging and Back stable.
+ * order works on canonical NGN kobo (R-002). The price sorts are eBay's "Price +
+ * delivery": item price plus the cheapest way it reaches the buyer's city, the same
+ * total the card shows (PLAN C10); pickup-only adds nothing, and a listing that can't
+ * reach the buyer goes last. Ties break on id so a sort is deterministic, which keeps
+ * paging and Back stable.
  */
 
 export const SORTS = [
   { key: "best", label: "Best match" },
-  { key: "price_asc", label: "Price: lowest first" },
-  { key: "price_desc", label: "Price: highest first" },
+  { key: "price_asc", label: "Price + delivery: lowest first" },
+  { key: "price_desc", label: "Price + delivery: highest first" },
   { key: "newest", label: "Newly listed" },
   { key: "nearest", label: "Distance: nearest first" },
   { key: "discount", label: "Biggest discount" },
@@ -32,6 +35,8 @@ export function sortLabel(key: SortKey) {
 
 type Context = {
   anchor?: LatLng;
+  /** The buyer's city, for the delivery part of "Price + delivery". */
+  city?: string;
   /** Text relevance per listing id in [0, 1], from search (S0.9). Missing = 0.5. */
   relevance?: ReadonlyMap<string, number>;
   now?: number;
@@ -75,14 +80,28 @@ export function bestMatchScores(listings: readonly ListingWithSeller[], { anchor
   return scores;
 }
 
+/** Item price plus delivery to the buyer's city; null when it can't reach them. */
+export function totalTo(l: Pick<ListingWithSeller, "price_minor" | "delivery" | "location">, city?: string): number | null {
+  const summary = summariseDelivery(l.delivery, city === undefined ? undefined : city === l.location.city);
+  if (summary.kind === "none") return null;
+  return l.price_minor + (deliveryFee(summary) ?? 0);
+}
+
 export function sortListings<T extends ListingWithSeller>(listings: readonly T[], key: SortKey, context: Context = {}): T[] {
   const byId = (a: T, b: T) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
   const list = [...listings];
   switch (key) {
     case "price_asc":
-      return list.sort((a, b) => a.price_minor - b.price_minor || byId(a, b));
-    case "price_desc":
-      return list.sort((a, b) => b.price_minor - a.price_minor || byId(a, b));
+    case "price_desc": {
+      const dir = key === "price_asc" ? 1 : -1;
+      const total = new Map(list.map((l) => [l.id, totalTo(l, context.city)]));
+      return list.sort((a, b) => {
+        const x = total.get(a.id)!;
+        const y = total.get(b.id)!;
+        if (x === null || y === null) return x === y ? byId(a, b) : x === null ? 1 : -1;
+        return (x - y) * dir || byId(a, b);
+      });
+    }
     case "newest":
       return list.sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at) || byId(a, b));
     case "nearest": {

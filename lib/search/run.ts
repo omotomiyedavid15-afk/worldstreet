@@ -35,7 +35,7 @@ export function runSearch({ listings: all, query, filters, anchor, radius, sort,
   const matched = relevance ? listings.filter((l) => relevance.has(l.id)) : listings;
   const filtered = applyFilters(matched, filters, ctx);
   const inRadius = filterByRadius(filtered, anchor, radius);
-  const sorted = sortListings(inRadius, sort, { anchor, relevance, now });
+  const sorted = sortListings(inRadius, sort, { anchor, relevance, now, city });
   const shown = sorted.slice(0, rules.search.pageSize * Math.max(1, page));
 
   return {

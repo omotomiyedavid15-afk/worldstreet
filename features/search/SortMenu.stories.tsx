@@ -15,7 +15,7 @@ export const Default: Story = {
     const trigger = canvas.getByRole("button", { name: /Sort/ });
     await userEvent.click(trigger);
     const menu = within(canvasElement.ownerDocument.body).getByRole("menu");
-    const current = within(menu).getByRole("menuitemradio", { name: "Price: lowest first" });
+    const current = within(menu).getByRole("menuitemradio", { name: "Price + delivery: lowest first" });
     expect(current).toHaveAttribute("aria-checked", "true");
     await waitFor(() => expect(current).toHaveFocus()); // opens on the current order
     // Every order is a link that keeps the other filters (R-011).

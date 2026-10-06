@@ -50,7 +50,7 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 | 6 Oct | Results grid | 4 columns from 1200px, not 5 at 1320 | Five columns make desktop cards narrow enough to trim; the spec allows 4–5 |
 | 6 Oct | Card menu | Only "Not interested" and "Hide {shop}" for now, each with Undo (focus moves to Undo) | "Find similar" (/search, S0.9) and "Report" (Phase 3) would be dead ends today (audit F5) |
 | 6 Oct | SellerMini | "Top rated" sits beside the shop name, a size down in seller rows | Keeps the card's seller row to two lines next to the ⋮ |
-| 6 Oct | Sort | Price sorts are labelled "Price: lowest/highest first" and use the item price; best match uses the B2 weights with relevance from search | "Price + delivery" needs delivery quotes (PLAN C10); the label doesn't promise what the sort doesn't do yet |
+| 6 Oct | Sort | (Sprint 0) Price sorts used the item price until Phase 2 added delivery; best match uses the B2 weights with relevance from search | Superseded by the Phase 2 "Price + delivery" row |
 | 6 Oct | Menu | Added `checked` items (menuitemradio + aria-checked); the menu opens on the checked one | Sort orders are a single choice |
 | 6 Oct | Location | Area in an httpOnly cookie (`ws-area`, area id only), radius in the URL (`?radius=5|10|25|all`, default 25 omitted). No cookie = IP city, mocked as Lagos | The server renders nearby results without client JS; radius is a shareable, Back-able state (R-011) |
 | 6 Oct | ShipToSelector | A form on a native popover posting to a Server Action (validated inputs, same-site return path only); "Use my location" asks only on tap and keeps just the nearest named area | Works before scripts load; no open redirect; position never leaves the device (F8) |
@@ -104,6 +104,8 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 | 6 Oct | Filters (Phase 2) | Condition, buying format, delivery (free, local pickup, fast), seller (Verified ID, Top rated), listed within (24 h, 7 d, 30 d), price (min/max plus presets), distance and category, all in the URL (`?cond=new,used`). OR inside a group, AND across groups. Counts beside every option are what ticking it would show under the current radius and other filters (R-016); options at 0 are disabled. One GET form: a sticky 260px rail from 1024px that applies as you tick, and a full-height sheet below that with a live "Show N results" (`/api/search-count`) | Spec §6, flows B2. Rail at 1024 not 1200 (spec §16.1 lists the rail from L 1024); results run three across beside it |
 | 6 Oct | "Fast delivery" | "Arrives within 4 days", using the same handling + transit range the card shows | B2 says "≤ 2 days", but cards quote up to 2 handling days on top of transit (R-061); a filter promising 2 days next to a card saying "2–4 days" would contradict it |
 | 6 Oct | Applied filters | One chip per value ("Brand new", "Pre-owned"), each removing only itself; Clear all; ZeroResults offers removing any group with its count | Baymard applied filters |
+| 6 Oct | Sort (Phase 2) | The price sorts are "Price + delivery: lowest/highest first": item price plus the cheapest way it reaches the buyer's city, the same total cards show; pickup-only adds nothing; listings that can't reach the buyer go last. URL keys unchanged (`price_asc`) | PLAN C10 now that cards compute delivery to the buyer (mock flat fees until a quote provider exists). The Sprint 0 guardrail is now "monotonic in the canonical NGN total" (200 random datasets × 3 cities) |
+| 6 Oct | ViewToggle | Grid or list, two `aria-pressed` buttons posting to a Server Action that sets a `ws-view` cookie and returns to the same results; in the header from 1024px and in the phone bar | UI research C18 (a display preference, like the area cookie) |
 | 6 Oct | Mock photos | Four views per category (`{cat}-1..4.svg`) | So stepping shows different images |
 | 6 Oct | Tooling | `PW_CHROMIUM_PATH` lets story tests use a preinstalled Chromium; Testing Library cleanup is explicit in `vitest.setup.ts` | Cloud containers ship a different Chromium build; auto-cleanup needs Vitest globals, which are off |
 
@@ -176,7 +178,7 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 - [x] ResultsHeader
 - [ ] SaveSearchButton
 - [x] SortMenu
-- [ ] ViewToggle
+- [x] ViewToggle
 - [x] FilterRail (W)
 - [x] FilterSheet (M)
 - [x] FilterGroup

@@ -3,7 +3,7 @@ import { repos } from "@/lib/data";
 import type { ListingWithSeller } from "@/lib/data/types";
 import { haversineKm } from "@/lib/geo";
 import { discountPercent, kobo } from "@/lib/money";
-import { SORTS, parseSort, sortListings, type SortKey } from "./sort";
+import { SORTS, parseSort, sortListings, totalTo, type SortKey } from "./sort";
 
 /** Small seeded PRNG (mulberry32), so a failing case can be replayed. */
 function rng(seed: number) {
@@ -38,11 +38,18 @@ async function randomListings(seed: number, n: number): Promise<ListingWithSelle
 const monotonic = (xs: number[], dir: 1 | -1) => xs.every((x, i) => i === 0 || (x - xs[i - 1]) * dir >= 0);
 
 describe("sortListings", () => {
-  it("is monotonic in price_minor for every price sort, over random data (Sprint 0 #3)", async () => {
+  it("is monotonic in the canonical NGN total for every price sort, over random data (Sprint 0 #3)", async () => {
     for (let seed = 1; seed <= 200; seed++) {
       const list = await randomListings(seed, 1 + (seed % 60));
-      expect(monotonic(sortListings(list, "price_asc").map((l) => l.price_minor), 1), `seed ${seed}`).toBe(true);
-      expect(monotonic(sortListings(list, "price_desc").map((l) => l.price_minor), -1), `seed ${seed}`).toBe(true);
+      for (const city of [undefined, "Lagos", "Kano"]) {
+        for (const [key, dir] of [["price_asc", 1], ["price_desc", -1]] as const) {
+          const totals = sortListings(list, key, { city }).map((l) => totalTo(l, city));
+          const reachable = totals.filter((t): t is number => t !== null);
+          // Everything that reaches the buyer first, in order; the rest after.
+          expect(totals.slice(0, reachable.length)).toEqual(reachable);
+          expect(monotonic(reachable, dir), `seed ${seed} ${key} ${city}`).toBe(true);
+        }
+      }
     }
   });
 
@@ -65,8 +72,12 @@ describe("sortListings", () => {
       expect(sortListings(list, key, { anchor: { lat: 6.5, lng: 3.4 }, now: Date.parse("2026-10-06T00:00:00Z") })).toEqual(sorted);
     }
     expect(list.map((l) => l.id)).toEqual(before);
-    const ties = sortListings(list, "price_asc").filter((l) => l.price_minor === 100_000_00).map((l) => l.id);
-    expect(ties).toEqual([...ties].sort());
+    const sorted = sortListings(list, "price_asc");
+    const tied = sorted.filter((l) => sorted.some((m) => m !== l && totalTo(m) === totalTo(l)));
+    for (const t of new Set(tied.map((l) => totalTo(l)))) {
+      const ids = tied.filter((l) => totalTo(l) === t).map((l) => l.id);
+      expect(ids).toEqual([...ids].sort());
+    }
   });
 
   it("lets text relevance lead best match", async () => {
