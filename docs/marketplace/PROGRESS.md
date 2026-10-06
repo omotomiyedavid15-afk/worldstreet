@@ -6,7 +6,7 @@ pass `npm run check`.
 
 ## Phase reports
 
-_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.9 done; next S0.10 (home, placeholder routes, a11y pass). Building in dark mode (your direction, 6 Oct). Sprint 0 checks #1–#4 pass end to end (e2e/search.spec.ts, 375 and 1280). Components mirror eBay, styled with the DS (your direction, 6 Oct)._
+_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placeholder routes, manifest, a11y pass: axe zero serious/critical on `/`, `/search`, placeholders and the 404 at 375, 360 and 1280); Sprint 0 check #5 passes (e2e/home.spec.ts). Next: Phase 1 (header, footer, bottom nav). Building in dark mode (your direction, 6 Oct). Sprint 0 checks #1–#4 pass end to end (e2e/search.spec.ts, 375 and 1280). Components mirror eBay, styled with the DS (your direction, 6 Oct)._
 
 ## Deviations from the docs and the design system
 
@@ -79,6 +79,15 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.9 done; next S0.10 (hom
 | 6 Oct | Testing | Playwright `android-360` project; no-sideways-scroll checks at 360 and 320 (caught a real 38–50px overflow, fixed with `minmax(0, 1fr)` on the page column). Lighthouse CI deferred: it adds a dependency, and there's no home page to budget yet (S0.10) | GSMA device mix; spec §16.7 |
 | 6 Oct | Card subtitle (decided C2) | Condition plus up to 3 category facts on one line under the title ("Pre-owned · 256GB · Battery 89%", "1 bed · 1 bath"), replacing the condition chip on cards; facts per category in `Category.card_facts`, worded in `lib/facts.ts`, skipping what the title says; narrow cards keep condition + 1 | eBay item tile; Baymard category attributes. Spec §5.1 items 2/3 change. ConditionChip stays for the listing page and filters |
 | 6 Oct | Card photos (decided C1) | Step through up to 4 photos on grid and list cards: hover arrows and dots on desktop, swipe on phones (Motion drag), spring slide, "2/6" counter; tap still opens the listing; only photo 1 loads up front | eBay/Etsy. Arrows are pointer-only (not in tab order): keyboard users get every photo in the listing gallery (blueprint X3 noted) |
+| 6 Oct | Home (S0.10) | Search and the location bar sit at the top until the Phase 1 header exists; the h1 is visually hidden ("WorldStreet Marketplace: buy and sell near you", F11) because hero slides rotate | B1 step 1 puts search first; a rotating headline can't be the page's h1 |
+| 6 Oct | HeroCarousel | 3 slides (PLAN C6), APG carousel: rotation control first, "2 / 3" counter, slides labelled "2 of 3", aria-live off while rotating; rotation holds while the pointer or focus is inside and stops for good once the buyer changes slide; never starts under reduced motion; Previous/Next on phones too; CTAs are ghost; every slide's copy sits invisibly in the same cell so the hero never changes height | Spec §4 says mobile is "swipe, counter", but WCAG 2.5.7 needs a single-pointer alternative to dragging. Ghost CTAs: Search is the view's one solid gold button (spec §1.1). The invisible copies keep rotation from shifting the page (CLS) |
+| 6 Oct | Home rails | Each listing goes to its most specific rail first (price drop → Deals, then nearest → Near you, then newest → Just listed), shown in B1 order; rails follow `?radius=`; with nothing nearby one "From sellers across Nigeria" rail replaces Near you; B1's "All listings" is a "Just listed" rail plus "Browse all N listings near Lagos" (N = the /search count) | R-013 dedupe without starving Deals; F6 never passes far items off as near; a long grid of full cards would make the phone page very long |
+| 6 Oct | Deals rail | "Deals near Lagos" with eyebrow "Price drops", no countdown | Listings have no deal end time, so "Deals ending soon" (B1) would be a false claim |
+| 6 Oct | CategoryTiles | Icon tiles (the category's Atlas glyph) with "5 nearby" or "2 nationwide"; the number is the one the tile's search shows, radius included; two scrolling rows on phones | Spec §4 asks for image tiles; Atlas is the only image source we use. R-016 |
+| 6 Oct | Trust copy | Strip and hero copy in `lib/copy/trust.ts`, escrow sentences in `escrow.ts`, numbers from config (₦20,000 tracking, 72-hour inspection, 7-day was-price); strip says "We hold your payment while you check the item, then pay the seller", not "until you confirm" | L11.4: the short claim mustn't hide that the inspection window can release the money; L14 test 8 |
+| 6 Oct | Placeholder routes (F5) | `/categories`, `/saved`, `/notifications`, `/inbox`, `/offers`, `/account`, `/cart`, `/checkout`, `/orders`, `/sell/start`, `/sell/new`, `/vendor`, `/seller/:handle`, `/help/*` say what they'll do and "Coming in Phase N of the build", noindex; unknown help topics, sellers and paths get a real 404 page | No dead links before the shell (Phase 1) points at them; a fake help page for any slug would hide broken links |
+| 6 Oct | App icon and manifest (F16) | The Atlas ShopBag glyph on the gold tile (`npm run app-icons`, rasterised with sharp, which Next installs); favicon, SVG icon, Apple icon, 192/512 and maskable icons; manifest dark, standalone, en-NG | Replaces the create-next-app favicon. Atlas is the only icon source (your rule), so the brand mark uses it too. **Swap in a real WorldStreet logo when there is one** |
+| 6 Oct | F17 (sticky chrome) | Bottom padding for the nav and the collapsing category rail move to Phase 1 | Neither the bottom nav nor the category rail exists yet; padding for a missing nav would be empty space |
 | 6 Oct | Mock photos | Four views per category (`{cat}-1..4.svg`) | So stepping shows different images |
 | 6 Oct | Tooling | `PW_CHROMIUM_PATH` lets story tests use a preinstalled Chromium; Testing Library cleanup is explicit in `vitest.setup.ts` | Cloud containers ship a different Chromium build; auto-cleanup needs Vitest globals, which are off |
 
@@ -110,20 +119,20 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.9 done; next S0.10 (hom
 - [ ] SystemBanner
 
 ## B. Home
-- [ ] HeroCarousel w/ pause + counter
+- [x] HeroCarousel w/ pause + counter
 - [ ] PromoCouponCard
-- [ ] TrustStrip
-- [ ] CategoryTiles
-- [ ] ProductRail
-- [ ] DealsRail
+- [x] TrustStrip
+- [x] CategoryTiles
+- [x] ProductRail
+- [ ] DealsRail (rail with was/now prices done; countdowns wait for timed deals)
 - [ ] TrendingTabs
 - [ ] RecentlyViewedRail
 - [ ] BecauseYouSavedRail
-- [ ] NearYouRail
+- [x] NearYouRail
 - [ ] EditorialTile
 - [ ] SponsoredSellerBanner
 - [ ] SignInNudge
-- [ ] SellCTABlock
+- [x] SellCTABlock
 - [ ] FeaturedBeamCard
 
 ## C. Cards & atoms

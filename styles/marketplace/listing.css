@@ -1384,15 +1384,9 @@ a.ws-seller__name:hover {
   color: var(--cx-ember-text);
 }
 
-.ws-listing-stub__note a,
-.ws-help-stub a {
+.ws-listing-stub__note a {
   color: var(--cx-ember-text);
   text-decoration: underline;
-}
-
-.ws-help-stub {
-  display: grid;
-  gap: var(--cx-s-6);
 }
 
 /* The location sheet slides up on phones (Material bottom sheet). */
@@ -1859,11 +1853,4 @@ a.ws-seller__name:hover {
   color: var(--cx-text);
   font: 400 var(--cx-small)/1.4 var(--cx-font);
   text-align: center;
-}
-
-/* The hero's 3D backdrop fills its section, behind the copy. */
-.ws-hero__stage {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
 }

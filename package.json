@@ -16,7 +16,8 @@
     "check": "npm run icons:check && npm run lint && npm run typecheck && npm test && npm run build-storybook",
     "icons": "node scripts/gen-icons.mjs",
     "icons:check": "node scripts/gen-icons.mjs --check",
-    "mock-photos": "node scripts/gen-mock-photos.mjs"
+    "mock-photos": "node scripts/gen-mock-photos.mjs",
+    "app-icons": "node scripts/gen-app-icons.mjs"
   },
   "dependencies": {
     "gsap": "^3.15.0",

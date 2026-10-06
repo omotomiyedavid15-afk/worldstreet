@@ -7,17 +7,33 @@ import type { Category } from "@/lib/data/types";
  * checkout (PLAN risk 7), and off-platform payments aren't covered (R-005).
  */
 
+/** True for every listing, so no blanket "every deal". */
+const HELD = "Pay through WorldStreet and your money is held until you get what you ordered.";
+
 export const ESCROW = {
-  /** Site description and home: true for every listing, so no blanket "every deal". */
-  tagline: "Buy and sell near you. Pay through WorldStreet and your money is held until you get what you ordered.",
+  /** Site description. */
+  tagline: `Buy and sell near you. ${HELD}`,
+  /** The home hero's first slide, under "Buy and sell near you". */
+  held: HELD,
   /** Short claim next to a goods listing's price and delivery. */
   claim:
     "Pay through WorldStreet checkout and we hold your money until you confirm the item arrived as described, or the inspection window ends without a problem report.",
   /** For vehicles and property, which have no escrow checkout. */
   noEscrow: "No escrow checkout for this category. Inspect in person before you pay, and never pay a deposit to hold a viewing.",
+  /** Short form for the home trust strip (L11.1), next to "How escrow works". */
+  stripTitle: "Escrow on every checkout",
+  // Not "until you confirm": the inspection window can also end it (L11.4).
+  strip: "We hold your payment while you check the item, then pay the seller.",
+  /** Seller payout timing (L11.4: the one claim every surface uses). */
+  payout: "Sellers are paid after delivery is confirmed, usually within 24 hours.",
   /** Where the rules are explained. */
   learnMoreHref: "/help/escrow",
 } as const;
+
+/** The inspection window a category gets before the seller is paid (L4), as a sentence. */
+export function inspectionLine(hours: number, what: string) {
+  return `${what} bought through checkout get ${hours} hours to check before the seller is paid.`;
+}
 
 export function escrowLine(category: Pick<Category, "kind">) {
   return category.kind === "goods" ? ESCROW.claim : ESCROW.noEscrow;

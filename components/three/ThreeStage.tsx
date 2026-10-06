@@ -23,15 +23,29 @@ type Props = {
   fallback: ReactNode;
   /** Pointer drags feed the scene (and stop page scroll sideways). */
   draggable?: boolean;
+  /**
+   * Where pointer moves are read: the stage itself, or its parent when content sits on
+   * top of the stage (the home hero's slides).
+   */
+  pointerScope?: "stage" | "parent";
+  /** A step the scene follows (the hero turns with the carousel). */
+  step?: number;
   className?: string;
 };
 
 type Status = "idle" | "live" | "off";
 
-export function ThreeStage({ load, fallback, draggable = false, className }: Props) {
+export function ThreeStage({ load, fallback, draggable = false, pointerScope = "stage", step = 0, className }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const loadRef = useRef(load);
+  const sceneRef = useRef<Scene | null>(null);
+  const stepRef = useRef(step);
   const [status, setStatus] = useState<Status>("idle");
+
+  useEffect(() => {
+    stepRef.current = step;
+    sceneRef.current?.step?.(step);
+  }, [step]);
 
   useEffect(() => {
     const el = ref.current!;
@@ -59,6 +73,7 @@ export function ThreeStage({ load, fallback, draggable = false, className }: Pro
       disposed = true;
       cleanups.forEach((fn) => fn());
       renderer?.setAnimationLoop(null);
+      sceneRef.current = null;
       scene?.dispose();
       renderer?.dispose();
       renderer?.forceContextLoss();
@@ -87,6 +102,8 @@ export function ThreeStage({ load, fallback, draggable = false, className }: Pro
         height,
         colors: { ember: token("--cx-ember", "#efbe04"), text: token("--cx-text", "#f5f5f4") },
       });
+      scene.step?.(stepRef.current);
+      sceneRef.current = scene;
       scene.frame(0, 0);
       el.append(canvas);
       setStatus("live");
@@ -109,12 +126,13 @@ export function ThreeStage({ load, fallback, draggable = false, className }: Pro
       document.addEventListener("visibilitychange", run);
       cleanups.push(() => document.removeEventListener("visibilitychange", run));
 
+      const area = pointerScope === "parent" && el.parentElement ? el.parentElement : el;
       const onMove = (e: PointerEvent) => {
-        const r = el.getBoundingClientRect();
+        const r = area.getBoundingClientRect();
         scene?.pointer?.(((e.clientX - r.left) / r.width) * 2 - 1, -(((e.clientY - r.top) / r.height) * 2 - 1));
       };
-      el.addEventListener("pointermove", onMove);
-      cleanups.push(() => el.removeEventListener("pointermove", onMove));
+      area.addEventListener("pointermove", onMove);
+      cleanups.push(() => area.removeEventListener("pointermove", onMove));
 
       if (draggable) {
         let drag: { x: number; y: number } | null = null;
@@ -173,7 +191,7 @@ export function ThreeStage({ load, fallback, draggable = false, className }: Pro
       reduced.removeEventListener("change", onReduce);
       stop();
     };
-  }, [draggable]);
+  }, [draggable, pointerScope]);
 
   return (
     <div ref={ref} className={cx("ws-stage", draggable && "ws-stage--drag", className)} data-status={status}>

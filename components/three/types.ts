@@ -19,6 +19,8 @@ export type Scene = {
   drag?(dx: number, dy: number): void;
   /** The drag ended. */
   release?(): void;
+  /** Move to a step (the hero turns to face each carousel slide). */
+  step?(index: number): void;
   dispose(): void;
 };
 

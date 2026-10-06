@@ -90,6 +90,9 @@ export const hero: SceneFactory = ({ THREE, renderer, width, height, colors }) =
 
   const target = { x: 0, y: 0 };
   const lean = { x: 0, y: 0 };
+  // Each carousel slide turns the ring a third of the way round its centre.
+  let turnTarget = 0;
+  let turn = 0;
   const origin = new THREE.Vector3();
   let start = -1;
 
@@ -110,16 +113,33 @@ export const hero: SceneFactory = ({ THREE, renderer, width, height, colors }) =
       const damp = 1 - Math.exp(-delta * 3);
       lean.x += (target.x - lean.x) * damp;
       lean.y += (target.y - lean.y) * damp;
+      turn += (turnTarget - turn) * (1 - Math.exp(-delta * 2.4));
       group.rotation.y = lean.x * 0.25;
       group.rotation.x = -lean.y * 0.15;
+      group.rotation.z = turn;
       points.rotation.y = t * 0.01 + lean.x * 0.08;
+      points.rotation.z = turn * 0.3;
       renderer.render(scene, camera);
     },
     resize(w: number, h: number) {
-      camera.aspect = w / h;
+      const aspect = w / h;
+      camera.aspect = aspect;
       // Narrow screens pull back so the ring still frames the headline.
-      camera.position.z = w / h < 1 ? 20 : 14;
+      camera.position.z = aspect < 1 ? 20 : 14;
       camera.updateProjectionMatrix();
+      // Banners keep the copy on the left, so the ring sits right and a little smaller;
+      // taller stages keep the copy at the bottom, so it rises.
+      const visibleH = 2 * camera.position.z * Math.tan(((camera.fov / 2) * Math.PI) / 180);
+      if (aspect > 1.4) {
+        group.position.set(visibleH * aspect * 0.24, 0, 0);
+        group.scale.setScalar(0.72);
+      } else {
+        group.position.set(0, visibleH * 0.16, 0);
+        group.scale.setScalar(aspect < 1 ? 0.9 : 0.8);
+      }
+    },
+    step(index: number) {
+      turnTarget = (index * Math.PI * 2) / 3;
     },
     pointer(x: number, y: number) {
       target.x = x;

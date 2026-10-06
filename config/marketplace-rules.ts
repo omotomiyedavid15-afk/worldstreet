@@ -29,7 +29,10 @@ export const rules = {
   },
   home: {
     maxHeroSlides: 3, // R-015 (stricter than spec §4, PLAN C6)
+    heroAutoplayMs: 7000, // R-015: rotates only with motion allowed, pauses on hover and focus
     minRailItems: 4, // R-014
+    railMax: 12, // cards per rail; "See all" opens the full search
+    moreMax: 8, // "More near you" grid after the sell block (B1 "All listings")
   },
   card: {
     maxFacts: 3, // subtitle line facts after the condition (Baymard: show category attributes)
@@ -130,6 +133,7 @@ export const rules = {
   seller: {
     titleMax: 80, // S2 step 3
     descriptionMax: 5_000, // S2 step 3
+    wasPriceMinDays: 7, // S2 step 4: a crossed-out price needs this many days at the higher price
     photosMax: 12, // S2 step 1
     photoMinPx: 600, // R-114
     photoMaxMb: 10, // R-114
