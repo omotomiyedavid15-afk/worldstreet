@@ -106,12 +106,36 @@ describe("DeliveryLine", () => {
 
   it("shows the fee and the total to the buyer's area", () => {
     const { container } = render(<DeliveryLine options={options} price_minor={toMinor(100_000)} listingCity="Lagos" buyer={{ city: "Lagos", label: "Lekki" }} />);
-    expect(container).toHaveTextContent("+₦2,500 deliveryTotal to Lekki ₦102,500");
+    expect(container).toHaveTextContent("+₦2,500 delivery in 2–4 daysTotal to Lekki ₦102,500");
   });
 
   it("uses only options that reach the buyer's city", () => {
     const { container } = render(<DeliveryLine options={options} price_minor={toMinor(100_000)} listingCity="Lagos" buyer={{ city: "Abuja", label: "Wuse 2" }} />);
-    expect(container).toHaveTextContent("+₦4,500 deliveryTotal to Wuse 2 ₦104,500");
+    expect(container).toHaveTextContent("+₦4,500 delivery in 2–4 daysTotal to Wuse 2 ₦104,500");
+  });
+
+  it("drops a total that would just repeat the price", () => {
+    const { container } = render(<DeliveryLine options={[option("courier", 0, "nationwide")]} price_minor={toMinor(1_000)} listingCity="Lagos" buyer={{ city: "Lagos", label: "Lekki" }} />);
+    expect(container).toHaveTextContent("Free delivery in 2–4 days");
+    expect(container).not.toHaveTextContent("Total");
+  });
+
+  it("adds eBay's free local pickup, only where the buyer can get there", () => {
+    const withMeetUp = [...options, option("meet_up", 0, "same_city")];
+    const { container } = render(<DeliveryLine options={withMeetUp} price_minor={toMinor(1_000)} listingCity="Lagos" buyer={{ city: "Lagos", label: "Lekki" }} />);
+    expect(container).toHaveTextContent("Free local pickup");
+    const far = render(<DeliveryLine options={withMeetUp} price_minor={toMinor(1_000)} listingCity="Lagos" buyer={{ city: "Abuja", label: "Wuse 2" }} />);
+    expect(far.container).not.toHaveTextContent("pickup");
+  });
+
+  it("calls a pickup station what it is, never free delivery", () => {
+    const { container } = render(
+      <DeliveryLine options={[option("pickup_station", 3_000, "nationwide")]} price_minor={toMinor(10_000)} listingCity="Lagos" buyer={{ city: "Abuja", label: "Wuse 2" }} />,
+    );
+    expect(container).toHaveTextContent("+₦3,000 pickup stationTotal with pickup ₦13,000");
+    const free = render(<DeliveryLine options={[option("pickup_station", 0, "nationwide")]} price_minor={toMinor(10_000)} listingCity="Lagos" />);
+    expect(free.container).toHaveTextContent("Free pickup station");
+    expect(free.container).not.toHaveTextContent("Free delivery");
   });
 
   it("covers free, pickup-only and no delivery", () => {
@@ -165,9 +189,17 @@ describe("SellerMini", () => {
   it("shows eBay's feedback line, verified tick and top-rated badge", () => {
     const { container } = render(<SellerMini seller={seller} />);
     expect(container).toHaveTextContent("Seller feedback: 99.2% positive (1,284)");
-    expect(screen.getByRole("img", { name: "Verified seller" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Verified ID" })).toBeInTheDocument();
     expect(screen.getByText("Top rated")).toBeInTheDocument();
     expect(screen.queryByRole("link")).toBeNull(); // cards have one link
+  });
+
+  it("calls a seller with few ratings new, instead of '100% (4)' alone", () => {
+    const { container } = render(<SellerMini seller={{ ...seller, verified: false, top_rated: false, feedback: { positive_percent: 100, count: 4 } }} />);
+    expect(container).toHaveTextContent("New seller");
+    const none = render(<SellerMini seller={{ ...seller, top_rated: false, feedback: { positive_percent: 0, count: 0 } }} />);
+    expect(none.container).toHaveTextContent("New seller");
+    expect(none.container).not.toHaveTextContent("positive");
   });
 
   it("links to the shop when asked", () => {

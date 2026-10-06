@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { CheckShieldIcon, StarBadgeAwardIcon } from "@/components/icons";
+import { LeafIcon, StarBadgeAwardIcon, UserCheckIcon } from "@/components/icons";
+import { rules } from "@/config/marketplace-rules";
 import { Avatar, Chip } from "@/components/ui";
 import type { SellerProfile } from "@/lib/data/types";
 import { formatCount } from "@/lib/format";
@@ -8,8 +9,19 @@ import { formatCount } from "@/lib/format";
    "name · 99.2% positive (1,284)" plus "Top Rated Plus". Seller feedback is a
    percentage, item ratings are stars, so the two never look alike (audit F13). */
 
+/** The seller's ID is verified. Its own icon: the shield and lock stay for escrow. */
 export function VerifiedTick() {
-  return <CheckShieldIcon label="Verified seller" />;
+  return <UserCheckIcon label="Verified ID" />;
+}
+
+/** Under the feedback threshold and not top rated: say so instead of "100% (4)". */
+export function NewSellerBadge() {
+  return (
+    <Chip className="ws-chip-icon">
+      <LeafIcon />
+      New seller
+    </Chip>
+  );
 }
 
 /** eBay's "Top Rated Plus" badge. Links to the standards page once /help exists (S0.10). */
@@ -51,6 +63,7 @@ export function SellerMini({ seller, link = false, avatar = false }: SellerMiniP
         <span className="ws-seller__name">{name}</span>
       )}
       {seller.top_rated && <TopRatedBadge />}
+      {!seller.top_rated && count < rules.trust.newSellerFeedbackCount && <NewSellerBadge />}
       {count > 0 && (
         <span className="ws-seller__feedback">
           <span className="cx-sr-only">Seller feedback: </span>

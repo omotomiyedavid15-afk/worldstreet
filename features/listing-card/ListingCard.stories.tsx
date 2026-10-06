@@ -27,7 +27,7 @@ export const Grid: Story = {
     <>
       <div className="ws-card-grid">
         {storyListings.map((l, i) => (
-          <ListingCard key={l.id} listing={l} anchor={lekkiAnchor} now={STORY_NOW} priority={i < 4} />
+          <ListingCard key={l.id} listing={l} anchor={lekkiAnchor} now={STORY_NOW} load={i < 2 ? "high" : "eager"} />
         ))}
       </div>
       <ToastViewport />

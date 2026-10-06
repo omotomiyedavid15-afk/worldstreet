@@ -1,3 +1,4 @@
+import { rules } from "@/config/marketplace-rules";
 import type { ListingWithSeller } from "@/lib/data/types";
 import { haversineKm, type LatLng } from "@/lib/geo";
 import { discountPercent } from "@/lib/money";
@@ -61,8 +62,8 @@ export function bestMatchScores(listings: readonly ListingWithSeller[], { anchor
   for (const l of listings) {
     const text = relevance?.get(l.id) ?? 0.5;
     const { positive_percent, count } = l.seller.feedback;
-    // Feedback only counts once there's enough of it (10 ratings for full weight).
-    const seller = (positive_percent / 100) * Math.min(1, count / 10) + (l.seller.verified ? 0 : -0.1);
+    // Feedback only counts once there's enough of it (rules.trust.newSellerFeedbackCount).
+    const seller = (positive_percent / 100) * Math.min(1, count / rules.trust.newSellerFeedbackCount) + (l.seller.verified ? 0 : -0.1);
     const ageDays = (now - Date.parse(l.created_at)) / DAY;
     const fresh = 1 - clamp01(ageDays / 30);
     const median = medians.get(l.category_id)!;

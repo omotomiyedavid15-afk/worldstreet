@@ -18,6 +18,8 @@ export type PriceBlockProps = {
   price_minor: Kobo;
   was_minor?: Kobo;
   variant?: "card" | "detail" | "cart" | "sticky";
+  /** Rent: "per year" follows the price, in every variant. */
+  period?: "night" | "month" | "year";
   /** eBay's "or Best offer" under the price. */
   bestOffer?: boolean;
   unitPrice?: { amount_minor: Kobo; unit: string };
@@ -28,7 +30,7 @@ export type PriceBlockProps = {
   className?: string;
 };
 
-export function PriceBlock({ price_minor, was_minor, variant = "card", bestOffer, unitPrice, delivery_minor, showTotalTo, className }: PriceBlockProps) {
+export function PriceBlock({ price_minor, was_minor, variant = "card", period, bestOffer, unitPrice, delivery_minor, showTotalTo, className }: PriceBlockProps) {
   const percent = discountPercent(price_minor, was_minor);
   const showTotal = showTotalTo !== undefined && delivery_minor !== undefined;
   // Detail spells the saving out the way eBay does; smaller variants use the chip.
@@ -36,7 +38,10 @@ export function PriceBlock({ price_minor, was_minor, variant = "card", bestOffer
 
   return (
     <div className={cx("ws-price", `ws-price--${variant}`, className)}>
-      <p className="ws-price__now">{formatCurrency(price_minor)}</p>
+      <p className="ws-price__now">
+        {formatCurrency(price_minor)}
+        {period && <span className="ws-price__period"> per {period}</span>}
+      </p>
       {saving !== null && was_minor !== undefined && variant !== "sticky" && (
         <p className="ws-price__was">
           <span>

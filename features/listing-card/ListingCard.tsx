@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ImageIcon } from "@/components/icons";
 import { Card, Skeleton } from "@/components/ui";
+import { rules } from "@/config/marketplace-rules";
 import { cx } from "@/lib/cx";
 import { listingPath } from "@/lib/data/repo";
 import type { ListingWithSeller } from "@/lib/data/types";
@@ -36,20 +37,25 @@ type Props = {
   anchor?: Anchor;
   /** Override the photo's `sizes` when a layout differs from the defaults below. */
   sizes?: string;
-  /** Above-the-fold cards load their photo eagerly (LCP). */
-  priority?: boolean;
+  /**
+   * Above-the-fold photos: "high" = eager + fetchpriority high (the first couple of
+   * results, likely LCP), "eager" = loaded straight away, default lazy
+   * (rules.media; Next 16 deprecates `priority`).
+   */
+  load?: "high" | "eager" | "lazy";
   headingLevel?: "h2" | "h3";
   now?: number;
 };
 
 const SIZES: Record<ListingCardVariant, string> = {
-  grid: "(min-width: 1200px) 20vw, (min-width: 768px) 33vw, 50vw",
+  // Matches the grid: 4 columns from 1200 (capped by the 1320 container), 3 from 768, 2 on phones.
+  grid: "(min-width: 1380px) 312px, (min-width: 1200px) calc(25vw - 33px), (min-width: 768px) 33vw, calc(50vw - 22px)",
   list: "(min-width: 768px) 200px, 112px",
   rail: "(min-width: 768px) 220px, 160px",
   compact: "72px",
 };
 
-export function ListingCard({ listing, variant = "grid", anchor, sizes, priority, headingLevel: H = "h3", now }: Props) {
+export function ListingCard({ listing, variant = "grid", anchor, sizes, load = "lazy", headingLevel: H = "h3", now }: Props) {
   const photo = listing.media[0];
   const href = listingPath(listing);
   const title = (
@@ -68,10 +74,12 @@ export function ListingCard({ listing, variant = "grid", anchor, sizes, priority
   if (variant === "compact") {
     return gate(
       <Card as="article" interactive className="ws-card ws-card--compact">
-        <div className="ws-card__media">{photo && <Image src={photo.url} alt={photo.alt} fill sizes={sizes ?? SIZES.compact} />}</div>
+        <div className="ws-card__media">
+          {photo && <Image src={photo.url} alt={photo.alt} fill sizes={sizes ?? SIZES.compact} quality={rules.media.thumbQuality} />}
+        </div>
         <div className="ws-card__body">
           {title}
-          <PriceBlock price_minor={listing.price_minor} was_minor={listing.was_minor} variant="cart" className="ws-card__compact-price" />
+          <PriceBlock price_minor={listing.price_minor} was_minor={listing.was_minor} period={listing.price_period} variant="cart" className="ws-card__compact-price" />
           <ConditionChip condition={listing.condition} />
         </div>
       </Card>,
@@ -82,7 +90,17 @@ export function ListingCard({ listing, variant = "grid", anchor, sizes, priority
   return gate(
     <Card as="article" interactive className={cx("ws-card", `ws-card--${variant}`)}>
       <div className="ws-card__media">
-        {photo && <Image src={photo.url} alt={photo.alt} fill sizes={sizes ?? SIZES[variant]} priority={priority} />}
+        {photo && (
+          <Image
+            src={photo.url}
+            alt={photo.alt}
+            fill
+            sizes={sizes ?? SIZES[variant]}
+            loading={load === "lazy" ? "lazy" : "eager"}
+            fetchPriority={load === "high" ? "high" : undefined}
+            quality={variant === "rail" ? rules.media.thumbQuality : undefined}
+          />
+        )}
         <div className="ws-card__save">
           <SaveButton listingId={listing.id} title={listing.title} />
         </div>
@@ -106,15 +124,18 @@ export function ListingCard({ listing, variant = "grid", anchor, sizes, priority
             <div className="ws-card__rating">{listing.rating && <RatingStars value={listing.rating.average} count={listing.rating.count} />}</div>
           </div>
 
-          <PriceBlock price_minor={listing.price_minor} was_minor={listing.was_minor} bestOffer={listing.offers_enabled} />
+          <PriceBlock price_minor={listing.price_minor} was_minor={listing.was_minor} period={listing.price_period} bestOffer={listing.offers_enabled} />
 
           <div className="ws-card__meta">
-            <DeliveryLine
-              options={listing.delivery}
-              price_minor={listing.price_minor}
-              listingCity={listing.location.city}
-              buyer={anchor && { city: anchor.city, label: anchor.label }}
-            />
+            {/* Rent and viewings, not deliveries. */}
+            {listing.category.kind !== "property" && (
+              <DeliveryLine
+                options={listing.delivery}
+                price_minor={listing.price_minor}
+                listingCity={listing.location.city}
+                buyer={anchor && { city: anchor.city, label: anchor.label }}
+              />
+            )}
             <LocationLine place={listing.location} distanceKm={distanceKm} postedAt={listing.created_at} now={now} />
             <SocialProof listing={listing} showWatchers={listing.seller.show_watchers} />
           </div>

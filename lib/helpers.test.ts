@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { DeliveryOption } from "@/lib/data/types";
-import { deliveryFee, summariseDelivery } from "./delivery";
-import { formatCount, formatDistance, plural, timeAgo, timeLeft } from "./format";
+import { deliveryEstimate, deliveryFee, summariseDelivery } from "./delivery";
+import { formatCount, formatDayRange, formatDistance, plural, timeAgo, timeLeft } from "./format";
 import { kobo, toMinor } from "./money";
 import { buyerTotal } from "./pricing";
 
@@ -84,6 +84,21 @@ describe("summariseDelivery", () => {
     const s = summariseDelivery([opt("courier", 0, "nationwide")], false);
     expect(s.kind).toBe("free");
     expect(deliveryFee(s)).toBe(0);
+  });
+
+  it("leads with door delivery, and flags local pickup", () => {
+    const station = [opt("pickup_station", 1_500, "same_city"), opt("rider", 2_500, "same_city")];
+    expect(summariseDelivery(station, true)).toMatchObject({ kind: "paid", fee_minor: toMinor(2_500), pickup: false });
+    expect(summariseDelivery([opt("pickup_station", 3_000, "nationwide")], false)).toMatchObject({ kind: "station", fee_minor: toMinor(3_000) });
+    expect(summariseDelivery(lagos, true)).toMatchObject({ pickup: true });
+    expect(summariseDelivery(lagos, false)).toMatchObject({ pickup: false }); // can't meet up from another city
+  });
+
+  it("estimates delivery days as handling plus transit", () => {
+    expect(deliveryEstimate(opt("rider", 0, "same_city"))).toEqual([2, 4]); // [1,2] + 1 typical / 2 max handling
+    expect(formatDayRange([2, 4])).toBe("2–4 days");
+    expect(formatDayRange([1, 1])).toBe("1 day");
+    expect(formatDayRange([3, 3])).toBe("3 days");
   });
 
   it("says when nothing reaches the buyer", () => {

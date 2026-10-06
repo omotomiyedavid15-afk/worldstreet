@@ -31,6 +31,7 @@ export type ListingSeed = {
   /** Naira, converted to kobo here so fixtures read like a price tag. */
   price: number;
   was?: number;
+  period?: Listing["price_period"];
   format?: ListingFormat;
   offers?: boolean;
   delivery: keyof typeof delivery;
@@ -73,6 +74,7 @@ export function makeListing(seed: ListingSeed): Listing {
     condition: seed.condition,
     price_minor: toMinor(seed.price),
     ...(seed.was !== undefined && { was_minor: toMinor(seed.was) }),
+    ...(seed.period && { price_period: seed.period }),
     qty: seed.qty ?? 1,
     format: seed.format ?? (offers ? "best_offer" : "buy_now"),
     offers_enabled: offers,

@@ -87,6 +87,13 @@
   text-align: end;
 }
 
+.ws-price__period {
+  color: var(--cx-text-muted);
+  font-size: var(--cx-meta);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
 .ws-price__was {
   display: flex;
   flex-wrap: wrap;
@@ -276,6 +283,11 @@ a.ws-seller__name:hover {
 
 .ws-delivery__fee {
   color: var(--cx-text-2);
+}
+
+/* Rails are the most compact listing; local pickup is on the listing page. */
+.ws-card--rail .ws-delivery__pickup {
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -651,6 +663,8 @@ a.ws-seller__name:hover {
   }
 
   .ws-total-to,
+  .ws-delivery__eta,
+  .ws-delivery__local,
   .ws-meta__item:has(time),
   .ws-meta__item:has(.ws-loc__area):has(+ .ws-meta__item .ws-loc__km),
   .ws-proof .ws-meta__item + .ws-meta__item {

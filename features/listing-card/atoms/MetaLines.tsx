@@ -1,15 +1,16 @@
 import type { ReactNode } from "react";
-import { DeliveryTruckIcon, LocationIcon } from "@/components/icons";
+import { DeliveryTruckIcon, HandshakeAgreementDealIcon, LocationIcon } from "@/components/icons";
 import { rules } from "@/config/marketplace-rules";
 import type { DeliveryOption, Listing, Place } from "@/lib/data/types";
-import { deliveryFee, summariseDelivery } from "@/lib/delivery";
-import { formatDistance, plural, timeAgo } from "@/lib/format";
+import { deliveryEstimate, deliveryFee, summariseDelivery } from "@/lib/delivery";
+import { formatDayRange, formatDistance, plural, timeAgo } from "@/lib/format";
 import { formatCurrency, type Kobo } from "@/lib/money";
 import { buyerTotal } from "@/lib/pricing";
 
 /* The card's meta lines (spec §5.1 items 6–8): DeliveryLine, LocationLine and
-   SocialProof. Wording follows eBay ("Free delivery", "+₦2,500 delivery", "64 sold",
-   "Last one"); each line says nothing rather than something it can't back up. */
+   SocialProof. Wording follows eBay ("Free delivery in 2–4 days", "+₦2,500 delivery",
+   "Free local pickup", "64 sold", "Last one"); each line says nothing rather than
+   something it can't back up. */
 
 /**
  * Items separated by "·". Each item carries its own leading dot and the list is pulled
@@ -41,26 +42,63 @@ type DeliveryLineProps = {
 export function DeliveryLine({ options, price_minor, listingCity, buyer }: DeliveryLineProps) {
   const summary = summariseDelivery(options, buyer ? buyer.city === listingCity : undefined);
   const fee = deliveryFee(summary);
+  const eta = (o: DeliveryOption) => <span className="ws-delivery__eta"> in {formatDayRange(deliveryEstimate(o))}</span>;
 
   let text: ReactNode;
-  if (summary.kind === "free") text = <span className="ws-delivery__free">Free delivery</span>;
-  else if (summary.kind === "paid") text = <span className="ws-delivery__fee">{formatCurrency(summary.fee_minor, { signed: true })} delivery</span>;
-  else if (summary.kind === "pickup") text = <span className="ws-delivery__fee">Pickup only</span>;
-  else text = <span>{buyer ? `Doesn't deliver to ${buyer.city}` : "No delivery options"}</span>;
+  if (summary.kind === "free") {
+    text = (
+      <span>
+        <span className="ws-delivery__free">Free delivery</span>
+        {eta(summary.option)}
+      </span>
+    );
+  } else if (summary.kind === "paid") {
+    text = (
+      <span className="ws-delivery__fee">
+        {formatCurrency(summary.fee_minor, { signed: true })} delivery{eta(summary.option)}
+      </span>
+    );
+  } else if (summary.kind === "station") {
+    text = (
+      <span className="ws-delivery__fee">
+        {summary.fee_minor === 0 ? "Free pickup station" : `${formatCurrency(summary.fee_minor, { signed: true })} pickup station`}
+      </span>
+    );
+  } else if (summary.kind === "pickup") {
+    text = <span className="ws-delivery__fee">Pickup only</span>;
+  } else {
+    text = <span>{buyer ? `Doesn't deliver to ${buyer.city}` : "No delivery options"}</span>;
+  }
 
-  const Icon = summary.kind === "pickup" ? LocationIcon : DeliveryTruckIcon;
+  const Icon = summary.kind === "pickup" ? HandshakeAgreementDealIcon : DeliveryTruckIcon;
+  // A total equal to the price says nothing new, so free delivery shows none.
+  const showTotal = buyer && fee !== null && fee > 0;
   return (
     <div className="ws-delivery">
       <p className="ws-meta">
         <Icon />
         {text}
       </p>
-      {buyer && fee !== null && (
+      {showTotal && (
         <p className="ws-meta ws-delivery__total">
           <span>
-            Total<span className="ws-total-to"> to {buyer.label}</span>
+            {summary.kind === "station" ? (
+              "Total with pickup"
+            ) : (
+              <>
+                Total<span className="ws-total-to"> to {buyer.label}</span>
+              </>
+            )}
           </span>{" "}
           <strong>{formatCurrency(buyerTotal({ item_minor: price_minor, delivery_minor: fee }))}</strong>
+        </p>
+      )}
+      {"pickup" in summary && summary.pickup && (
+        <p className="ws-meta ws-delivery__pickup">
+          <HandshakeAgreementDealIcon />
+          <span>
+            Free <span className="ws-delivery__local">local </span>pickup
+          </span>
         </p>
       )}
     </div>

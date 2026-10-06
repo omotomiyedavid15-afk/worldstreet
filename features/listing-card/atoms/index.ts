@@ -4,4 +4,4 @@ export { DeliveryLine, LocationLine, SocialProof, socialSignals } from "./MetaLi
 export { DiscountChip, PriceBlock, type PriceBlockProps } from "./Price";
 export { RatingStars } from "./RatingStars";
 export { SaveButton } from "./SaveButton";
-export { SellerMini, TopRatedBadge, VerifiedTick } from "./Seller";
+export { NewSellerBadge, SellerMini, TopRatedBadge, VerifiedTick } from "./Seller";

@@ -48,6 +48,17 @@ export const rules = {
     bankTransferMinutes: 30, // B9, §6.6
     pollSeconds: 60, // B9
   },
+  delivery: {
+    typicalHandlingDays: 1, // research 6 Oct: lower end of the delivery-time range on cards
+  },
+  trust: {
+    newSellerFeedbackCount: 10, // spec §440: "New seller" under this many ratings; best match weights feedback fully from here
+  },
+  media: {
+    thumbQuality: 60, // rail and compact thumbnails only (research 6 Oct; 45 judged too lossy)
+    highPriorityCards: 2, // fetchpriority="high" on the first N result photos (LCP)
+    eagerCards: 4, // loading="eager" on the first N; the rest are lazy
+  },
   orders: {
     sellerConfirmHours: 12, // §6.6
     handlingDays: 2, // R-061

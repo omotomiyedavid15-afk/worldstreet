@@ -52,3 +52,8 @@ export function timeLeft(endsAt: string, now: number = Date.now()): string | nul
   if (h > 0) return `${h}h ${m}m`;
   return `${m}m`;
 }
+
+/** "1 day", "3 days", "2–4 days" (en dash). */
+export function formatDayRange([min, max]: readonly [number, number]) {
+  return min === max ? plural(min, "day") : `${formatCount(min)}–${formatCount(max)} days`;
+}

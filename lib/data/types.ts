@@ -99,6 +99,8 @@ export type Listing = {
   description: string;
   condition: Condition;
   price_minor: Kobo;
+  /** Rent and stays: what the price covers ("₦1,800,000 per year"). Absent = one-off price. */
+  price_period?: "night" | "month" | "year";
   /** Strike-through price. Only allowed after ≥ 7 days at the higher price (S2 step 4). */
   was_minor?: Kobo;
   qty: number;

@@ -110,7 +110,12 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
           <ul className="ws-card-grid ws-results" aria-label="Listings">
             {result.shown.map((l, i) => (
               <li key={l.id}>
-                <ListingCard listing={l} anchor={anchor} headingLevel="h2" priority={i < 4} />
+                <ListingCard
+                  listing={l}
+                  anchor={anchor}
+                  headingLevel="h2"
+                  load={i < rules.media.highPriorityCards ? "high" : i < rules.media.eagerCards ? "eager" : "lazy"}
+                />
               </li>
             ))}
           </ul>

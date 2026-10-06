@@ -54,8 +54,8 @@ const seeds: ListingSeed[] = [
   // Vehicles and property: contact + "Book viewing", no checkout (PLAN risk 7)
   { id: "204539", title: "Toyota Corolla 2014 LE, Automatic", category: "vehicles", seller: "s09", place: "gra_ph", condition: "used", price: 9_800_000, offers: true, delivery: "pickup", photos: 12, daysAgo: 10, returns: null, attributes: { Year: "2014", Mileage: "98,000 km", Transmission: "Automatic", Fuel: "Petrol" } },
   { id: "204540", title: "Honda Accord 2013 EX-L", category: "vehicles", seller: "s09", place: "gra_ph", condition: "used", price: 8_900_000, offers: true, delivery: "pickup", photos: 10, daysAgo: 17, returns: null, attributes: { Year: "2013", Mileage: "121,000 km", Transmission: "Automatic", Fuel: "Petrol" } },
-  { id: "204541", title: "2-Bedroom Flat to Let, Ikoyi (per year)", category: "property", seller: "s10", place: "ikoyi", condition: "new", price: 12_000_000, delivery: "pickup", photos: 9, daysAgo: 6, returns: null, attributes: { Bedrooms: "2", Bathrooms: "2", Period: "per year" } },
-  { id: "204542", title: "Mini Flat to Let, Yaba (per year)", category: "property", seller: "s10", place: "yaba", condition: "new", price: 1_800_000, delivery: "pickup", photos: 6, daysAgo: 3, returns: null, attributes: { Bedrooms: "1", Bathrooms: "1", Period: "per year" } },
+  { id: "204541", title: "2-Bedroom Flat to Let, Ikoyi", period: "year", category: "property", seller: "s10", place: "ikoyi", condition: "new", price: 12_000_000, delivery: "pickup", photos: 9, daysAgo: 6, returns: null, attributes: { Bedrooms: "2", Bathrooms: "2" } },
+  { id: "204542", title: "Mini Flat to Let, Yaba", period: "year", category: "property", seller: "s10", place: "yaba", condition: "new", price: 1_800_000, delivery: "pickup", photos: 6, daysAgo: 3, returns: null, attributes: { Bedrooms: "1", Bathrooms: "1" } },
 ];
 
 export const listings: readonly Listing[] = seeds.map(makeListing);
