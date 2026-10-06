@@ -46,6 +46,7 @@ export const rules = {
     minRailItems: 4, // R-014
     railMax: 12, // cards per rail; "See all" opens the full search
     moreMax: 8, // "More near you" grid after the sell block (B1 "All listings")
+    recentlyViewedMax: 12, // B1 Recently viewed rail (returning buyers), newest first
   },
   card: {
     maxFacts: 3, // subtitle line facts after the condition (Baymard: show category attributes)

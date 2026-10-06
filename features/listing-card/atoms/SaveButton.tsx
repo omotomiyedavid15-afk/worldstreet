@@ -15,13 +15,13 @@ import { spring } from "@/lib/motion/tokens";
    the title keeps each card's button unique (spec §16.6). Guests sign in first, then
    the save they asked for happens (R-004). */
 
-function apply(listingId: string, save: boolean) {
+function apply(listingId: string, save: boolean, price_minor?: number) {
   if (!save) {
     unsaveListing(listingId);
-    toast({ message: "Removed from Saved", action: { label: "Undo", onClick: () => saveListing(listingId) } });
+    toast({ message: "Removed from Saved", action: { label: "Undo", onClick: () => saveListing(listingId, price_minor) } });
     return;
   }
-  const result = saveListing(listingId);
+  const result = saveListing(listingId, price_minor);
   if (result === "full") {
     toast({ tone: "warning", message: `Saved is full (${rules.saved.maxListings} listings). Remove one to save this.` });
   } else if (result === "saved") {
@@ -31,9 +31,10 @@ function apply(listingId: string, save: boolean) {
 
 const SPARKS = [0, 60, 120, 180, 240, 300];
 
-type Props = { listingId: string; title: string; className?: string };
+/** `price_minor`: the price when saved, so Saved can show a later price drop (B4). */
+type Props = { listingId: string; title: string; price_minor?: number; className?: string };
 
-export function SaveButton({ listingId, title, className }: Props) {
+export function SaveButton({ listingId, title, price_minor, className }: Props) {
   const saved = useIsSaved(listingId);
   return (
     <button
@@ -43,7 +44,7 @@ export function SaveButton({ listingId, title, className }: Props) {
       aria-pressed={saved}
       onClick={() => {
         const wanted = !saved; // decided now, so a resumed save after sign-in can't flip it back
-        requireAuth("save listings", () => apply(listingId, wanted));
+        requireAuth("save listings", () => apply(listingId, wanted, price_minor));
       }}
     >
       {/* Pop on save, settle on remove; a gold ring and sparks burst out when saved. */}

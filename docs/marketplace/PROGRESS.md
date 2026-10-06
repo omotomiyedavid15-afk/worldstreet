@@ -106,6 +106,10 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 | 6 Oct | Applied filters | One chip per value ("Brand new", "Pre-owned"), each removing only itself; Clear all; ZeroResults offers removing any group with its count | Baymard applied filters |
 | 6 Oct | Sort (Phase 2) | The price sorts are "Price + delivery: lowest/highest first": item price plus the cheapest way it reaches the buyer's city, the same total cards show; pickup-only adds nothing; listings that can't reach the buyer go last. URL keys unchanged (`price_asc`) | PLAN C10 now that cards compute delivery to the buyer (mock flat fees until a quote provider exists). The Sprint 0 guardrail is now "monotonic in the canonical NGN total" (200 random datasets × 3 cities) |
 | 6 Oct | ViewToggle | Grid or list, two `aria-pressed` buttons posting to a Server Action that sets a `ws-view` cookie and returns to the same results; in the header from 1024px and in the phone bar | UI research C18 (a display preference, like the area cookie) |
+| 6 Oct | Saved (Phase 2) | `/saved` with Listings · Sellers · Searches link tabs. Listings show "Price dropped ₦X" against the price when saved, "Sold"/"Ended" (photo greyed, text full contrast) for 30 days (R-026), and a removed note with Remove (EC-006). Sellers is an empty state until shop pages exist (Phase 3). Saved lists stay on the device until accounts exist; `/api/listings?ids=` fills them in | Flows B4. Saved entries now keep the price they were saved at; old id-only entries still load |
+| 6 Oct | Saved searches | "Save this search" toggle under the results heading (sign-in first, R-004), up to 50 (R-027), listed in Saved › Searches with their filters in the label | Spec §6 SaveSearchButton. Alerts for them come with notifications (R-012) |
+| 6 Oct | Recently viewed | Opening a listing records it (device + a small `ws-recent` cookie of ids); home renders the rail on the server, first in B1 order, and the other rails leave those listings out | A client rail would pop in after load (CLS) and lose every duplicate to the server rails; B1 puts it before Near you |
+| 6 Oct | Popovers before hydration | The mega menu and Menu catch up on a popover opened before scripts loaded, and the mega menu no longer closes itself on mount | Caught by a flaky desktop e2e; same family as the drawer fix |
 | 6 Oct | Mock photos | Four views per category (`{cat}-1..4.svg`) | So stepping shows different images |
 | 6 Oct | Tooling | `PW_CHROMIUM_PATH` lets story tests use a preinstalled Chromium; Testing Library cleanup is explicit in `vitest.setup.ts` | Cloud containers ship a different Chromium build; auto-cleanup needs Vitest globals, which are off |
 
@@ -144,7 +148,7 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 - [x] ProductRail
 - [ ] DealsRail (rail with was/now prices done; countdowns wait for timed deals)
 - [ ] TrendingTabs
-- [ ] RecentlyViewedRail
+- [x] RecentlyViewedRail
 - [ ] BecauseYouSavedRail
 - [x] NearYouRail
 - [ ] EditorialTile
@@ -176,7 +180,7 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 
 ## D. Search & filters
 - [x] ResultsHeader
-- [ ] SaveSearchButton
+- [x] SaveSearchButton
 - [x] SortMenu
 - [x] ViewToggle
 - [x] FilterRail (W)
@@ -340,7 +344,7 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 - [ ] NewSellerBadge
 - [ ] SellerPublicProfile + SellerProfileHeader
 - [ ] SellerStats
-- [ ] SavedPage + SavedSearchRow
+- [x] SavedPage + SavedSearchRow
 - [ ] NotificationCentre
 - [ ] NotificationPreferences
 - [ ] HelpCentreHome

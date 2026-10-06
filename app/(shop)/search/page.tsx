@@ -11,6 +11,7 @@ import { getHidden } from "@/features/hidden/server";
 import { getAnchor } from "@/features/location/server";
 import { FilterPanel } from "@/features/search/FilterPanel";
 import { FilterSheet } from "@/features/search/FilterSheet";
+import { SaveSearchButton } from "@/features/saved/SaveSearchButton";
 import { MarkProhibited } from "@/features/search/MarkProhibited";
 import { VIEW_COOKIE, parseView } from "@/features/search/view";
 import { ViewToggle } from "@/features/search/ViewToggle";
@@ -130,6 +131,9 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
         shown={result.shown.length}
         sortMenu={headerSort}
       />
+      {result.total > 0 && (
+        <SaveSearchButton href={thisPage} label={`${parsed.raw ? `“${parsed.raw}”` : "Everything"}${filterChips(filters, categories).map((c) => ` · ${c.label}`).join("")} near ${anchor.label}`} />
+      )}
       {/* Below 1024px: the sticky "Filters · Sort" bar (flows B2 step 4). */}
       <div className="ws-filterbar">
         <FilterSheet count={applied}>{panel("sheet", "filters-sheet")}</FilterSheet>

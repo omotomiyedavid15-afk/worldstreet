@@ -111,7 +111,7 @@ export function ListingCard({ listing, variant = "grid", anchor, sizes, load = "
           <CardPhotos listingId={listing.id} media={listing.media} href={href} sizes={sizes ?? SIZES[variant]} load={load} />
         )}
         <div className="ws-card__save">
-          <SaveButton listingId={listing.id} title={listing.title} />
+          <SaveButton listingId={listing.id} title={listing.title} price_minor={listing.price_minor} />
         </div>
       </div>
 

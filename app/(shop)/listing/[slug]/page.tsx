@@ -5,6 +5,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { CheckShieldIcon, InfoCircleIcon } from "@/components/icons";
 import { Morph } from "@/components/motion/Morph";
 import { Card } from "@/components/ui";
+import { RecordView } from "@/features/recent/RecordView";
 import { ConditionChip, DeliveryLine, PriceBlock, SaveButton, SellerMini, conditionLabel } from "@/features/listing-card/atoms";
 import { getAnchor } from "@/features/location/server";
 import { escrowLine } from "@/lib/copy/escrow";
@@ -49,12 +50,13 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
 
   return (
     <article className="ws-listing-stub">
+      <RecordView id={listing.id} />
       {/* Same name as the card photo: the photo morphs from the card into place. */}
       <Morph name={`photo-${listing.id}`}>
         <div className="ws-listing-stub__media">
           {photo && <Image src={photo.url} alt={photo.alt} fill sizes="(min-width: 768px) 480px, 100vw" loading="eager" fetchPriority="high" />}
           <div className="ws-card__save">
-            <SaveButton listingId={listing.id} title={listing.title} />
+            <SaveButton listingId={listing.id} title={listing.title} price_minor={listing.price_minor} />
           </div>
         </div>
       </Morph>

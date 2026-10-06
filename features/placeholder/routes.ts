@@ -4,7 +4,6 @@ import {
   ChatDotsIcon,
   CreditCardIcon,
   HandshakeAgreementDealIcon,
-  HeartIcon,
   MenuSquareIcon,
   PackageIcon,
   PencilEditIcon,
@@ -23,7 +22,6 @@ export type ComingId = keyof typeof COMING;
 
 export const COMING = {
   categories: { title: "All categories", icon: MenuSquareIcon, phase: 2, body: "Every category and subcategory, with how many listings each has near you." },
-  saved: { title: "Saved", icon: HeartIcon, phase: 2, body: "Your saved listings, sellers and searches in one place, with alerts when prices drop." },
   notifications: { title: "Notifications", icon: BellIcon, phase: 1, body: "Offers, messages, order updates and price drops, newest first." },
   inbox: { title: "Inbox", icon: ChatDotsIcon, phase: 4, body: "Messages with buyers and sellers, each pinned to its listing." },
   offers: { title: "Offers", icon: HandshakeAgreementDealIcon, phase: 4, body: "Offers you've made and received, with counter-offers and deadlines." },

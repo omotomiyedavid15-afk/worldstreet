@@ -22,7 +22,13 @@ export function MegaMenu({ categories }: { categories: readonly NavCategory[] })
   const pathname = usePathname();
   const params = useSearchParams();
 
+  // Close after navigating, but not on first mount (it may have been opened before
+  // scripts loaded).
+  const shownFor = useRef(`${pathname}?${params}`);
   useEffect(() => {
+    const at = `${pathname}?${params}`;
+    if (shownFor.current === at) return;
+    shownFor.current = at;
     panel.current?.hidePopover();
   }, [pathname, params]);
 
@@ -36,7 +42,12 @@ export function MegaMenu({ categories }: { categories: readonly NavCategory[] })
       if (isOpen) el.style.top = `${el.closest("header")?.getBoundingClientRect().bottom ?? 0}px`;
     };
     el.addEventListener("toggle", onToggle);
-    return () => el.removeEventListener("toggle", onToggle);
+    // Opened before scripts loaded (popovertarget works without them): catch up.
+    const frame = requestAnimationFrame(() => el.matches(":popover-open") && setOpen(true));
+    return () => {
+      cancelAnimationFrame(frame);
+      el.removeEventListener("toggle", onToggle);
+    };
   }, []);
 
   const current = categories.find((c) => c.id === active) ?? categories[0];

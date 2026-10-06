@@ -372,3 +372,153 @@
 .ws-filterbar__view {
   flex: none;
 }
+
+/* SaveSearchButton: under the heading, the heart filled once saved. */
+.ws-savesearch {
+  justify-self: start;
+}
+
+.ws-savesearch[aria-pressed=true] svg {
+  fill: var(--cx-ember);
+  stroke: var(--cx-ember);
+}
+
+/* ---------- Saved (SCR-006) ---------- */
+
+.ws-saved-page {
+  display: grid;
+  gap: var(--cx-s-5);
+}
+
+.ws-saved-page__title {
+  margin: var(--cx-s-2) 0 0;
+  font: 500 var(--cx-h3) / 1.2 var(--cx-font);
+  letter-spacing: var(--cx-h3-ls);
+}
+
+/* Link tabs: the current one underlined in gold. */
+.ws-tabs {
+  display: flex;
+  gap: var(--cx-s-1);
+  border-bottom: 1px solid var(--cx-hairline);
+}
+
+.ws-tabs__tab {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 var(--cx-s-4);
+  color: var(--cx-text-2);
+  text-decoration: none;
+  box-shadow: inset 0 -2px 0 transparent;
+}
+
+.ws-tabs__tab:hover {
+  color: var(--cx-text);
+}
+
+.ws-tabs__tab[aria-current=page] {
+  color: var(--cx-text);
+  font-weight: 600;
+  box-shadow: inset 0 -2px 0 var(--cx-ember);
+}
+
+.ws-saved__count {
+  margin: 0;
+  color: var(--cx-text-2);
+}
+
+.ws-saved > li {
+  display: grid;
+  gap: var(--cx-s-2);
+  align-content: start;
+}
+
+.ws-saved__tag {
+  justify-self: start;
+  margin: 0;
+  padding: 4px 10px;
+  border-radius: var(--cx-r-pill);
+  background: var(--cx-surface-3);
+  color: var(--cx-text);
+  font-size: var(--cx-small);
+  font-weight: 500;
+}
+
+.ws-saved__tag--drop {
+  background: var(--cx-gain-wash);
+  color: var(--cx-gain);
+}
+
+/* Sold or ended: the photo greys out; text keeps full contrast. */
+.ws-saved__item[data-ended] .ws-card__media {
+  filter: grayscale(1) brightness(0.7);
+}
+
+.ws-saved__gone {
+  display: grid;
+  place-content: center;
+  gap: var(--cx-s-2);
+  min-height: 200px;
+  padding: var(--cx-s-5);
+  border-radius: var(--cx-r-card);
+  background: var(--cx-surface);
+  box-shadow: inset 0 0 0 1px var(--cx-hairline);
+  color: var(--cx-text-2);
+  text-align: center;
+}
+
+.ws-saved__gone p {
+  margin: 0;
+}
+
+.ws-saved-searches {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ws-saved-searches li {
+  display: flex;
+  align-items: center;
+  gap: var(--cx-s-2);
+  border-bottom: 1px solid var(--cx-hairline);
+}
+
+.ws-saved-searches__link {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--cx-s-3);
+  min-height: 64px;
+  color: var(--cx-text);
+  text-decoration: none;
+}
+
+.ws-saved-searches__link svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  color: var(--cx-text-2);
+}
+
+.ws-saved-searches__link > span {
+  display: grid;
+}
+
+.ws-saved-searches__label {
+  font-weight: 500;
+}
+
+.ws-saved-searches__at {
+  color: var(--cx-text-muted);
+  font-size: var(--cx-small);
+}
+
+/* Saved with no filter rail: four across on desktop like the old grid. */
+@media (min-width: 1200px) {
+  .ws-saved.ws-card-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

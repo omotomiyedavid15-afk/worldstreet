@@ -68,7 +68,12 @@ export function Menu({ label, trigger, iconOnly = true, items, variant = "quiet"
       (menu.querySelector<HTMLElement>("[aria-checked=true]") ?? menu.querySelector<HTMLElement>(ITEM))?.focus();
     };
     menu.addEventListener("toggle", onToggle);
-    return () => menu.removeEventListener("toggle", onToggle);
+    // Opened before scripts loaded (popovertarget works without them): catch up.
+    const frame = requestAnimationFrame(() => menu.matches(":popover-open") && setOpen(true));
+    return () => {
+      cancelAnimationFrame(frame);
+      menu.removeEventListener("toggle", onToggle);
+    };
   }, [sheetTitle]);
 
   const close = () => menuRef.current?.hidePopover();

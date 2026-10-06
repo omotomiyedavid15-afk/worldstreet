@@ -109,3 +109,20 @@ describe("homeRails", () => {
     for (const rail of Object.values(rails)) for (const l of rail?.listings ?? []) expect(l.seller_id).not.toBe(first.seller_id);
   });
 });
+
+describe("recently viewed (B1)", () => {
+  it("comes first, keeps its listings, and the other rails skip them (R-013)", async () => {
+    const { listings } = await data();
+    const base = homeRails({ listings, anchor: lagos });
+    const viewed = base.near!.listings.slice(0, 5).map((l) => l.id);
+    const rails = homeRails({ listings, anchor: lagos, recent: viewed });
+    expect(rails.recent!.listings.map((l) => l.id)).toEqual(viewed);
+    const others = [rails.near, rails.deals, rails.new].flatMap((r) => r?.listings.map((l) => l.id) ?? []);
+    expect(others.some((id) => viewed.includes(id))).toBe(false);
+  });
+
+  it("collapses under the minimum (R-014)", async () => {
+    const { listings } = await data();
+    expect(homeRails({ listings, anchor: lagos, recent: [listings[0].id] }).recent).toBeNull();
+  });
+});

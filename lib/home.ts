@@ -29,7 +29,7 @@ export type CategoryTile = {
   scope: "radius" | "nationwide";
 };
 
-export type RailId = "near" | "deals" | "new" | "nationwide";
+export type RailId = "recent" | "near" | "deals" | "new" | "nationwide";
 
 export type Rail = {
   id: RailId;
@@ -40,6 +40,8 @@ export type Rail = {
 
 type Input = {
   listings: readonly ListingWithSeller[];
+  /** Recently viewed ids, newest first: that rail comes first and keeps its listings (B1, R-013). */
+  recent?: readonly string[];
   categories: readonly Category[];
   anchor: LatLng;
   /** The buyer's radius (`?radius=`, R-001); defaults like /search. */
@@ -73,7 +75,7 @@ export function categoryTiles({ listings, categories, anchor, radius = rules.loc
   });
 }
 
-export function homeRails({ listings, anchor, radius = rules.location.defaultRadiusKm, hidden, now }: Omit<Input, "categories">): Record<RailId, Rail | null> {
+export function homeRails({ listings, anchor, radius = rules.location.defaultRadiusKm, hidden, now, recent = [] }: Omit<Input, "categories">): Record<RailId, Rail | null> {
   const { minRailItems, railMax, moreMax } = rules.home;
   const visible = hidden ? listings.filter((l) => !hidden.listings.has(l.id) && !hidden.sellers.has(l.seller_id)) : listings;
   const nearby = filterByRadius(visible, anchor, radius);
@@ -87,6 +89,9 @@ export function homeRails({ listings, anchor, radius = rules.location.defaultRad
     return { id, listings: shown, total: fresh.length };
   };
 
+  // Recently viewed: wherever the listings are (it's the buyer's own history), newest first.
+  const byId = new Map(visible.map((l) => [l.id, l]));
+  const viewed = take("recent", recent.flatMap((id) => byId.get(id) ?? []), rules.home.recentlyViewedMax);
   const deals = take(
     "deals",
     sortListings(
@@ -99,5 +104,5 @@ export function homeRails({ listings, anchor, radius = rules.location.defaultRad
   const near = take("near", sortListings(nearby, "nearest", { anchor, now }), railMax);
   const fresh = take("new", sortListings(nearby, "newest", { anchor, now }), moreMax);
   const nationwide = near ? null : take("nationwide", sortListings(visible, "best", { anchor, now }), railMax);
-  return { deals, near, new: fresh, nationwide };
+  return { recent: viewed, deals, near, new: fresh, nationwide };
 }

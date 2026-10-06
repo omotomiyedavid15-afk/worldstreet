@@ -6,6 +6,7 @@ import { rules } from "@/config/marketplace-rules";
 import { getHidden } from "@/features/hidden/server";
 import { CategoryTiles } from "@/features/home/CategoryTiles";
 import { HeroCarousel } from "@/features/home/HeroCarousel";
+import { getRecentlyViewed } from "@/features/recent/server";
 import { ProductRail } from "@/features/home/ProductRail";
 import { SellCta } from "@/features/home/SellCta";
 import { TrustStrip } from "@/features/home/TrustStrip";
@@ -30,10 +31,16 @@ export const metadata: Metadata = { alternates: { canonical: "/" } };
 export default async function HomePage({ searchParams }: PageProps<"/">) {
   const params = await searchParams;
   const radius = parseRadius(params.radius);
-  const [{ anchor, inferred }, hidden, categories, listings] = await Promise.all([getAnchor(), getHidden(), repos.categories.list(), repos.listings.list()]);
+  const [{ anchor, inferred }, hidden, categories, listings, recent] = await Promise.all([
+    getAnchor(),
+    getHidden(),
+    repos.categories.list(),
+    repos.listings.list(),
+    getRecentlyViewed(),
+  ]);
   const input = { listings, anchor, radius, hidden };
   const tiles = categoryTiles({ ...input, categories });
-  const rails = homeRails(input);
+  const rails = homeRails({ ...input, recent });
   const total = nearbyCount(input);
 
   const place = anchor.label;
@@ -55,6 +62,17 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
       <TrustStrip />
       <HeroCarousel slides={HERO_SLIDES} />
       <CategoryTiles tiles={tiles} radius={radius} />
+      {/* B1: returning buyers see what they looked at first; other rails skip those (R-013). */}
+      {rails.recent && (
+        <ProductRail
+          id="recent"
+          eyebrow="Pick up where you left off"
+          title="Recently viewed"
+          seeAll={{ href: "/saved", label: "Saved", srLabel: "listings" }}
+          listings={rails.recent.listings}
+          anchor={anchor}
+        />
+      )}
 
       {rails.near && (
         <ProductRail
