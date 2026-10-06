@@ -101,6 +101,9 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 | 6 Oct | Phone search | Focusing the header field opens it full screen (suggestions fill the screen, Cancel puts the query back, the page behind doesn't scroll) | Spec §16.2 "expandable full-screen search"; one tap fewer than an icon first |
 | 6 Oct | Slow-phone fixes | Pages render per request (`connection()` in the root layout) with no Suspense around the header, so the search box comes in the first HTML with its query; text typed before scripts load is adopted after hydration; the menu drawer doesn't close itself on first mount | The header box was streamed in after a placeholder box, which threw away anything typed into the placeholder (caught by the Android 360 e2e) |
 | 6 Oct | ImageSearchButton | Not shown | Photo search needs an image-matching service; a camera button that does nothing would be a dead end (F5) |
+| 6 Oct | Filters (Phase 2) | Condition, buying format, delivery (free, local pickup, fast), seller (Verified ID, Top rated), listed within (24 h, 7 d, 30 d), price (min/max plus presets), distance and category, all in the URL (`?cond=new,used`). OR inside a group, AND across groups. Counts beside every option are what ticking it would show under the current radius and other filters (R-016); options at 0 are disabled. One GET form: a sticky 260px rail from 1024px that applies as you tick, and a full-height sheet below that with a live "Show N results" (`/api/search-count`) | Spec §6, flows B2. Rail at 1024 not 1200 (spec §16.1 lists the rail from L 1024); results run three across beside it |
+| 6 Oct | "Fast delivery" | "Arrives within 4 days", using the same handling + transit range the card shows | B2 says "≤ 2 days", but cards quote up to 2 handling days on top of transit (R-061); a filter promising 2 days next to a card saying "2–4 days" would contradict it |
+| 6 Oct | Applied filters | One chip per value ("Brand new", "Pre-owned"), each removing only itself; Clear all; ZeroResults offers removing any group with its count | Baymard applied filters |
 | 6 Oct | Mock photos | Four views per category (`{cat}-1..4.svg`) | So stepping shows different images |
 | 6 Oct | Tooling | `PW_CHROMIUM_PATH` lets story tests use a preinstalled Chromium; Testing Library cleanup is explicit in `vitest.setup.ts` | Cloud containers ship a different Chromium build; auto-cleanup needs Vitest globals, which are off |
 
@@ -174,21 +177,21 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 - [ ] SaveSearchButton
 - [x] SortMenu
 - [ ] ViewToggle
-- [ ] FilterRail (W)
-- [ ] FilterSheet (M)
-- [ ] FilterGroup
-- [ ] FacetCheckbox (counts)
-- [ ] CategoryTree
-- [ ] PriceRangeFilter
-- [ ] ConditionFilter
-- [ ] FormatFilter
-- [ ] LocationRadiusFilter (radius logic + selector done in S0.8; the filter-rail control is Phase 2)
-- [ ] DeliveryFilter
-- [ ] SellerFilter
+- [x] FilterRail (W)
+- [x] FilterSheet (M)
+- [x] FilterGroup
+- [x] FacetCheckbox (counts)
+- [x] CategoryTree
+- [x] PriceRangeFilter
+- [x] ConditionFilter
+- [x] FormatFilter
+- [x] LocationRadiusFilter
+- [x] DeliveryFilter
+- [x] SellerFilter
 - [ ] ColorSwatchFilter
 - [ ] SizeFilter
 - [ ] BrandFilter
-- [x] ActiveFilterChips (category and price; more filters in Phase 2)
+- [x] ActiveFilterChips
 - [ ] PopularFilterChips
 - [ ] RelatedSearches
 - [ ] IncludeDescriptionToggle

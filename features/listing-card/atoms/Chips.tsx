@@ -1,17 +1,18 @@
 import { HammerIcon, HandshakeAgreementDealIcon } from "@/components/icons";
 import { Chip, type ChipTone } from "@/components/ui";
 import type { Condition, ListingFormat } from "@/lib/data/types";
+import { CONDITION_LABELS } from "@/lib/condition";
 import { timeLeft } from "@/lib/format";
 
 /* ConditionChip and FormatChip (spec §5.3) on the DS Chip. Condition names are eBay's,
    in the DS's sentence case. */
 
 const CONDITION: Record<Condition, { label: string; tone: ChipTone }> = {
-  new: { label: "Brand new", tone: "neutral" },
-  like_new: { label: "Like new", tone: "neutral" },
-  refurbished: { label: "Refurbished", tone: "neutral" },
-  used: { label: "Pre-owned", tone: "neutral" },
-  for_parts: { label: "For parts or not working", tone: "warning" },
+  new: { label: CONDITION_LABELS.new, tone: "neutral" },
+  like_new: { label: CONDITION_LABELS.like_new, tone: "neutral" },
+  refurbished: { label: CONDITION_LABELS.refurbished, tone: "neutral" },
+  used: { label: CONDITION_LABELS.used, tone: "neutral" },
+  for_parts: { label: CONDITION_LABELS.for_parts, tone: "warning" },
 };
 
 export function conditionLabel(condition: Condition) {

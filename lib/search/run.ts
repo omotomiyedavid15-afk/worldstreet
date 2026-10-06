@@ -1,7 +1,7 @@
 import { rules } from "@/config/marketplace-rules";
 import type { ListingWithSeller } from "@/lib/data/types";
 import type { LatLng } from "@/lib/geo";
-import { activeFilterKeys, applyFilters, withoutFilter, type Filters } from "./filters";
+import { activeFilterKeys, applyFilters, facetCounts, withoutFilter, type FilterContext, type Filters } from "./filters";
 import { matchListings, type ParsedQuery } from "./query";
 import { countsByRadius, filterByRadius, type Radius } from "./radius";
 import { sortListings, type SortKey } from "./sort";
@@ -24,13 +24,16 @@ export type SearchInput = {
   /** What the buyer hid ("Not interested", "Hide seller"): left out of results and counts. */
   hidden?: { listings: ReadonlySet<string>; sellers: ReadonlySet<string> };
   now?: number;
+  /** The buyer's city, for delivery filters (what reaches them). */
+  city?: string;
 };
 
-export function runSearch({ listings: all, query, filters, anchor, radius, sort, page, hidden, now }: SearchInput) {
+export function runSearch({ listings: all, query, filters, anchor, radius, sort, page, hidden, now, city }: SearchInput) {
+  const ctx: FilterContext = { city, now };
   const listings = hidden ? all.filter((l) => !hidden.listings.has(l.id) && !hidden.sellers.has(l.seller_id)) : all;
   const relevance = query.kind === "text" ? matchListings(listings, query.tokens, query.raw) : undefined;
   const matched = relevance ? listings.filter((l) => relevance.has(l.id)) : listings;
-  const filtered = applyFilters(matched, filters);
+  const filtered = applyFilters(matched, filters, ctx);
   const inRadius = filterByRadius(filtered, anchor, radius);
   const sorted = sortListings(inRadius, sort, { anchor, relevance, now });
   const shown = sorted.slice(0, rules.search.pageSize * Math.max(1, page));
@@ -39,7 +42,9 @@ export function runSearch({ listings: all, query, filters, anchor, radius, sort,
     total: sorted.length,
     shown,
     radiusCounts: countsByRadius(filtered, anchor),
-    filterCounts: new Map(activeFilterKeys(filters).map((k) => [k, filterByRadius(applyFilters(matched, withoutFilter(filters, k)), anchor, radius).length])),
+    filterCounts: new Map(activeFilterKeys(filters).map((k) => [k, filterByRadius(applyFilters(matched, withoutFilter(filters, k), ctx), anchor, radius).length])),
+    /** Counts for every filter option, inside the radius (R-016). */
+    facets: facetCounts(filterByRadius(matched, anchor, radius), filters, ctx),
   };
 }
 

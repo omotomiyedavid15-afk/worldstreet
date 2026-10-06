@@ -18,3 +18,15 @@ export function hrefWith(pathname: string, params: SearchParams, key: string, va
   const qs = next.toString();
   return qs ? `${pathname}?${qs}` : pathname;
 }
+
+/** `pathname?…` with several params changed at once (null removes). Paging resets. */
+export function hrefSet(pathname: string, params: SearchParams, changes: Record<string, string | null>) {
+  const next = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) {
+    if (k in changes || k === "page" || v === undefined) continue;
+    for (const item of Array.isArray(v) ? v : [v]) next.append(k, item);
+  }
+  for (const [k, v] of Object.entries(changes)) if (v !== null) next.set(k, v);
+  const qs = next.toString();
+  return qs ? `${pathname}?${qs}` : pathname;
+}

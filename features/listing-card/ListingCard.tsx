@@ -50,8 +50,9 @@ type Props = {
 };
 
 const SIZES: Record<ListingCardVariant, string> = {
-  // Matches the grid: 4 columns from 1200 (capped by the 1320 container), 3 from 768, 2 on phones.
-  grid: "(min-width: 1380px) 312px, (min-width: 1200px) calc(25vw - 33px), (min-width: 768px) 33vw, calc(50vw - 22px)",
+  // Matches the results grid: 3 columns beside the 260px filter rail from 1024 (capped by
+  // the 1320 container), 3 from 768, 2 on phones.
+  grid: "(min-width: 1380px) 330px, (min-width: 1024px) calc((100vw - 344px) / 3), (min-width: 768px) 33vw, calc(50vw - 22px)",
   list: "(min-width: 768px) 200px, 112px",
   rail: "(min-width: 768px) 220px, 160px",
   compact: "72px",

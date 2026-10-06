@@ -47,7 +47,7 @@ test("a prohibited search shows a neutral no-results with the policy link (EC-00
 
 test("sorting by price is monotonic and Back restores the previous order (Sprint 0 #3, R-011)", async ({ page }) => {
   await page.goto("/search?q=phone&radius=all");
-  await page.getByRole("button", { name: /^Sort/ }).click();
+  await page.locator(".ws-filterbar").getByRole("button", { name: /^Sort/ }).click();
   await page.getByRole("menuitemradio", { name: "Price: lowest first" }).click();
   await expect(page).toHaveURL(/sort=price_asc/);
   const prices = (await cards(page).locator(".ws-price__now").allTextContents()).map((t) => Number(t.replace(/[^\d]/g, "")));
@@ -148,8 +148,8 @@ test("a hidden listing stays hidden after reload, and the count drops", async ({
 test("on phones, sort opens as a bottom sheet with a title", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 760 });
   await page.goto("/search?q=phone");
-  await page.getByRole("button", { name: /^Sort/ }).click();
-  const sheet = page.locator(".ws-sheet");
+  await page.locator(".ws-filterbar").getByRole("button", { name: /^Sort/ }).click();
+  const sheet = page.locator(".ws-filterbar .ws-sheet");
   await expect(sheet.getByRole("heading", { name: "Sort by" })).toBeVisible();
   // It rises on a spring; measure once it has settled.
   await expect.poll(async () => {

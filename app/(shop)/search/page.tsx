@@ -8,12 +8,15 @@ import { setLocation } from "@/features/location/actions";
 import { LocationBar } from "@/features/location/LocationBar";
 import { getHidden } from "@/features/hidden/server";
 import { getAnchor } from "@/features/location/server";
+import { FilterPanel } from "@/features/search/FilterPanel";
+import { FilterSheet } from "@/features/search/FilterSheet";
 import { MarkProhibited } from "@/features/search/MarkProhibited";
 import { ActiveFilterChips, EndOfResults, ProhibitedResults, ResultsHeader, ZeroResults } from "@/features/search/Results";
 import { SearchTransitions, ShowMoreLink } from "@/features/search/SearchTransitions";
 import { SortMenu } from "@/features/search/SortMenu";
 import { listingPath, repos } from "@/lib/data";
 import { formatCount } from "@/lib/format";
+import { filterChips } from "@/lib/search/filter-labels";
 import { parseFilters } from "@/lib/search/filters";
 import { first, hrefWith, type SearchParams } from "@/lib/search/params";
 import { parseQuery, type ParsedQuery } from "@/lib/search/query";
@@ -75,18 +78,47 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
     sort,
     page,
     hidden,
+    city: anchor.city,
   });
+
+  const panel = (variant: "rail" | "sheet", id: string) => (
+    <FilterPanel
+      id={id}
+      variant={variant}
+      filters={filters}
+      facets={result.facets}
+      radius={radius}
+      radiusCounts={result.radiusCounts}
+      total={result.total}
+      categories={categories}
+      params={params}
+    />
+  );
+  const applied = filterChips(filters, categories).length + (radius === rules.location.defaultRadiusKm ? 0 : 1);
+  const sortMenu = <SortMenu current={sort} pathname={PATH} params={params} />;
+  const headerSort = <div className="ws-results-head__sort">{sortMenu}</div>;
 
   return (
     <SearchTransitions pathname={PATH}>
       {bar}
+      <div className="ws-search-layout">
+        {/* FilterRail (spec §6): from 1024px, beside the results. */}
+        <aside className="ws-search-rail" aria-label="Filter results">
+          {panel("rail", "filters-rail")}
+        </aside>
+        <div className="ws-search-main">
       <ResultsHeader
         query={parsed.raw}
         anchor={anchor}
         total={result.total}
         shown={result.shown.length}
-        sortMenu={<SortMenu current={sort} pathname={PATH} params={params} />}
+        sortMenu={headerSort}
       />
+      {/* Below 1024px: the sticky "Filters · Sort" bar (flows B2 step 4). */}
+      <div className="ws-filterbar">
+        <FilterSheet count={applied}>{panel("sheet", "filters-sheet")}</FilterSheet>
+        {result.total > 0 && sortMenu}
+      </div>
       <ActiveFilterChips filters={filters} categories={categories} pathname={PATH} params={params} />
 
       {result.total === 0 ? (
@@ -131,6 +163,8 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
           )}
         </>
       )}
+        </div>
+      </div>
     </SearchTransitions>
   );
 }

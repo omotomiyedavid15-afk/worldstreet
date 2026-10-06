@@ -26,6 +26,19 @@ export const rules = {
     trendingShown: 5,
     recentStored: 8,
     maxSuggestionsPhone: 6, // the Phase 1 full-screen phone search
+    // B2 Delivery filter says "≤ 2 days"; cards quote handling + transit (rider 1–2 days
+    // after up to 2 handling days), so the filter uses the card's upper bound.
+    fastDeliveryDays: 4,
+    listedWithinDays: [1, 7, 30] as const, // B2 "Listed within" (24 h, 7 d, 30 d)
+    facetOptionsShown: 5, // a filter group shows this many before "Show more" (eBay)
+    // PriceRangeFilter presets in naira (spec §6: "Under ₦10k, ₦10–50k…"); null = open end
+    pricePresets: [
+      [null, 10_000],
+      [10_000, 50_000],
+      [50_000, 200_000],
+      [200_000, 1_000_000],
+      [1_000_000, null],
+    ] as const,
   },
   home: {
     maxHeroSlides: 3, // R-015 (stricter than spec §4, PLAN C6)

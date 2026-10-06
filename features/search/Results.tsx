@@ -6,9 +6,9 @@ import { rules } from "@/config/marketplace-rules";
 import type { Anchor } from "@/lib/areas";
 import type { Category } from "@/lib/data/types";
 import { formatCount, plural } from "@/lib/format";
-import { formatCurrency } from "@/lib/money";
-import type { Filters } from "@/lib/search/filters";
-import { hrefWith, type SearchParams } from "@/lib/search/params";
+import { clearAll, filterChips, groupName, removeGroup } from "@/lib/search/filter-labels";
+import type { FilterKey, Filters } from "@/lib/search/filters";
+import { hrefSet, hrefWith, type SearchParams } from "@/lib/search/params";
 import { radiusLabel, radiusParam, widerRadius, type Radius } from "@/lib/search/radius";
 import type { ReactNode } from "react";
 
@@ -56,29 +56,17 @@ export function ResultsHeader({ query, anchor, total, shown, sortMenu, near = tr
   );
 }
 
-const priceLabel = (f: Filters) =>
-  f.min !== undefined && f.max !== undefined
-    ? `${formatCurrency(f.min)} – ${formatCurrency(f.max)}`
-    : f.min !== undefined
-      ? `From ${formatCurrency(f.min)}`
-      : `Up to ${formatCurrency(f.max!)}`;
-
 type ChipsProps = { filters: Filters; categories: readonly Category[]; pathname: string; params: SearchParams };
 
-/** Active filters, each removable, plus Clear all (spec §6, Baymard applied filters). */
+/** Active filters, one removable chip per value, plus Clear all (spec §6, Baymard applied filters). */
 export function ActiveFilterChips({ filters, categories, pathname, params }: ChipsProps) {
-  const chips: { label: string; href: string }[] = [];
-  if (filters.cat) chips.push({ label: categories.find((c) => c.id === filters.cat)?.name ?? filters.cat, href: hrefWith(pathname, params, "cat", null) });
-  if (filters.min !== undefined || filters.max !== undefined) {
-    chips.push({ label: priceLabel(filters), href: hrefWith(pathname, { ...params, min: undefined }, "max", null) });
-  }
+  const chips = filterChips(filters, categories);
   if (chips.length === 0) return null;
-  const clearAll = hrefWith(pathname, { ...params, cat: undefined, min: undefined }, "max", null);
   return (
     <ul className="ws-filter-chips" aria-label="Active filters">
       {chips.map((c) => (
-        <li key={c.label}>
-          <Link href={c.href} className="ws-filter-chip">
+        <li key={`${c.key}:${c.label}`}>
+          <Link href={hrefSet(pathname, params, c.remove)} className="ws-filter-chip">
             <span className="cx-sr-only">Remove filter: </span>
             {c.label}
             <XmarkCircleIcon />
@@ -87,7 +75,7 @@ export function ActiveFilterChips({ filters, categories, pathname, params }: Chi
       ))}
       {chips.length > 1 && (
         <li>
-          <Link href={clearAll} className="ws-filter-chips__clear">
+          <Link href={hrefSet(pathname, params, clearAll())} className="ws-filter-chips__clear">
             Clear all
           </Link>
         </li>
@@ -100,7 +88,7 @@ type ZeroProps = {
   anchor: Anchor;
   radius: Radius;
   radiusCounts: ReadonlyMap<Radius, number>;
-  filterCounts: ReadonlyMap<"cat" | "price", number>;
+  filterCounts: ReadonlyMap<FilterKey, number>;
   filters: Filters;
   categories: readonly Category[];
   pathname: string;
@@ -118,8 +106,8 @@ const radiusHref = (pathname: string, params: SearchParams, r: Radius) =>
 export function ZeroResults({ anchor, radius, radiusCounts, filterCounts, filters, categories, pathname, params }: ZeroProps) {
   const wider = widerRadius(radius, radiusCounts, 0);
   const drops = [...filterCounts].filter(([, n]) => n > 0);
-  const nameOf = (k: "cat" | "price") => (k === "cat" ? categories.find((c) => c.id === filters.cat)?.name ?? "category" : "price");
-  const dropHref = (k: "cat" | "price") => (k === "cat" ? hrefWith(pathname, params, "cat", null) : hrefWith(pathname, { ...params, min: undefined }, "max", null));
+  const nameOf = (k: FilterKey) => groupName(k, filters, categories);
+  const dropHref = (k: FilterKey) => hrefSet(pathname, params, removeGroup(k));
   const title = wider !== undefined ? "Try a wider area" : drops.length > 0 ? "Try removing a filter" : "Try a different word, or browse a category";
 
   return (
