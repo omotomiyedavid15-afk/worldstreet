@@ -6,7 +6,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # WorldStreet Marketplace
 
-- Build plan and progress: `docs/marketplace/PLAN.md`, `docs/marketplace/PROGRESS.md`.
+- Build plan and progress: `docs/marketplace/PLAN.md`, `docs/marketplace/PROGRESS.md`. UI research and open UI decisions: `docs/marketplace/UI-RESEARCH.md`.
 - Design system: rebuilt from https://worldstreet-design-system.vercel.app (`--cx-*` tokens under `data-brand="worldstreet"`). Icons: Atlas Icons via `components/icons` only.
 - Money is integer kobo (`price_minor`), shown only through `formatCurrency()`.
 - Every rule number lives in `config/marketplace-rules.ts`.
