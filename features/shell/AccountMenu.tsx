@@ -1,0 +1,55 @@
+"use client";
+
+import { AccountIcon, ArrowDownIcon } from "@/components/icons";
+import { Menu, type MenuItem } from "@/components/ui";
+import { signIn, signOut, useSession } from "@/features/auth/session";
+
+/* AccountMenu (spec §3.1, eBay "My eBay"): the places a buyer and seller come back to.
+   Desktop only; phones use the Account tab. The session is the mock one (Phase 4
+   brings real sign-in). */
+
+const PLACES: MenuItem[] = [
+  { label: "Saved", href: "/saved" },
+  { label: "Orders", href: "/orders" },
+  { label: "Inbox", href: "/inbox" },
+  { label: "Offers", href: "/offers" },
+  { label: "Seller Hub", href: "/vendor" },
+  { label: "Account settings", href: "/account" },
+];
+
+export function AccountMenu({ compact = false }: { compact?: boolean }) {
+  const { signedIn } = useSession();
+  const items: (MenuItem | "separator")[] = signedIn
+    ? [...PLACES, "separator", { label: "Sign out", onSelect: signOut }]
+    : [{ label: "Sign in", onSelect: signIn }, "separator", ...PLACES];
+  return compact ? (
+    <Menu label="Your account" trigger={<AccountIcon />} items={items} />
+  ) : (
+    <Menu
+      label="My WorldStreet"
+      iconOnly={false}
+      trigger={
+        <>
+          My WorldStreet
+          <ArrowDownIcon />
+        </>
+      }
+      items={items}
+    />
+  );
+}
+
+export function Greeting() {
+  const { signedIn } = useSession();
+  return signedIn ? (
+    <span className="ws-utility__hi">Hi there!</span>
+  ) : (
+    <span className="ws-utility__hi">
+      Hi!{" "}
+      <button type="button" className="ws-utility__signin" onClick={signIn}>
+        Sign in
+      </button>{" "}
+      or <a href="/account">register</a>
+    </span>
+  );
+}
