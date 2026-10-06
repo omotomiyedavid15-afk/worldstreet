@@ -15,6 +15,7 @@ export function SortMenu({ current, pathname, params }: Props) {
       label={`Sort: ${sortLabel(current)}`}
       iconOnly={false}
       variant="ghost"
+      sheetTitle="Sort by"
       trigger={
         <>
           <NavigateArrowUpDownIcon />

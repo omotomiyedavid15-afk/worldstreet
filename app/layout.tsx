@@ -5,8 +5,12 @@ import { fontVariables } from "./fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  // Absolute URLs for link previews (WhatsApp, X). Set SITE_URL in each environment.
+  metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
   title: { default: "WorldStreet Marketplace", template: "%s · WorldStreet Marketplace" },
   description: ESCROW.tagline,
+  openGraph: { siteName: "WorldStreet Marketplace", locale: "en_NG", type: "website" },
+  twitter: { card: "summary_large_image" },
 };
 
 /* The browser toolbar matches the dark page (built dark-first, 6 Oct). */

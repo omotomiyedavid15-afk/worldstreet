@@ -119,3 +119,40 @@ test("Show more keeps the current results and adds the next page", async ({ page
   await expect(page).toHaveURL(/page=2/);
   await expect.poll(() => cards(page).count()).toBeGreaterThan(24);
 });
+
+for (const width of [360, 320]) {
+  test(`nothing scrolls sideways at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 760 });
+    for (const url of ["/search", "/search?q=phone&cat=phones&max=900000", "/search?q=sofa", "/listing/204507-sony-wh-1000xm5-wireless-noise-cancelling-headphones"]) {
+      await page.goto(url);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow, url).toBeLessThanOrEqual(0);
+    }
+  });
+}
+
+test("a hidden listing stays hidden after reload, and the count drops", async ({ page }) => {
+  await page.goto("/search?radius=all");
+  const heading = page.getByRole("heading", { level: 1 });
+  const before = Number((await heading.textContent())!.match(/\d+/)![0]);
+  const first = cards(page).first();
+  const title = (await first.getByRole("heading").textContent())!;
+  await first.getByRole("button", { name: `More actions for ${title}` }).click();
+  await page.getByRole("menuitem", { name: "Not interested" }).click();
+  await expect(page.getByText("Hidden. You won't see this listing again.")).toBeVisible();
+  await page.reload();
+  await expect(heading).toHaveText(new RegExp(`^${before - 1} listings`));
+  await expect(page.getByRole("link", { name: title, exact: true })).toHaveCount(0);
+});
+
+test("on phones, sort opens as a bottom sheet with a title", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 760 });
+  await page.goto("/search?q=phone");
+  await page.getByRole("button", { name: /^Sort/ }).click();
+  const sheet = page.locator(".ws-sheet");
+  await expect(sheet.getByRole("heading", { name: "Sort by" })).toBeVisible();
+  const box = (await sheet.boundingBox())!;
+  expect(Math.round(box.x)).toBe(0);
+  expect(Math.round(box.width)).toBe(375);
+  expect(Math.round(box.y + box.height)).toBe(760);
+});

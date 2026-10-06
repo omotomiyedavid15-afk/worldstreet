@@ -31,14 +31,21 @@ type MenuProps = {
   items: (MenuItem | "separator")[];
   variant?: "quiet" | "ghost";
   size?: "sm" | "md";
+  /**
+   * On phones, open as a bottom sheet with this title (spec §6: sheets, not dropdowns,
+   * at ≤ 768px). The title sits outside the menu role, which may only hold items.
+   */
+  sheetTitle?: string;
 };
+
+const phoneSheet = () => typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches;
 
 const itemRole = (item: MenuItem) =>
   item.checked === undefined ? { role: "menuitem" } : { role: "menuitemradio", "aria-checked": item.checked };
 
 const supportsAnchor = () => typeof CSS !== "undefined" && CSS.supports("position-area: bottom");
 
-export function Menu({ label, trigger, iconOnly = true, items, variant = "quiet", size = "sm" }: MenuProps) {
+export function Menu({ label, trigger, iconOnly = true, items, variant = "quiet", size = "sm", sheetTitle }: MenuProps) {
   const id = useId();
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -51,7 +58,7 @@ export function Menu({ label, trigger, iconOnly = true, items, variant = "quiet"
       const isOpen = (e as ToggleEvent).newState === "open";
       setOpen(isOpen);
       if (!isOpen) return;
-      if (!supportsAnchor() && triggerRef.current) {
+      if (!supportsAnchor() && triggerRef.current && !(sheetTitle && phoneSheet())) {
         const r = triggerRef.current.getBoundingClientRect();
         menu.style.position = "fixed";
         menu.style.margin = "0";
@@ -62,7 +69,7 @@ export function Menu({ label, trigger, iconOnly = true, items, variant = "quiet"
     };
     menu.addEventListener("toggle", onToggle);
     return () => menu.removeEventListener("toggle", onToggle);
-  }, []);
+  }, [sheetTitle]);
 
   const close = () => menuRef.current?.hidePopover();
 
@@ -98,32 +105,54 @@ export function Menu({ label, trigger, iconOnly = true, items, variant = "quiet"
       >
         {trigger}
       </button>
-      <div ref={menuRef} id={id} popover="auto" role="menu" aria-label={label} className="cx-menu" onKeyDown={onKeyDown}>
-        {items.map((item, n) =>
-          item === "separator" ? (
-            <hr key={`sep-${n}`} />
-          ) : item.href ? (
-            <Link key={item.label} href={item.href} tabIndex={-1} className={item.danger ? "danger" : undefined} onClick={close} {...itemRole(item)}>
-              {item.icon}
-              {item.label}
-              {item.kbd && <span className="kbd">{item.kbd}</span>}
-            </Link>
-          ) : (
-            <button
-              key={item.label}
-              type="button"
-              {...itemRole(item)}
-              tabIndex={-1}
-              className={item.danger ? "danger" : undefined}
-              onClick={() => { close(); item.onSelect?.(); }}
-            >
-              {item.icon}
-              {item.label}
-              {item.kbd && <span className="kbd">{item.kbd}</span>}
-            </button>
-          ),
-        )}
+      <div
+        ref={menuRef}
+        id={id}
+        popover="auto"
+        role={sheetTitle ? undefined : "menu"}
+        aria-label={sheetTitle ? undefined : label}
+        className={sheetTitle ? "cx-menu ws-sheet" : "cx-menu"}
+        onKeyDown={onKeyDown}
+      >
+        {sheetTitle && <h2 className="ws-sheet__title">{sheetTitle}</h2>}
+        <MenuItems role={sheetTitle ? "menu" : undefined} label={label}>
+          {items.map((item, n) =>
+            item === "separator" ? (
+              <hr key={`sep-${n}`} />
+            ) : item.href ? (
+              <Link key={item.label} href={item.href} tabIndex={-1} className={item.danger ? "danger" : undefined} onClick={close} {...itemRole(item)}>
+                {item.icon}
+                {item.label}
+                {item.kbd && <span className="kbd">{item.kbd}</span>}
+              </Link>
+            ) : (
+              <button
+                key={item.label}
+                type="button"
+                {...itemRole(item)}
+                tabIndex={-1}
+                className={item.danger ? "danger" : undefined}
+                onClick={() => { close(); item.onSelect?.(); }}
+              >
+                {item.icon}
+                {item.label}
+                {item.kbd && <span className="kbd">{item.kbd}</span>}
+              </button>
+            ),
+          )}
+        </MenuItems>
       </div>
     </>
+  );
+}
+
+/** With a sheet title, the items get their own role="menu" box; otherwise the popover is the menu. */
+function MenuItems({ role, label, children }: { role?: "menu"; label: string; children: ReactNode }) {
+  return role ? (
+    <div role="menu" aria-label={label} className="ws-sheet__items">
+      {children}
+    </div>
+  ) : (
+    <>{children}</>
   );
 }

@@ -173,3 +173,41 @@ html[data-theme=light] {
     opacity: var(--cx-wash-opacity);
   }
 }
+
+/* Menu as a bottom sheet on phones (Menu `sheetTitle`; spec §6, Material bottom
+   sheet): full width from the bottom edge, a title, and 52px rows. A dropdown on
+   larger screens, where the title isn't shown. */
+.ws-sheet__title {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .cx-menu.ws-sheet[popover] {
+    position: fixed;
+    position-area: none;
+    position-try-fallbacks: none;
+    inset: auto 0 0;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: var(--cx-s-2) var(--cx-s-3) calc(var(--cx-s-4) + env(safe-area-inset-bottom, 0px));
+    border-radius: var(--cx-sheet-radius) var(--cx-sheet-radius) 0 0;
+  }
+
+  .cx-menu.ws-sheet::backdrop {
+    background: var(--cx-overlay);
+  }
+
+  .ws-sheet__title {
+    display: block;
+    padding: var(--cx-s-3) var(--cx-s-3) var(--cx-s-2);
+    color: var(--cx-text);
+    font: 500 var(--cx-h4)/var(--cx-h4-lh) var(--cx-font);
+  }
+
+  .cx-menu.ws-sheet button,
+  .cx-menu.ws-sheet a {
+    height: 52px;
+    font-size: var(--cx-body);
+  }
+}

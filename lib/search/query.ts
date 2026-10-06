@@ -35,12 +35,15 @@ export function parseQuery(input: string | undefined): ParsedQuery {
   return tokens.length === 0 ? { kind: "browse", raw } : { kind: "text", raw, tokens: [...new Set(tokens)] };
 }
 
-/** Where a word is found, and how much that says about relevance. */
+/**
+ * Where a word is found, and how much that says about the listing. A shop's name
+ * doesn't describe the item, so it can't make a listing match on its own (research
+ * 6 Oct: weak matches crowded price sorts); shop searches belong to seller suggestions.
+ */
 const FIELDS = [
   { weight: 1, get: (l: ListingWithSeller) => l.title },
   { weight: 0.6, get: (l: ListingWithSeller) => l.category.name },
   { weight: 0.5, get: (l: ListingWithSeller) => l.attributes.map((a) => a.value).join(" ") },
-  { weight: 0.3, get: (l: ListingWithSeller) => l.seller.shop_name },
 ];
 
 /**

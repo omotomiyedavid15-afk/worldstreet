@@ -31,6 +31,10 @@ export const rules = {
     maxHeroSlides: 3, // R-015 (stricter than spec §4, PLAN C6)
     minRailItems: 4, // R-014
   },
+  hidden: {
+    maxListings: 200, // "Not interested"; oldest drop off first (kept in a cookie for the server)
+    maxSellers: 50, // "Hide seller"
+  },
   saved: {
     maxListings: 500, // R-027
     maxSearches: 50, // R-027

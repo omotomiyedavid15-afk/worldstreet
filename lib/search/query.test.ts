@@ -51,6 +51,10 @@ describe("matchListings", () => {
     expect(await titles("automatic")).toEqual(expect.arrayContaining(["Toyota Corolla 2014 LE, Automatic", "Honda Accord 2013 EX-L"]));
   });
 
+  it("doesn't match on the shop name alone", async () => {
+    expect(await titles("gadget")).toEqual([]); // "Gadget Hub Ikeja" sells phones, but no listing is a gadget
+  });
+
   it("ranks title matches above category matches", async () => {
     const [base] = await repos.listings.list();
     const inTitle = { ...base, id: "T1", title: "Zebra print scarf" };

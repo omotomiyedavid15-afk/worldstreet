@@ -21,10 +21,13 @@ export type SearchInput = {
   sort: SortKey;
   /** 1-based; each page adds `rules.search.pageSize` results ("Show more"). */
   page: number;
+  /** What the buyer hid ("Not interested", "Hide seller"): left out of results and counts. */
+  hidden?: { listings: ReadonlySet<string>; sellers: ReadonlySet<string> };
   now?: number;
 };
 
-export function runSearch({ listings, query, filters, anchor, radius, sort, page, now }: SearchInput) {
+export function runSearch({ listings: all, query, filters, anchor, radius, sort, page, hidden, now }: SearchInput) {
+  const listings = hidden ? all.filter((l) => !hidden.listings.has(l.id) && !hidden.sellers.has(l.seller_id)) : all;
   const relevance = query.kind === "text" ? matchListings(listings, query.tokens, query.raw) : undefined;
   const matched = relevance ? listings.filter((l) => relevance.has(l.id)) : listings;
   const filtered = applyFilters(matched, filters);

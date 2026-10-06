@@ -4,6 +4,7 @@ import { rules } from "@/config/marketplace-rules";
 import { ListingCard } from "@/features/listing-card/ListingCard";
 import { setLocation } from "@/features/location/actions";
 import { LocationBar } from "@/features/location/LocationBar";
+import { getHidden } from "@/features/hidden/server";
 import { getAnchor } from "@/features/location/server";
 import { GlobalSearchBox } from "@/features/search/GlobalSearchBox";
 import { ActiveFilterChips, EndOfResults, ProhibitedResults, ResultsHeader, ZeroResults } from "@/features/search/Results";
@@ -43,8 +44,9 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
     if (listing) redirect(listingPath(listing));
   }
 
-  const [{ anchor, inferred }, categories, listings, trending] = await Promise.all([
+  const [{ anchor, inferred }, hidden, categories, listings, trending] = await Promise.all([
     getAnchor(),
+    getHidden(),
     repos.categories.list(),
     repos.listings.list(),
     repos.search.trending(),
@@ -79,6 +81,7 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
     radius,
     sort,
     page,
+    hidden,
   });
 
   return (

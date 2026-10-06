@@ -1033,8 +1033,11 @@ a.ws-seller__name:hover {
   padding-block: var(--cx-s-5) var(--cx-s-10);
 }
 
+/* minmax(0, 1fr): an implicit auto column grows to its widest child's minimum and
+   pushed the page sideways on 320–360px phones. */
 .ws-search-page {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--cx-s-4);
 }
 

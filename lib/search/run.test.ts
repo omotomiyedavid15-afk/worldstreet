@@ -38,6 +38,19 @@ describe("runSearch", () => {
   });
 });
 
+describe("hidden listings", () => {
+  it("leaves hidden listings and sellers out of results and counts", async () => {
+    const b = await base();
+    const all = runSearch({ ...b, query: { kind: "browse", raw: "" }, radius: null });
+    const hidden = { listings: new Set(["204507"]), sellers: new Set(["s03"]) };
+    const r = runSearch({ ...b, query: { kind: "browse", raw: "" }, radius: null, hidden });
+    const s03 = b.listings.filter((l) => l.seller_id === "s03").length;
+    expect(r.total).toBe(all.total - 1 - s03);
+    expect(r.shown.some((l) => l.id === "204507" || l.seller_id === "s03")).toBe(false);
+    expect(r.radiusCounts.get(null)).toBe(r.total);
+  });
+});
+
 describe("URL parsing", () => {
   const cats = ["phones", "fashion"] as const;
   it("keeps valid filters, swaps reversed prices and ignores junk", () => {
