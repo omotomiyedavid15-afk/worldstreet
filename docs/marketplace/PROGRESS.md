@@ -19,6 +19,8 @@ _Phase 0 in progress on `phase/0-foundations`._
 | 6 Oct | Fonts | ₦ comes from a 1.2 KB Noto Sans subset placed **before** Manrope in `--cx-font` | Manrope has no U+20A6 (checked in its latin-ext cmap). The DS stack lists "Noto Sans" after Manrope, which lets the metric fallback font draw ₦ |
 | 6 Oct | Spec §17.3 | No new `--cx-z-*` scale | The DS already has `--cx-z-sticky` 100 … `--cx-z-tooltip` 700 and `--cx-touch` 44px |
 | 6 Oct | Checklist M3 | `--ws-*` ↔ `--cx-*` alias layer not built | Nothing from the sandbox is ported (your direction, 6 Oct) |
+| 6 Oct | Icons | Atlas has no plain chevron, ✕, ✓, +/− strokes, menu bars or sort arrows. Using `ArrowLeft/Right/Down` as chevrons, `XmarkCircle` (close), `CheckCircle`, `PlusCircle`/`MinusCircle`, `ListRight` (menu), `NavigateArrowUpDown` (sort), `MenuSquare` (categories). Also misleading names avoided: `Cross` is a religious cross, `Hamburger` is food, `Pin` is a thumbtack | You asked for Atlas as the only icon source, so nothing is hand-drawn. If you'd rather have a bare ✕/chevron, I can draw 6 primitives on the Atlas grid (spec §17.2 allows additions) |
+| 6 Oct | Icons | Atlas is generated into `components/icons/atlas.generated.ts` (60 icons, ~21 KB, per-icon exports), ids and inline `<style>` stripped | The package is one 3 MB untree-shakable module, and its fixed ids duplicate when an icon repeats (axe failure) |
 | 6 Oct | Tooling | Local browser tests drive installed Chrome | Playwright has no Chromium build for macOS 13; CI uses bundled Chromium |
 
 ## Master checklist (266 items, spec Part X)
