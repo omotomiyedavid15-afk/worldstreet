@@ -1788,3 +1788,82 @@ a.ws-seller__name:hover {
     transform: scale(1.05);
   }
 }
+
+/* ThreeStage (components/three): the fallback fills the stage until the canvas has
+   drawn, then the canvas fades in over it. */
+.ws-stage {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.ws-stage__fallback,
+.ws-stage__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.ws-stage__canvas {
+  display: block;
+  animation: ws-stage-in 900ms var(--cx-ease) both;
+}
+
+.ws-stage[data-status=live] .ws-stage__fallback {
+  opacity: 0;
+  transition: opacity 900ms var(--cx-ease);
+}
+
+.ws-stage--drag {
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.ws-stage--drag:active {
+  cursor: grabbing;
+}
+
+@keyframes ws-stage-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* The hero's still fallback: a soft gold glow, no drawing. */
+.ws-stage__glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(60% 50% at 70% 40%, color-mix(in srgb, var(--cx-ember) 22%, transparent), transparent 70%),
+    radial-gradient(40% 40% at 20% 70%, color-mix(in srgb, var(--cx-ember) 10%, transparent), transparent 70%);
+}
+
+.ws-viewer3d {
+  display: grid;
+  gap: var(--cx-s-2);
+  margin: 0;
+}
+
+.ws-viewer3d .ws-stage {
+  aspect-ratio: 4 / 3;
+  border-radius: var(--cx-r-card);
+  background: var(--cx-surface-2);
+}
+
+.ws-viewer3d .ws-stage__fallback img {
+  object-fit: contain;
+}
+
+.ws-viewer3d__caption {
+  color: var(--cx-text);
+  font: 400 var(--cx-small)/1.4 var(--cx-font);
+  text-align: center;
+}
+
+/* The hero's 3D backdrop fills its section, behind the copy. */
+.ws-hero__stage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}

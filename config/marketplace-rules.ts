@@ -72,6 +72,15 @@ export const rules = {
     highPriorityCards: 2, // fetchpriority="high" on the first N result photos (LCP)
     eagerCards: 4, // loading="eager" on the first N; the rest are lazy
   },
+  three: {
+    // 3D (home hero, listing viewer) only where it won't hurt: many buyers are on
+    // budget Android phones and metered data (spec §16.7). Below these, the static
+    // fallback shows instead.
+    minDeviceMemoryGb: 4, // navigator.deviceMemory; unknown counts as enough
+    minCores: 4, // navigator.hardwareConcurrency
+    maxPixelRatio: 1.75, // render-size cap; sharper isn't worth the fill rate
+    maxFps: 60,
+  },
   orders: {
     sellerConfirmHours: 12, // §6.6
     handlingDays: 2, // R-061
