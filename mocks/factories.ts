@@ -83,7 +83,7 @@ export function makeListing(seed: ListingSeed): Listing {
     delivery: delivery[seed.delivery],
     return_days: seed.returns === undefined ? 7 : seed.returns,
     media: Array.from({ length: photos }, (_, i) => ({
-      url: `/mock/img/${seed.category}.svg`,
+      url: `/mock/img/${seed.category}-${(i % 4) + 1}.svg`,
       alt: i === 0 ? seed.title : `${seed.title}, photo ${i + 1}`,
       order: i,
       type: "image" as const,

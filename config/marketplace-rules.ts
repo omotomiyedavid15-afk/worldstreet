@@ -31,6 +31,11 @@ export const rules = {
     maxHeroSlides: 3, // R-015 (stricter than spec §4, PLAN C6)
     minRailItems: 4, // R-014
   },
+  card: {
+    maxFacts: 3, // subtitle line facts after the condition (Baymard: show category attributes)
+    maxFactsNarrow: 1, // under 240px
+    photosMax: 4, // photos a buyer can step through from a card (eBay steps up to 4)
+  },
   hidden: {
     maxListings: 200, // "Not interested"; oldest drop off first (kept in a cookie for the server)
     maxSellers: 50, // "Hide seller"

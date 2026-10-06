@@ -360,7 +360,12 @@ a.ws-seller__name:hover {
 }
 
 .ws-card__photos {
-  z-index: 1;
+  z-index: 3;
+}
+
+/* The scrim sits over the photo track (z 2) but never takes clicks. */
+.ws-card__media::after {
+  z-index: 2;
 }
 
 .ws-card__media > .cx-skel {
@@ -368,12 +373,12 @@ a.ws-seller__name:hover {
   inset: 0;
 }
 
-/* Above the stretched link, so it's its own target. */
+/* Above the stretched link and the photo track, so it's its own target. */
 .ws-card__save {
   position: absolute;
   top: var(--cx-s-2);
   right: var(--cx-s-2);
-  z-index: 2;
+  z-index: 3;
 }
 
 .ws-card__photos {
@@ -1567,4 +1572,143 @@ a.ws-seller__name:hover {
 .ws-listing-stub__media > .cx-skel {
   position: absolute;
   inset: 0;
+}
+
+/* Subtitle line (eBay item tile): condition · key facts, one line, ellipsis. The row
+   is always reserved so prices line up across a grid row. */
+.ws-facts {
+  min-height: 1lh;
+  overflow: hidden;
+  color: var(--cx-text-muted);
+  font-size: var(--cx-meta);
+  line-height: 1.35;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ws-facts__item + .ws-facts__item::before {
+  content: " · " / "";
+}
+
+.ws-facts__item[data-tone=warning] {
+  color: var(--cx-warning);
+  font-weight: 500;
+}
+
+@container ws-body (max-width: 240px) {
+  .ws-facts {
+    font-size: var(--cx-caption);
+  }
+
+  .ws-facts__item:nth-child(n + 3) {
+    display: none;
+  }
+}
+
+/* CardPhotos: step through photos from the card (UI research C1). The track sits above
+   the stretched link (it navigates on tap itself) and lets vertical scrolling through. */
+.ws-photos,
+.ws-photos__track,
+.ws-photos__slide {
+  position: absolute;
+  inset: 0;
+}
+
+.ws-photos__track {
+  z-index: 2;
+  overflow: hidden;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.ws-photos__slide img {
+  object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.ws-photos__arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin-top: -18px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--cx-elevated);
+  box-shadow: var(--cx-shadow-sm);
+  color: var(--cx-text);
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity var(--cx-dur-fast) var(--cx-ease), transform var(--cx-dur) var(--cx-spring-snappy);
+}
+
+/* 44px to the pointer. */
+.ws-photos__arrow::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+}
+
+.ws-photos__arrow svg {
+  width: 18px;
+  height: 18px;
+}
+
+.ws-photos__arrow--prev {
+  left: var(--cx-s-2);
+}
+
+.ws-photos__arrow--next {
+  right: var(--cx-s-2);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ws-card:hover .ws-photos__arrow {
+    opacity: 1;
+    transform: none;
+  }
+
+  .ws-photos__arrow:hover {
+    transform: scale(1.08);
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .ws-photos__arrow,
+  .ws-photos__dots {
+    display: none;
+  }
+}
+
+.ws-photos__dots {
+  position: absolute;
+  bottom: var(--cx-s-3);
+  left: 50%;
+  z-index: 3;
+  display: flex;
+  gap: 5px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.ws-photos__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 25%);
+}
+
+.ws-photos__preload {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
 }

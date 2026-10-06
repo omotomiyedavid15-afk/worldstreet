@@ -52,7 +52,7 @@ const fashion = category("fashion", "Fashion", "fashion");
 
 const photos = (title: string, cat: string, n: number) =>
   Array.from({ length: n }, (_, i) => ({
-    url: `/mock/img/${cat}.svg`,
+    url: `/mock/img/${cat}-${(i % 4) + 1}.svg`,
     alt: i === 0 ? title : `${title}, photo ${i + 1}`,
     order: i,
     type: "image" as const,

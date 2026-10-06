@@ -19,6 +19,8 @@ document.body.dataset.brand = "worldstreet";
 
 const preview: Preview = {
   parameters: {
+    // App Router mocks for next/navigation (useRouter in cards and search).
+    nextjs: { appDirectory: true },
     layout: "padded",
     viewport: { options: viewports },
     // Serious and critical axe violations fail the story test, not just warn.

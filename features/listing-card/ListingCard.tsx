@@ -10,8 +10,9 @@ import type { ListingWithSeller } from "@/lib/data/types";
 import { plural } from "@/lib/format";
 import type { Anchor } from "@/lib/areas";
 import { haversineKm } from "@/lib/geo";
-import { ConditionChip, DeliveryLine, LocationLine, PriceBlock, RatingStars, SaveButton, SellerMini, SocialProof } from "./atoms";
+import { DeliveryLine, KeyFacts, LocationLine, PriceBlock, RatingStars, SaveButton, SellerMini, SocialProof } from "./atoms";
 import { CardMenu, HideGate } from "./CardActions";
+import { CardPhotos } from "./CardPhotos";
 
 /* ListingCard (spec §5.1–5.2) in eBay's order: photo with the heart, condition, title,
    rating, price, delivery and total, location, demand, then seller and the ⋮ menu.
@@ -80,7 +81,7 @@ export function ListingCard({ listing, variant = "grid", anchor, sizes, load = "
         <div className="ws-card__body">
           {title}
           <PriceBlock price_minor={listing.price_minor} was_minor={listing.was_minor} period={listing.price_period} variant="cart" className="ws-card__compact-price" />
-          <ConditionChip condition={listing.condition} />
+          <KeyFacts listing={listing} />
         </div>
       </Card>,
     );
@@ -90,37 +91,32 @@ export function ListingCard({ listing, variant = "grid", anchor, sizes, load = "
   return gate(
     <Card as="article" interactive className={cx("ws-card", `ws-card--${variant}`)}>
       <div className="ws-card__media">
-        {photo && (
-          <Image
-            src={photo.url}
-            alt={photo.alt}
-            fill
-            sizes={sizes ?? SIZES[variant]}
-            loading={load === "lazy" ? "lazy" : "eager"}
-            fetchPriority={load === "high" ? "high" : undefined}
-            quality={variant === "rail" ? rules.media.thumbQuality : undefined}
-          />
+        {variant === "rail" ? (
+          <>
+            {photo && (
+              <Image src={photo.url} alt={photo.alt} fill sizes={sizes ?? SIZES.rail} loading={load === "lazy" ? "lazy" : "eager"} quality={rules.media.thumbQuality} />
+            )}
+            {listing.media.length > 1 && (
+              <span className="ws-card__photos">
+                <ImageIcon />
+                <span aria-hidden="true">{listing.media.length}</span>
+                <span className="cx-sr-only">{plural(listing.media.length, "photo")}</span>
+              </span>
+            )}
+          </>
+        ) : (
+          <CardPhotos media={listing.media} href={href} sizes={sizes ?? SIZES[variant]} load={load} />
         )}
         <div className="ws-card__save">
           <SaveButton listingId={listing.id} title={listing.title} />
         </div>
-        {listing.media.length > 1 && (
-          <span className="ws-card__photos">
-            <ImageIcon />
-            <span aria-hidden="true">{listing.media.length}</span>
-            <span className="cx-sr-only">{plural(listing.media.length, "photo")}</span>
-          </span>
-        )}
       </div>
 
       <div className="ws-card__body">
         <div className="ws-card__stack">
           <div className="ws-card__head">
-            <div className="ws-card__chips">
-              {/* Condition means nothing for a flat to let. */}
-              {listing.category.kind !== "property" && <ConditionChip condition={listing.condition} />}
-            </div>
             {title}
+            <KeyFacts listing={listing} />
             <div className="ws-card__rating">{listing.rating && <RatingStars value={listing.rating.average} count={listing.rating.count} />}</div>
           </div>
 

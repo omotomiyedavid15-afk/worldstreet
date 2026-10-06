@@ -28,6 +28,8 @@ export type Category = {
   inspection: "fashion" | "home" | "electronics" | "phones" | "appliances" | "furniture" | "vehicles" | "property" | "default";
   /** Vehicles and property: contact + "Book viewing", no checkout (PLAN risk 7). */
   kind: "goods" | "vehicle" | "property";
+  /** Attribute keys worth a place on the card's subtitle line, most useful first. */
+  card_facts?: readonly string[];
 };
 
 /** spec §5.3 ConditionChip; flows B2 condition filter. */
