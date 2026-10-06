@@ -56,6 +56,7 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.9 done; next S0.10 (hom
 | 6 Oct | Search | "Show more" is a link to `?page=N` showing N×24 results, not infinite scroll | Keeps every state a URL (R-011) and Back exact; InfiniteLoader is Phase 2 |
 | 6 Oct | Routes | `/listing/:id-:slug` is a placeholder (photo, price, delivery, seller) with canonical-slug redirects; `/help/*` is a placeholder | Cards and the EC-004 policy link must not be dead ends (F5); the real pages are Phase 3 and S0.10 |
 | 6 Oct | Property cards | No condition chip on property (the row stays reserved) | "Brand new" means nothing for a flat to let |
+| 6 Oct | Deploys | `vercel.json` turns off Vercel's automatic Git deployments (`git.deploymentEnabled: false`) | Your direction (6 Oct): no more Vercel deploys. The Vercel GitHub app was building a preview of every push |
 | 6 Oct | Tooling | `PW_CHROMIUM_PATH` lets story tests use a preinstalled Chromium; Testing Library cleanup is explicit in `vitest.setup.ts` | Cloud containers ship a different Chromium build; auto-cleanup needs Vitest globals, which are off |
 
 ## Master checklist (266 items, spec Part X)
