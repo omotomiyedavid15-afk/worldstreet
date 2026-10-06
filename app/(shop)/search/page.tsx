@@ -8,7 +8,7 @@ import { setLocation } from "@/features/location/actions";
 import { LocationBar } from "@/features/location/LocationBar";
 import { getHidden } from "@/features/hidden/server";
 import { getAnchor } from "@/features/location/server";
-import { GlobalSearchBox } from "@/features/search/GlobalSearchBox";
+import { MarkProhibited } from "@/features/search/MarkProhibited";
 import { ActiveFilterChips, EndOfResults, ProhibitedResults, ResultsHeader, ZeroResults } from "@/features/search/Results";
 import { SearchTransitions, ShowMoreLink } from "@/features/search/SearchTransitions";
 import { SortMenu } from "@/features/search/SortMenu";
@@ -17,7 +17,7 @@ import { formatCount } from "@/lib/format";
 import { parseFilters } from "@/lib/search/filters";
 import { first, hrefWith, type SearchParams } from "@/lib/search/params";
 import { parseQuery, type ParsedQuery } from "@/lib/search/query";
-import { parseRadius, radiusParam } from "@/lib/search/radius";
+import { parseRadius } from "@/lib/search/radius";
 import { parsePage, runSearch } from "@/lib/search/run";
 import { parseSort } from "@/lib/search/sort";
 
@@ -46,13 +46,7 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
     if (listing) redirect(listingPath(listing));
   }
 
-  const [{ anchor, inferred }, hidden, categories, listings, trending] = await Promise.all([
-    getAnchor(),
-    getHidden(),
-    repos.categories.list(),
-    repos.listings.list(),
-    repos.search.trending(),
-  ]);
+  const [{ anchor, inferred }, hidden, categories, listings] = await Promise.all([getAnchor(), getHidden(), repos.categories.list(), repos.listings.list()]);
   const radius = parseRadius(params.radius);
   const sort = parseSort(params.sort);
   const page = parsePage(params.page);
@@ -60,15 +54,12 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
   // An id that matches no listing is searched as text, so it simply finds nothing.
   const query: ParsedQuery = parsed.kind === "listing-id" ? { kind: "text", raw: parsed.raw, tokens: [parsed.id] } : parsed;
   const returnTo = hrefWith(PATH, params, "page", null);
-  const keep: Record<string, string> = radius === rules.location.defaultRadiusKm ? {} : { radius: radiusParam(radius) };
-
-  const box = <GlobalSearchBox key={parsed.raw} defaultValue={parsed.raw} trending={trending} keep={keep} />;
   const bar = <LocationBar anchor={anchor} inferred={inferred} radius={radius} returnTo={returnTo} action={setLocation} />;
 
   if (query.kind === "prohibited") {
     return (
       <div className="ws-search-page">
-        <GlobalSearchBox key={parsed.raw} defaultValue={parsed.raw} trending={[]} keep={keep} suggestions={false} forget={parsed.raw} />
+        <MarkProhibited term={parsed.raw} />
         <ResultsHeader query={parsed.raw} anchor={anchor} near={false} total={0} shown={0} sortMenu={null} />
         <ProhibitedResults />
       </div>
@@ -88,7 +79,6 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
 
   return (
     <SearchTransitions pathname={PATH}>
-      {box}
       {bar}
       <ResultsHeader
         query={parsed.raw}

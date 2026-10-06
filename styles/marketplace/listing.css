@@ -1035,7 +1035,7 @@ a.ws-seller__name:hover {
 
 /* Page frame until the Phase 1 header exists. */
 .ws-page {
-  padding-block: var(--cx-s-5) var(--cx-s-10);
+  padding-block: var(--cx-s-5) 0;
 }
 
 /* minmax(0, 1fr): an implicit auto column grows to its widest child's minimum and

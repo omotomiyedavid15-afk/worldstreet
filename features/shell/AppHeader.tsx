@@ -1,0 +1,84 @@
+import Link from "next/link";
+import { Suspense } from "react";
+import { BellIcon, ChatDotsIcon, HandshakeAgreementDealIcon, HeartIcon, HomeIcon, InfoCircleIcon, PackageIcon, PlusCircleIcon, ShoppingCartIcon, StoreIcon, TagIcon } from "@/components/icons";
+import { buttonClass } from "@/components/ui";
+import { GlobalSearchBox } from "@/features/search/GlobalSearchBox";
+import { AccountMenu, Greeting } from "./AccountMenu";
+import { HeaderFrame } from "./HeaderFrame";
+import { HeaderSearch } from "./HeaderSearch";
+import { Logo } from "./Logo";
+import { DrawerLink, NavDrawer } from "./NavDrawer";
+import { NotificationBell } from "./NotificationBell";
+
+/*
+ * AppHeader (spec §3.1, eBay's two-row header):
+ * - ≥ 1200: a utility row (greeting, Deals, Help & Contact · Sell, Saved, My
+ *   WorldStreet, bell) over the main row (logo, Shop by category, search, cart).
+ * - 768–1199: one row (menu, logo, search, bell, cart).
+ * - Phones: menu, logo and cart, with the search on its own row underneath.
+ * It's sticky with a negative top, so on scroll the utility row (desktop) or the logo
+ * row (phones) slides away and the search stays: the "shrink" without a layout jump.
+ * Utility links move into the menu drawer below 1200.
+ */
+
+type Props = { trending: readonly string[]; categories?: React.ReactNode; categoryLinks?: React.ReactNode };
+
+export function AppHeader({ trending, categories, categoryLinks }: Props) {
+  return (
+    <HeaderFrame>
+      <div className="ws-utility">
+        <div className="cx-container ws-utility__row">
+          <div className="ws-utility__group">
+            <Greeting />
+            <Link href="/search?sort=discount">Deals</Link>
+            <Link href="/help">Help &amp; Contact</Link>
+          </div>
+          <div className="ws-utility__group">
+            <Link href="/sell/new">Sell</Link>
+            <Link href="/saved">Saved</Link>
+            <AccountMenu />
+            <NotificationBell />
+          </div>
+        </div>
+      </div>
+
+      <div className="cx-container ws-header__main">
+        <div className="ws-header__start">
+          <NavDrawer>
+            <div className="ws-drawer__hi">
+              <Greeting />
+            </div>
+            <nav aria-label="Menu" className="ws-drawer__nav">
+              <DrawerLink href="/" icon={<HomeIcon />}>Home</DrawerLink>
+              <DrawerLink href="/search?sort=discount" icon={<TagIcon />}>Deals</DrawerLink>
+              <DrawerLink href="/saved" icon={<HeartIcon />}>Saved</DrawerLink>
+              <DrawerLink href="/notifications" icon={<BellIcon />}>Notifications</DrawerLink>
+              <DrawerLink href="/inbox" icon={<ChatDotsIcon />}>Inbox</DrawerLink>
+              <DrawerLink href="/offers" icon={<HandshakeAgreementDealIcon />}>Offers</DrawerLink>
+              <DrawerLink href="/orders" icon={<PackageIcon />}>Orders</DrawerLink>
+              <DrawerLink href="/sell/new" icon={<PlusCircleIcon />}>Sell an item</DrawerLink>
+              <DrawerLink href="/vendor" icon={<StoreIcon />}>Seller Hub</DrawerLink>
+              <DrawerLink href="/help" icon={<InfoCircleIcon />}>Help &amp; Contact</DrawerLink>
+            </nav>
+            {categoryLinks}
+          </NavDrawer>
+          <Logo />
+        </div>
+        {categories && <div className="ws-header__cats">{categories}</div>}
+        <div className="ws-header__search">
+          <Suspense fallback={<GlobalSearchBox trending={trending} inputId="site-search" />}>
+            <HeaderSearch trending={trending} />
+          </Suspense>
+        </div>
+        <div className="ws-header__actions">
+          <span className="ws-header__bell">
+            <NotificationBell />
+          </span>
+          <Link href="/cart" className={buttonClass({ variant: "quiet", size: "sm", icon: true })} aria-label="Cart">
+            <ShoppingCartIcon />
+          </Link>
+        </div>
+      </div>
+    </HeaderFrame>
+  );
+}

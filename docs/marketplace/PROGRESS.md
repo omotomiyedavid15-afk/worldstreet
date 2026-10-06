@@ -88,14 +88,20 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 | 6 Oct | Placeholder routes (F5) | `/categories`, `/saved`, `/notifications`, `/inbox`, `/offers`, `/account`, `/cart`, `/checkout`, `/orders`, `/sell/start`, `/sell/new`, `/vendor`, `/seller/:handle`, `/help/*` say what they'll do and "Coming in Phase N of the build", noindex; unknown help topics, sellers and paths get a real 404 page | No dead links before the shell (Phase 1) points at them; a fake help page for any slug would hide broken links |
 | 6 Oct | App icon and manifest (F16) | The Atlas ShopBag glyph on the gold tile (`npm run app-icons`, rasterised with sharp, which Next installs); favicon, SVG icon, Apple icon, 192/512 and maskable icons; manifest dark, standalone, en-NG | Replaces the create-next-app favicon. Atlas is the only icon source (your rule), so the brand mark uses it too. **Swap in a real WorldStreet logo when there is one** |
 | 6 Oct | F17 (sticky chrome) | Bottom padding for the nav and the collapsing category rail move to Phase 1 | Neither the bottom nav nor the category rail exists yet; padding for a missing nav would be empty space |
+| 6 Oct | AppHeader (Phase 1) | One search box in the header at every width: phones put it on its own row under the menu, logo and cart (eBay mobile web) instead of a search icon; the header is sticky with a negative top so the utility row (desktop) or logo row (phones) scrolls away without a layout jump; utility links move into a native `<dialog>` drawer below 1200 | Spec §3.1 says a search icon opens an overlay on phones; a visible field is one tap shorter and the overlay comes from focusing it (P1c). Toggling heights on scroll would shift the page |
+| 6 Oct | Shell gaps | No ship-to chip in the utility row (the inline LocationBar does that job on the pages that use location); no cart count or mini-cart until the cart exists (Phase 5); no WalletBalanceChip or HelpBubble yet; links to Finance, Academy, Xstream and Vivid AI wait for their addresses; no CookieConsent while the site sets no non-essential cookies | F5: no badge or control without a working panel; a consent banner for cookies we don't set would mislead |
+| 6 Oct | NotificationBell | The badge is the number of unread items in its own panel (one list, so they can't disagree); the list stays empty until offers, messages and orders exist | Part H guardrail, audit F5 |
+| 6 Oct | Footer | Four columns on desktop, an exclusive accordion on phones (`<details name>`, no script; desktop opens all via `::details-content`), Atlas arrow for the toggle | Spec §3.3 |
+| 6 Oct | Bottom nav (F17) | Five tabs, Sell raised in gold; hides on scroll down; body padding equals its height plus the safe area on phones | Spec §3.2 |
+| 6 Oct | --cx-sticky-offset | Set on `<body>` by the header | The brand block declares it on `<body>`, which shadowed a value set on `<html>` (caught by e2e) |
 | 6 Oct | Mock photos | Four views per category (`{cat}-1..4.svg`) | So stepping shows different images |
 | 6 Oct | Tooling | `PW_CHROMIUM_PATH` lets story tests use a preinstalled Chromium; Testing Library cleanup is explicit in `vitest.setup.ts` | Cloud containers ship a different Chromium build; auto-cleanup needs Vitest globals, which are off |
 
 ## Master checklist (266 items, spec Part X)
 
 ## A. Shell
-- [ ] AppHeader (W two-row, M single-row)
-- [ ] UtilityBar (W)
+- [x] AppHeader (W two-row, M single-row)
+- [x] UtilityBar (W)
 - [x] ShipToSelector (W popover, M sheet)
 - [x] LocationBar inline
 - [ ] CategoryMenuButton + MegaMenu (W)
@@ -105,15 +111,15 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 - [ ] SearchSuggestPanel
 - [ ] Mobile search overlay
 - [ ] ImageSearchButton
-- [ ] NotificationBell + Panel (W) / page (M)
+- [x] NotificationBell + Panel (W) / page (M) (panel and count; the page is still a placeholder)
 - [ ] CartButton + MiniCart
-- [ ] AccountMenu (W) / Account tab (M)
+- [x] AccountMenu (W) / Account tab (M) (mock session; Account tab opens the placeholder)
 - [ ] WalletBalanceChip
-- [ ] SellButton
-- [ ] BottomNav 5 tabs (M)
+- [x] SellButton
+- [x] BottomNav 5 tabs (M)
 - [ ] HelpBubble
-- [ ] SkipLinks
-- [ ] SiteFooter (accordion M)
+- [x] SkipLinks
+- [x] SiteFooter (accordion M)
 - [ ] CookieConsent
 - [ ] AppInstallBanner
 - [ ] SystemBanner

@@ -12,7 +12,6 @@ import { TrustStrip } from "@/features/home/TrustStrip";
 import { setLocation } from "@/features/location/actions";
 import { LocationBar } from "@/features/location/LocationBar";
 import { getAnchor } from "@/features/location/server";
-import { GlobalSearchBox } from "@/features/search/GlobalSearchBox";
 import { HERO_SLIDES } from "@/lib/copy/trust";
 import { repos } from "@/lib/data";
 import { formatCount } from "@/lib/format";
@@ -20,8 +19,8 @@ import { categoryTiles, homeRails, nearbyCount } from "@/lib/home";
 import { first } from "@/lib/search/params";
 import { parseRadius, radiusParam } from "@/lib/search/radius";
 
-/* SCR-001 Home (flows B1, spec §4), Sprint 0's minimal version: search and location
-   first, the trust strip above the fold, the hero, categories with honest counts,
+/* SCR-001 Home (flows B1, spec §4), Sprint 0's minimal version: location first (search
+   is in the header), the trust strip above the fold, the hero, categories with honest counts,
    then rails in B1 order with every listing shown once (R-013) and short rails left
    out (R-014). The radius is in the URL (R-011), as on /search. Header, category
    rail, Recently viewed and Because you saved arrive with Phases 1 and 2. */
@@ -31,13 +30,7 @@ export const metadata: Metadata = { alternates: { canonical: "/" } };
 export default async function HomePage({ searchParams }: PageProps<"/">) {
   const params = await searchParams;
   const radius = parseRadius(params.radius);
-  const [{ anchor, inferred }, hidden, categories, listings, trending] = await Promise.all([
-    getAnchor(),
-    getHidden(),
-    repos.categories.list(),
-    repos.listings.list(),
-    repos.search.trending(),
-  ]);
+  const [{ anchor, inferred }, hidden, categories, listings] = await Promise.all([getAnchor(), getHidden(), repos.categories.list(), repos.listings.list()]);
   const input = { listings, anchor, radius, hidden };
   const tiles = categoryTiles({ ...input, categories });
   const rails = homeRails(input);
@@ -52,14 +45,12 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
     const s = qs.toString();
     return s ? `/search?${s}` : "/search";
   };
-  const keep: Record<string, string> = radius === rules.location.defaultRadiusKm ? {} : { radius: radiusParam(radius) };
   const returnTo = first(params.radius) ? `/?radius=${radiusParam(radius)}` : "/";
 
   return (
     <div className="ws-home">
       {/* F11: one h1. The hero's slides are h2s because they rotate. */}
       <h1 className="cx-sr-only">WorldStreet Marketplace: buy and sell near you</h1>
-      <GlobalSearchBox trending={trending} keep={keep} />
       <LocationBar anchor={anchor} inferred={inferred} radius={radius} returnTo={returnTo} action={setLocation} />
       <TrustStrip />
       <HeroCarousel slides={HERO_SLIDES} />

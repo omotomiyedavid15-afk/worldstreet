@@ -83,7 +83,7 @@ test("a radius chosen on home carries into tiles and links (R-011)", async ({ pa
 
 test("placeholder pages are real destinations, unknown pages are 404s (F5)", async ({ page }) => {
   await page.goto("/");
-  await Promise.all([page.waitForURL(/\/sell\/start$/, { timeout: 20_000 }), page.getByRole("link", { name: "Start selling" }).click()]);
+  await Promise.all([page.waitForURL(/\/sell\/start$/, { timeout: 20_000 }), page.getByRole("main").getByRole("link", { name: "Start selling" }).click()]);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Start selling");
   await expect(page.getByText("Coming in Phase 7 of the build.")).toBeVisible();
   for (const [url, title] of [["/cart", "Cart"], ["/inbox", "Inbox"], ["/help/escrow", "How escrow protects you"], ["/seller/gadgethub-ikeja", "Gadget Hub Ikeja"]]) {

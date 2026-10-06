@@ -32,11 +32,13 @@ type Props = {
   suggestions?: boolean;
   /** A term never to keep in recent searches (the prohibited one just searched). */
   forget?: string;
+  /** Id for the input (the skip link "Skip to search" targets the header's box). */
+  inputId?: string;
 };
 
 type Option = { term: string; kind: "recent" | "trending" };
 
-export function GlobalSearchBox({ defaultValue = "", trending, keep = {}, suggestions = true, forget }: Props) {
+export function GlobalSearchBox({ defaultValue = "", trending, keep = {}, suggestions = true, forget, inputId }: Props) {
   const id = useId();
   const listId = `${id}-list`;
   const formRef = useRef<HTMLFormElement>(null);
@@ -194,6 +196,7 @@ export function GlobalSearchBox({ defaultValue = "", trending, keep = {}, sugges
         <MagnifyingGlassIcon className="ws-search__icon" />
         <input
           ref={inputRef}
+          id={inputId}
           type="search"
           name="q"
           value={value}
