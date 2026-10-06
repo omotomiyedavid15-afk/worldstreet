@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { MotionProvider } from "@/components/motion/MotionProvider";
 import { ToastViewport } from "@/components/ui";
-import { Suspense } from "react";
+import { connection } from "next/server";
 import { CATEGORY_ICONS } from "@/features/home/category-icons";
 import { AppHeader } from "@/features/shell/AppHeader";
 import { navCategories } from "@/features/shell/categories";
@@ -28,6 +28,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { themeColor: "#0c0a09", colorScheme: "dark" };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // Every page renders per request (they read the area cookie anyway), so the header's
+  // search box arrives in the first HTML with its query, not swapped in later: text
+  // typed into a placeholder box on a slow phone would be lost.
+  await connection();
   const [trending, categories, listings] = await Promise.all([repos.search.trending(), repos.categories.list(), repos.listings.list()]);
   const nav = navCategories(categories, listings);
   return (
@@ -39,10 +43,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <SkipLinks />
           <AppHeader
             trending={trending}
+            scopes={categories.map(({ id, name }) => ({ id, name }))}
             categories={
-              <Suspense>
-                <MegaMenu categories={nav} />
-              </Suspense>
+              <MegaMenu categories={nav} />
             }
             categoryLinks={
               <nav aria-label="Shop by category" className="ws-drawer__cats">

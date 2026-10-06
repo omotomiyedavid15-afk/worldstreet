@@ -22,7 +22,12 @@ export function NavDrawer({ children }: { children: ReactNode }) {
     if (!dialog.current?.open) dialog.current?.showModal();
   };
 
+  // Close after navigating, but not on first mount: a drawer opened before scripts
+  // loaded (invoker command) must stay open.
+  const shownFor = useRef(pathname);
   useEffect(() => {
+    if (shownFor.current === pathname) return;
+    shownFor.current = pathname;
     dialog.current?.close();
   }, [pathname]);
 

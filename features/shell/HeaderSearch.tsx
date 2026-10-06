@@ -8,13 +8,25 @@ import { parseRadius, radiusParam } from "@/lib/search/radius";
 
 /* The header's search box. On /search it shows the query being viewed; everywhere it
    keeps a non-default radius so a new search stays in the same area (R-001). */
-export function HeaderSearch({ trending }: { trending: readonly string[] }) {
+export function HeaderSearch({ trending, scopes }: { trending: readonly string[]; scopes?: readonly { id: string; name: string }[] }) {
   const pathname = usePathname();
   const params = useSearchParams();
   const prohibited = useProhibited();
   const q = pathname === "/search" ? (params.get("q") ?? "") : "";
+  const cat = pathname === "/search" ? (params.get("cat") ?? "") : "";
   const radius = parseRadius(params.get("radius") ?? undefined);
   const keep: Record<string, string> = radius === rules.location.defaultRadiusKm ? {} : { radius: radiusParam(radius) };
   const blocked = prohibited !== null && prohibited === q;
-  return <GlobalSearchBox key={q} defaultValue={q} trending={blocked ? [] : trending} keep={keep} suggestions={!blocked} inputId="site-search" />;
+  return (
+    <GlobalSearchBox
+      key={`${q}|${cat}`}
+      defaultValue={q}
+      trending={blocked ? [] : trending}
+      keep={keep}
+      suggestions={!blocked}
+      inputId="site-search"
+      scopes={scopes}
+      scope={cat}
+    />
+  );
 }

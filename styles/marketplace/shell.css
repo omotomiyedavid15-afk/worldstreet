@@ -888,3 +888,119 @@
 .ws-catrail__pill:hover {
   background: var(--cx-surface-3);
 }
+
+/* ---------- Search: scope select, "in Category" rows, phone overlay ---------- */
+
+.ws-search__scope {
+  position: relative;
+  display: none;
+  flex: none;
+  align-items: center;
+  height: 100%;
+  margin-left: calc(var(--cx-s-4) * -1);
+  border-right: 1px solid var(--cx-hairline);
+}
+
+@media (min-width: 1024px) {
+  .ws-search__scope {
+    display: inline-flex;
+  }
+}
+
+.ws-search__scope select {
+  max-width: 180px;
+  height: 100%;
+  padding: 0 34px 0 var(--cx-s-4);
+  border: 0;
+  border-radius: var(--cx-r-pill) 0 0 var(--cx-r-pill);
+  background: transparent;
+  color: var(--cx-text-2);
+  font: inherit;
+  font-size: var(--cx-small);
+  text-overflow: ellipsis;
+  appearance: none;
+  cursor: pointer;
+}
+
+.ws-search__scope select:focus-visible {
+  box-shadow: var(--cx-focus-ring);
+  outline: none;
+}
+
+.ws-search__scope option {
+  background: var(--cx-elevated);
+  color: var(--cx-text);
+}
+
+.ws-search__scope svg {
+  position: absolute;
+  right: 12px;
+  width: 14px;
+  height: 14px;
+  color: var(--cx-text-muted);
+  pointer-events: none;
+}
+
+.ws-suggest__in {
+  color: var(--cx-text-2);
+  font-weight: 600;
+}
+
+.ws-search__cancel {
+  display: none;
+}
+
+/* Phones: focusing the search opens it full screen; the suggestions fill the rest. */
+@media (max-width: 767px) {
+  .ws-search--overlay {
+    position: fixed;
+    inset: 0;
+    z-index: var(--cx-z-modal);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr);
+    align-content: start;
+    gap: var(--cx-s-2);
+    padding: var(--cx-s-3) var(--cx-gutter) 0;
+    background: var(--cx-bg);
+  }
+
+  .ws-search--overlay .ws-search__scope {
+    display: none;
+  }
+
+  .ws-search--overlay .ws-search__cancel {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--cx-touch);
+    padding: 0 var(--cx-s-1);
+    border: 0;
+    background: none;
+    color: var(--cx-text);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .ws-search--overlay .ws-suggest {
+    position: static;
+    grid-column: 1 / -1;
+    max-height: none;
+    overflow-y: auto;
+    padding-bottom: var(--cx-s-6);
+    background: transparent;
+    box-shadow: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .ws-search--overlay {
+      animation: ws-fade-in 160ms var(--cx-ease);
+    }
+  }
+}
+
+/* A backdrop filter would make the header the overlay's containing block, and its
+   z-index would keep the overlay under the bottom nav. */
+.ws-header:has(.ws-search--overlay) {
+  z-index: var(--cx-z-modal);
+  backdrop-filter: none;
+}

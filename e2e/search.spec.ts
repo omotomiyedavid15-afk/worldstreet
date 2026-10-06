@@ -26,7 +26,7 @@ test("an empty search box offers trending searches and the page lists everything
   await expect(page.getByRole("group", { name: "Trending" }).getByRole("option").first()).toBeVisible();
   // ↓ then Enter runs the highlighted search.
   await page.keyboard.press("ArrowDown");
-  const first = await page.getByRole("option").first().textContent();
+  const first = await page.getByRole("listbox", { name: "Search suggestions" }).getByRole("option").first().textContent();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(new RegExp(`q=${first}`));
 });

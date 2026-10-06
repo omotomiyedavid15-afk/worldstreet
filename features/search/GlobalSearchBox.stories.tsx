@@ -21,26 +21,21 @@ export const Default: Story = {
     expect(box).toHaveAttribute("aria-expanded", "true");
     expect(within(canvas.getByRole("group", { name: "Trending" })).getAllByRole("option")).toHaveLength(5);
 
-    // Typing narrows by word prefix; the part not typed is bold.
-    await userEvent.type(box, "ge");
-    const generator = canvas.getByRole("option", { name: "generator" });
-    expect(canvas.getAllByRole("option")).toEqual([generator]);
-    expect(generator.querySelector("b")).toHaveTextContent("nerator");
-
-    // ↓ puts the suggestion in the field; past the end comes back to what was typed.
+    // ↓ puts the suggestion in the field; ↑ past the top comes back to what was typed.
+    const first = canvas.getAllByRole("option")[0];
     await userEvent.keyboard("{ArrowDown}");
-    expect(box).toHaveValue("generator");
-    expect(box.getAttribute("aria-activedescendant")).toBe(generator.id);
-    await userEvent.keyboard("{ArrowDown}");
-    expect(box).toHaveValue("ge");
+    expect(box).toHaveValue("iphone");
+    expect(box.getAttribute("aria-activedescendant")).toBe(first.id);
+    await userEvent.keyboard("{ArrowUp}");
+    expect(box).toHaveValue("");
     expect(box).not.toHaveAttribute("aria-activedescendant");
 
     // Escape restores the typed text and closes; it never wipes the field.
-    await userEvent.keyboard("{ArrowDown}{Escape}");
-    expect(box).toHaveValue("ge");
-    expect(box).toHaveAttribute("aria-expanded", "false");
+    await userEvent.type(box, "g");
     await userEvent.keyboard("{Escape}");
-    expect(box).toHaveValue("ge");
+    expect(box).toHaveValue("g");
+    await userEvent.keyboard("{Escape}");
+    expect(box).toHaveValue("g");
 
     // Clear empties the field and keeps focus.
     await userEvent.click(canvas.getByRole("button", { name: "Clear search" }));
@@ -69,3 +64,34 @@ export const RecentSearches: Story = {
 };
 
 export const WithQuery: Story = { args: { defaultValue: "headphones" } };
+
+/* Two letters or more: live rows from /api/suggest, in groups (mocked here). */
+export const LiveSuggestions: Story = {
+  args: { scopes: [{ id: "electronics", name: "Electronics" }] },
+  beforeEach: () => {
+    const real = window.fetch;
+    window.fetch = async (input, init) =>
+      String(input).startsWith("/api/suggest")
+        ? Response.json({
+            items: [
+              { kind: "query", text: "headphones" },
+              { kind: "category", text: "head", cat: "electronics", name: "Electronics" },
+              { kind: "seller", text: "Gadget Hub Ikeja", href: "/seller/gadgethub-ikeja" },
+              { kind: "listing", text: "JBL Tune 520BT On-Ear Headphones", href: "/listing/204508-jbl" },
+            ],
+          })
+        : real(input, init);
+    return () => {
+      window.fetch = real;
+    };
+  },
+  play: async ({ canvas }) => {
+    const box = canvas.getByRole("combobox", { name: "Search for anything" });
+    await userEvent.type(box, "head");
+    const searches = await canvas.findByRole("group", { name: "Searches" });
+    expect(within(searches).getAllByRole("option").map((o) => o.textContent)).toEqual(["headphones", "head in Electronics"]);
+    expect(canvas.getByRole("group", { name: "Sellers" })).toBeInTheDocument();
+    expect(canvas.getByRole("group", { name: "Listings" })).toBeInTheDocument();
+    expect(canvas.getByRole("combobox", { name: "Search in" })).toHaveValue("");
+  },
+};

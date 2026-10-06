@@ -6,7 +6,7 @@ pass `npm run check`.
 
 ## Phase reports
 
-_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placeholder routes, manifest, a11y pass: axe zero serious/critical on `/`, `/search`, placeholders and the 404 at 375, 360 and 1280); Sprint 0 check #5 passes (e2e/home.spec.ts). Next: Phase 1 (header, footer, bottom nav). Building in dark mode (your direction, 6 Oct). Sprint 0 checks #1–#4 pass end to end (e2e/search.spec.ts, 375 and 1280). Components mirror eBay, styled with the DS (your direction, 6 Oct)._
+_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placeholder routes, manifest, a11y pass: axe zero serious/critical on `/`, `/search`, placeholders and the 404 at 375, 360 and 1280); Sprint 0 check #5 passes (e2e/home.spec.ts). Phase 1 (header and search) done: shell, category navigation, live suggestions; e2e/shell.spec.ts and e2e/suggest.spec.ts. Next: Phase 2 (results and filters). Building in dark mode (your direction, 6 Oct). Sprint 0 checks #1–#4 pass end to end (e2e/search.spec.ts, 375 and 1280). Components mirror eBay, styled with the DS (your direction, 6 Oct)._
 
 ## Deviations from the docs and the design system
 
@@ -96,6 +96,11 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 | 6 Oct | --cx-sticky-offset | Set on `<body>` by the header | The brand block declares it on `<body>`, which shadowed a value set on `<html>` (caught by e2e) |
 | 6 Oct | Category navigation (Phase 1) | Desktop "Shop by category" opens a popover under the header: categories on the left, the hovered or focused one's four newest listings on the right with "See all"; phones list the categories in the menu drawer; the rail (All, every category, Saved) sits in the page under the sticky header, so it scrolls away (F17) | There's one level of categories in the data, so no subcategory column or drill-down yet. A rail inside the sticky header would make the chrome taller, the F17 problem |
 | 6 Oct | Menu drawer | The menu button uses invoker commands (`commandfor`/`command="show-modal"`), so the drawer opens before scripts load | The Android 360 e2e profile tapped Menu before hydration and nothing happened; the same would happen on a slow phone |
+| 6 Oct | Search suggestions (Phase 1) | Live rows from `/api/suggest` (`lib/search/suggest.ts`) after 2 characters and a 150 ms pause: completions, "q in Category", sellers, listing titles, at most 10 (6 on phones); recent searches stay on top; nothing for prohibited words; failures fall back to recents. Below 2 characters, recent and trending as before | Flows B2 step 2. No counts on the rows: they'd be nationwide while results default to the buyer's radius (R-016) |
+| 6 Oct | Scope select | "All categories" or one category, beside the field from 1024px; on /search it shows the `cat` in force | Spec §3.1. Hidden on phones and small tablets, where Phase 2's filter sheet does the job; "q in Category" rows cover it while typing |
+| 6 Oct | Phone search | Focusing the header field opens it full screen (suggestions fill the screen, Cancel puts the query back, the page behind doesn't scroll) | Spec §16.2 "expandable full-screen search"; one tap fewer than an icon first |
+| 6 Oct | Slow-phone fixes | Pages render per request (`connection()` in the root layout) with no Suspense around the header, so the search box comes in the first HTML with its query; text typed before scripts load is adopted after hydration; the menu drawer doesn't close itself on first mount | The header box was streamed in after a placeholder box, which threw away anything typed into the placeholder (caught by the Android 360 e2e) |
+| 6 Oct | ImageSearchButton | Not shown | Photo search needs an image-matching service; a camera button that does nothing would be a dead end (F5) |
 | 6 Oct | Mock photos | Four views per category (`{cat}-1..4.svg`) | So stepping shows different images |
 | 6 Oct | Tooling | `PW_CHROMIUM_PATH` lets story tests use a preinstalled Chromium; Testing Library cleanup is explicit in `vitest.setup.ts` | Cloud containers ship a different Chromium build; auto-cleanup needs Vitest globals, which are off |
 
@@ -109,9 +114,9 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 - [x] CategoryMenuButton + MegaMenu (W)
 - [x] Category drill-down drawer (M)
 - [x] CategoryRail
-- [ ] GlobalSearchBox with scope select + camera (Sprint 0 box with recents/trending done; scope, camera and live suggestions in Phase 1)
-- [ ] SearchSuggestPanel
-- [ ] Mobile search overlay
+- [x] GlobalSearchBox with scope select + camera (camera waits for photo search)
+- [x] SearchSuggestPanel
+- [x] Mobile search overlay
 - [ ] ImageSearchButton
 - [x] NotificationBell + Panel (W) / page (M) (panel and count; the page is still a placeholder)
 - [ ] CartButton + MiniCart

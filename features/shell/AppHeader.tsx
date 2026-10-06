@@ -1,8 +1,6 @@
 import Link from "next/link";
-import { Suspense } from "react";
 import { BellIcon, ChatDotsIcon, HandshakeAgreementDealIcon, HeartIcon, HomeIcon, InfoCircleIcon, PackageIcon, PlusCircleIcon, ShoppingCartIcon, StoreIcon, TagIcon } from "@/components/icons";
 import { buttonClass } from "@/components/ui";
-import { GlobalSearchBox } from "@/features/search/GlobalSearchBox";
 import { AccountMenu, Greeting } from "./AccountMenu";
 import { HeaderFrame } from "./HeaderFrame";
 import { HeaderSearch } from "./HeaderSearch";
@@ -21,9 +19,15 @@ import { NotificationBell } from "./NotificationBell";
  * Utility links move into the menu drawer below 1200.
  */
 
-type Props = { trending: readonly string[]; categories?: React.ReactNode; categoryLinks?: React.ReactNode };
+type Props = {
+  trending: readonly string[];
+  /** Categories for the search box's scope select. */
+  scopes?: readonly { id: string; name: string }[];
+  categories?: React.ReactNode;
+  categoryLinks?: React.ReactNode;
+};
 
-export function AppHeader({ trending, categories, categoryLinks }: Props) {
+export function AppHeader({ trending, scopes, categories, categoryLinks }: Props) {
   return (
     <HeaderFrame>
       <div className="ws-utility">
@@ -66,9 +70,7 @@ export function AppHeader({ trending, categories, categoryLinks }: Props) {
         </div>
         {categories && <div className="ws-header__cats">{categories}</div>}
         <div className="ws-header__search">
-          <Suspense fallback={<GlobalSearchBox trending={trending} inputId="site-search" />}>
-            <HeaderSearch trending={trending} />
-          </Suspense>
+          <HeaderSearch trending={trending} scopes={scopes} />
         </div>
         <div className="ws-header__actions">
           <span className="ws-header__bell">

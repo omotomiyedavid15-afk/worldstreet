@@ -1,4 +1,4 @@
-import { Suspense, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { CategoryRail } from "@/features/shell/CategoryRail";
 import { repos } from "@/lib/data";
 
@@ -9,9 +9,7 @@ export default async function ShopLayout({ children }: { children: ReactNode }) 
   const categories = (await repos.categories.list()).map(({ id, name }) => ({ id, name }));
   return (
     <>
-      <Suspense>
-        <CategoryRail categories={categories} />
-      </Suspense>
+      <CategoryRail categories={categories} />
       <main id="main" className="cx-container ws-page" tabIndex={-1}>
         {children}
       </main>
