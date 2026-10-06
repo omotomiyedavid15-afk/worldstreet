@@ -1,7 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { MotionProvider } from "@/components/motion/MotionProvider";
 import { ToastViewport } from "@/components/ui";
+import { Suspense } from "react";
+import { CATEGORY_ICONS } from "@/features/home/category-icons";
 import { AppHeader } from "@/features/shell/AppHeader";
+import { navCategories } from "@/features/shell/categories";
+import { MegaMenu } from "@/features/shell/MegaMenu";
+import { DrawerLink } from "@/features/shell/NavDrawer";
 import { BottomNav } from "@/features/shell/BottomNav";
 import { SiteFooter } from "@/features/shell/SiteFooter";
 import { SkipLinks } from "@/features/shell/SkipLinks";
@@ -23,7 +28,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { themeColor: "#0c0a09", colorScheme: "dark" };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const trending = await repos.search.trending();
+  const [trending, categories, listings] = await Promise.all([repos.search.trending(), repos.categories.list(), repos.listings.list()]);
+  const nav = navCategories(categories, listings);
   return (
     // data-theme must sit on an ancestor of data-brand: the DS light-theme selector is
     // "[data-theme=light] [data-brand=worldstreet]".
@@ -31,7 +37,27 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body className="cx-root" data-brand="worldstreet">
         <MotionProvider>
           <SkipLinks />
-          <AppHeader trending={trending} />
+          <AppHeader
+            trending={trending}
+            categories={
+              <Suspense>
+                <MegaMenu categories={nav} />
+              </Suspense>
+            }
+            categoryLinks={
+              <nav aria-label="Shop by category" className="ws-drawer__cats">
+                <p className="ws-drawer__label">Shop by category</p>
+                {nav.map((c) => {
+                  const Icon = CATEGORY_ICONS[c.id];
+                  return (
+                    <DrawerLink key={c.id} href={`/search?cat=${c.id}`} icon={<Icon />}>
+                      {c.name}
+                    </DrawerLink>
+                  );
+                })}
+              </nav>
+            }
+          />
           {children}
           <SiteFooter />
           <BottomNav />

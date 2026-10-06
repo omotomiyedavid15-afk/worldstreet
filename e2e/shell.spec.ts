@@ -80,3 +80,32 @@ test.describe("phones", () => {
     await expect(footer.getByRole("link", { name: "All categories" })).toBeHidden();
   });
 });
+
+test("the category rail marks the category being browsed", async ({ page }) => {
+  await page.goto("/search?cat=fashion");
+  const rail = page.getByRole("navigation", { name: "Categories" });
+  await expect(rail.getByRole("link", { name: "Fashion" })).toHaveAttribute("aria-current", "page");
+  await expect(rail.getByRole("link", { name: "All" })).not.toHaveAttribute("aria-current", "page");
+});
+
+test("Shop by category previews a category and closes on Escape", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop", "The mega menu is desktop only; phones use the drawer.");
+  await page.goto("/");
+  const button = page.getByRole("button", { name: "Shop by category" });
+  await button.click();
+  await expect(button).toHaveAttribute("aria-expanded", "true");
+  const menu = page.locator(".ws-mega");
+  await menu.getByRole("link", { name: "Fashion" }).hover();
+  await expect(menu.getByText("New in Fashion")).toBeVisible();
+  await expect(menu.getByRole("link", { name: "See all in Fashion" })).toHaveAttribute("href", "/search?cat=fashion");
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeHidden();
+});
+
+test("the phone drawer lists every category", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) >= 1200, "drawer is below 1200");
+  await page.goto("/");
+  await page.getByRole("button", { name: "Menu" }).click();
+  const cats = page.getByRole("dialog", { name: "Menu" }).getByRole("navigation", { name: "Shop by category" });
+  await expect(cats.getByRole("link")).toHaveCount(10);
+});

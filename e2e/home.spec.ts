@@ -51,7 +51,7 @@ test("the hero never rotates on its own under reduced motion (R-015)", async ({ 
 
 test("a category tile's count is what its search shows (R-016)", async ({ page }) => {
   await page.goto("/");
-  const tile = page.getByRole("link", { name: /^Phones & tablets/ });
+  const tile = page.getByRole("region", { name: "Shop by category" }).getByRole("link", { name: /^Phones & tablets/ });
   const count = Number((await tile.textContent())!.match(/(\d+) nearby/)![1]);
   await Promise.all([page.waitForURL(/\/search\?cat=phones/, { timeout: 20_000 }), tile.click()]);
   expect(await firstNumber(page)).toBe(count);
@@ -77,7 +77,7 @@ test("'Browse all' promises the number the search page shows", async ({ page }) 
 test("a radius chosen on home carries into tiles and links (R-011)", async ({ page }) => {
   await page.goto("/?radius=5");
   await expect(page.locator(".ws-locbar__text")).toContainText("within 5 km");
-  const tile = page.getByRole("link", { name: /^Phones & tablets/ });
+  const tile = page.getByRole("region", { name: "Shop by category" }).getByRole("link", { name: /^Phones & tablets/ });
   await expect(tile).toHaveAttribute("href", /radius=(5|all)/);
 });
 
