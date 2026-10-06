@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { expect, within } from "storybook/test";
+import { expect, userEvent, waitFor, within } from "storybook/test";
 import { ToastViewport } from "@/components/ui";
 import { signOut } from "@/features/auth/session";
+import { unhide } from "@/features/hidden/store";
 import { unsaveListing } from "@/features/saved/store";
 import { ListingCard, ListingCardSkeleton } from "./ListingCard";
 import { STORY_NOW, lekkiAnchor, storyListings } from "./story-data";
@@ -11,7 +12,11 @@ const meta: Meta<typeof ListingCard> = {
   component: ListingCard,
   beforeEach: () => {
     signOut();
-    storyListings.forEach((l) => unsaveListing(l.id));
+    storyListings.forEach((l) => {
+      unsaveListing(l.id);
+      unhide("listing", l.id);
+      unhide("seller", l.seller.id);
+    });
   },
 };
 export default meta;
@@ -38,8 +43,9 @@ export const Grid: Story = {
       expect(links).toHaveLength(1);
       expect(links[0]).toHaveAttribute("href", `/listing/${l.id}-${l.slug}`);
       expect(links[0]).toHaveAccessibleName(l.title);
-      // Save is its own button, named for this listing.
+      // Save and the ⋮ menu are their own buttons, named for this listing.
       expect(within(card).getByRole("button", { name: `Save ${l.title}` })).toHaveAttribute("aria-pressed", "false");
+      expect(within(card).getByRole("button", { name: `More actions for ${l.title}` })).toBeInTheDocument();
       // The photo fills the card's width.
       const photo = card.querySelector(".ws-card__media")!;
       expect(Math.round(photo.getBoundingClientRect().width)).toBe(Math.round(card.getBoundingClientRect().width));
@@ -62,7 +68,7 @@ export const NoAnchor: Story = {
   ),
 };
 
-export const Compact: Story = {
+export const CompactDensity: Story = {
   name: "Compact density",
   render: () => (
     <div className="ws-card-grid" data-density="compact" style={{ maxWidth: 720 }}>
@@ -86,5 +92,75 @@ export const Loading: Story = {
     const [card, skeleton] = canvasElement.querySelectorAll<HTMLElement>(".ws-card");
     const media = (el: HTMLElement) => el.querySelector(".ws-card__media")!.getBoundingClientRect();
     expect(media(skeleton).height).toBe(media(card).height);
+  },
+};
+
+export const List: Story = {
+  render: () => (
+    <div className="ws-card-list" style={{ maxWidth: 900 }}>
+      {storyListings.slice(0, 4).map((l) => (
+        <ListingCard key={l.id} variant="list" listing={l} anchor={lekkiAnchor} now={STORY_NOW} />
+      ))}
+    </div>
+  ),
+};
+
+export const ListMobile: Story = {
+  ...List,
+  globals: { viewport: { value: "mobile", isRotated: false } },
+};
+
+export const Rail: Story = {
+  render: () => (
+    <div style={{ display: "flex", gap: "var(--cx-s-4)", overflowX: "auto", paddingBlockEnd: 8 }}>
+      {storyListings.map((l) => (
+        <ListingCard key={l.id} variant="rail" listing={l} anchor={lekkiAnchor} now={STORY_NOW} />
+      ))}
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    // Rails drop the seller row and its menu; Save stays.
+    const card = within(canvasElement).getAllByRole("article")[0];
+    expect(within(card).queryByRole("button", { name: /More actions/ })).toBeNull();
+    expect(within(card).getByRole("button", { name: /^Save / })).toBeInTheDocument();
+  },
+};
+
+export const Compact: Story = {
+  name: "Compact row",
+  render: () => (
+    <div className="ws-card-list" style={{ maxWidth: 360 }}>
+      {storyListings.slice(0, 3).map((l) => (
+        <ListingCard key={l.id} variant="compact" listing={l} />
+      ))}
+    </div>
+  ),
+};
+
+export const HideAndUndo: Story = {
+  render: () => (
+    <div className="ws-card-grid" style={{ maxWidth: 960 }}>
+      {storyListings.slice(0, 3).map((l) => (
+        <ListingCard key={l.id} listing={l} anchor={lekkiAnchor} now={STORY_NOW} />
+      ))}
+    </div>
+  ),
+  play: async ({ canvas, canvasElement }) => {
+    const body = within(canvasElement.ownerDocument.body);
+    const sony = storyListings[0];
+    await userEvent.click(canvas.getByRole("button", { name: `More actions for ${sony.title}` }));
+    await userEvent.click(await body.findByRole("menuitem", { name: "Not interested" }));
+    const undo = await canvas.findByRole("button", { name: "Undo" });
+    await waitFor(() => expect(undo).toHaveFocus()); // keyboard users aren't dropped
+    expect(canvas.getByText("Hidden. You won't see this listing again.")).toBeInTheDocument();
+    await userEvent.click(undo);
+    await waitFor(() => expect(canvas.getByRole("link", { name: sony.title })).toBeInTheDocument());
+
+    // Hiding a seller removes all their cards; only the one used offers Undo.
+    await userEvent.click(canvas.getByRole("button", { name: `More actions for ${sony.title}` }));
+    await userEvent.click(await body.findByRole("menuitem", { name: "Hide Gadget Hub Ikeja" }));
+    await waitFor(() => expect(canvas.queryByRole("link", { name: storyListings[1].title })).toBeNull());
+    expect(canvas.getAllByRole("button", { name: "Undo" })).toHaveLength(1);
+    expect(canvas.getByRole("link", { name: storyListings[2].title })).toBeInTheDocument();
   },
 };

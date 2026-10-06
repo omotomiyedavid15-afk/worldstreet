@@ -50,13 +50,13 @@ export function SellerMini({ seller, link = false, avatar = false }: SellerMiniP
       ) : (
         <span className="ws-seller__name">{name}</span>
       )}
+      {seller.top_rated && <TopRatedBadge />}
       {count > 0 && (
-        <span>
+        <span className="ws-seller__feedback">
           <span className="cx-sr-only">Seller feedback: </span>
           {percent.format(positive_percent)}% positive ({formatCount(count)})
         </span>
       )}
-      {seller.top_rated && <TopRatedBadge />}
     </div>
   );
 }

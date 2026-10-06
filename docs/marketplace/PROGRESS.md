@@ -6,7 +6,7 @@ pass `npm run check`.
 
 ## Phase reports
 
-_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.5 done; S0.6 (ListingCard) in progress: grid and skeleton done, list/rail/compact next. Components mirror eBay, styled with the DS (your direction, 6 Oct)._
+_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.5 done; S0.6 (ListingCard) in progress: grid, list, rail, compact, skeleton and the ⋮ menu done; Back-restores-scroll e2e lands with /search (S0.9). Building in dark mode (your direction, 6 Oct). Components mirror eBay, styled with the DS (your direction, 6 Oct)._
 
 ## Deviations from the docs and the design system
 
@@ -43,6 +43,11 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.5 done; S0.6 (ListingCa
 | 6 Oct | Meta lines | Separators are clipped at the start of a wrapped line instead of sitting between items in the markup | A wrap no longer strands a "·"; the dots are hidden from screen readers |
 | 6 Oct | Mobile card | On phones the grid card shows condition as text, price + "% off" on one line, "Total ₦X" (area is in the location bar), distance only, one demand signal and the seller's name; desktop keeps everything | Your review (6 Oct): mobile cards were too long (~650px → ~410px at 375). Mirrors eBay's app grid; the rest is on the listing page |
 | 6 Oct | Mock photos | Placeholders are drawn from each category's Atlas icon (`npm run mock-photos`) | Your rule (6 Oct): Atlas is the only icon set, placeholders included |
+| 6 Oct | Theme | Components are designed and reviewed in dark; light is checked for AA | Your direction (6 Oct) |
+| 6 Oct | ListingCard | Trimming to eBay's app density is a container query on the card's details column (< 240px), not a viewport breakpoint | One rule set covers phone grids, home rails and the phone list view |
+| 6 Oct | Results grid | 4 columns from 1200px, not 5 at 1320 | Five columns make desktop cards narrow enough to trim; the spec allows 4–5 |
+| 6 Oct | Card menu | Only "Not interested" and "Hide {shop}" for now, each with Undo (focus moves to Undo) | "Find similar" (/search, S0.9) and "Report" (Phase 3) would be dead ends today (audit F5) |
+| 6 Oct | SellerMini | "Top rated" sits beside the shop name, a size down in seller rows | Keeps the card's seller row to two lines next to the ⋮ |
 | 6 Oct | Tooling | `PW_CHROMIUM_PATH` lets story tests use a preinstalled Chromium; Testing Library cleanup is explicit in `vitest.setup.ts` | Cloud containers ship a different Chromium build; auto-cleanup needs Vitest globals, which are off |
 
 ## Master checklist (266 items, spec Part X)
@@ -90,7 +95,7 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.5 done; S0.6 (ListingCa
 - [ ] FeaturedBeamCard
 
 ## C. Cards & atoms
-- [ ] ListingCard: grid, list, rail, compact, sponsored, deal, auction, vehicle, property, service, skeleton, unavailable (grid + skeleton done)
+- [ ] ListingCard: grid, list, rail, compact, sponsored, deal, auction, vehicle, property, service, skeleton, unavailable (grid, list, rail, compact, skeleton done; the rest arrive with their categories and phases)
 - [x] ConditionChip
 - [x] FormatChip
 - [x] DiscountChip
@@ -108,7 +113,7 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.5 done; S0.6 (ListingCa
 - [ ] PhotoCount
 - [ ] QuickAddButton
 - [ ] FindSimilarButton
-- [ ] Card overflow menu (Hide/Report)
+- [ ] Card overflow menu (Hide/Report): Not interested + Hide seller with Undo done; Report and Find similar join when their pages exist
 
 ## D. Search & filters
 - [ ] ResultsHeader

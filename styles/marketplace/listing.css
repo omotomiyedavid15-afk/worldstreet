@@ -234,6 +234,13 @@ a.ws-seller__name:hover {
   color: var(--cx-ember-text);
 }
 
+/* In the seller row the badge is a size down, so name, tick and badge share a line. */
+.ws-seller .cx-chip {
+  height: 22px;
+  padding: 0 8px;
+  font-size: var(--cx-caption);
+}
+
 .ws-chip-icon svg {
   width: 14px;
   height: 14px;
@@ -280,20 +287,39 @@ a.ws-seller__name:hover {
   }
 }
 
-/* ListingCard (spec §5.1–5.2). The photo is full-bleed at 1:1, then one spacing
-   rhythm: 16px padding (12px compact), 12px between groups, 6px inside the title
-   group, 4px between meta lines. The seller line sits on the bottom edge so cards in
-   a row line up. */
+/* ListingCard (spec §5.1–5.2). One spacing rhythm: 16px padding, 12px between
+   groups, 6px inside the title group, 4px between meta lines. The details column
+   (.ws-card__body) is a size container: under 240px wide (phone grids, home rails,
+   the phone list view) its contents trim to eBay's app density further down. */
 .ws-card {
-  --ws-card-pad: var(--cx-s-4);
-  --ws-title-size: var(--cx-body);
   height: 100%;
   padding: 0;
   gap: 0;
 }
 
-[data-density=compact] .ws-card {
+.ws-card__body {
+  --ws-card-pad: var(--cx-s-4);
+  container: ws-body / inline-size;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  padding: var(--ws-card-pad);
+}
+
+.ws-card__stack {
+  --ws-title-size: var(--cx-body);
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--cx-s-3);
+  min-width: 0;
+}
+
+[data-density=compact] .ws-card__body {
   --ws-card-pad: var(--cx-s-3);
+}
+
+[data-density=compact] .ws-card__stack {
   --ws-title-size: var(--cx-small);
 }
 
@@ -340,14 +366,6 @@ a.ws-seller__name:hover {
 .ws-card__photos svg {
   width: 14px;
   height: 14px;
-}
-
-.ws-card__body {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: var(--cx-s-3);
-  padding: var(--ws-card-pad);
 }
 
 .ws-card__head {
@@ -412,49 +430,138 @@ a.ws-seller__name:hover {
   gap: 4px;
 }
 
-.ws-card__seller {
+/* Seller and the ⋮ menu share the bottom edge, so cards in a row end level. */
+.ws-card__foot {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cx-s-2);
   margin-top: auto;
-  padding-top: var(--cx-s-3);
+  padding-top: var(--cx-s-2);
   border-top: 1px solid var(--cx-hairline);
 }
 
-.ws-card--skeleton .ws-card__seller {
+.ws-card__foot > .ws-seller {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The 36px button centres on the seller's first line. */
+.ws-card__menu {
+  position: relative;
+  z-index: 2;
+  flex: none;
+  margin-block: calc((1lh - var(--cx-control-h-sm)) / 2);
+  margin-inline-end: -8px;
+  font-size: var(--cx-meta);
+  line-height: 1.35;
+}
+
+.ws-card--skeleton .ws-card__foot {
   border-top-color: transparent;
 }
 
-/* Results grid (spec §5.2): 2 columns in compact density on phones, 3 from 768,
-   4 from 1200, 5 from 1320. */
-.ws-card-grid {
+.ws-card--skeleton .ws-card__title {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--cx-gap-grid);
+  align-content: space-around;
 }
 
-/* Phones: eBay's app grid card. Same content order, fewer lines: condition as plain
-   text, price and "% off" on one line, a one-line location without the age, one
-   demand signal, and just the seller's name. Anything dropped here is on the
-   listing page, and the location bar already names the buyer's area. */
-@media (max-width: 767px) {
-  .ws-card-grid {
-    --cx-gap-grid: var(--cx-s-3);
-  }
+/* What's left after "Not interested" / "Hide seller", with Undo. */
+.ws-card-hidden {
+  justify-content: center;
+  align-items: flex-start;
+  gap: var(--cx-s-3);
+  min-height: 160px;
+  height: 100%;
+  color: var(--cx-text-2);
+  font-size: var(--cx-small);
+}
 
-  .ws-card-grid .ws-card {
-    --ws-card-pad: var(--cx-s-3);
+/* List (eBay's list view): photo left, details right. */
+.ws-card--list {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  align-items: start;
+}
+
+.ws-card--list .ws-card__media {
+  overflow: hidden;
+  border-end-end-radius: var(--cx-r-md);
+}
+
+.ws-card--list .ws-card__title {
+  min-height: 0;
+  font-size: var(--cx-h4);
+  line-height: var(--cx-h4-lh);
+}
+
+.ws-card--list .ws-card__rating {
+  min-height: 0;
+}
+
+.ws-card--list .ws-card__rating:empty {
+  display: none;
+}
+
+/* Rail (home rows): fixed width, no seller row. */
+.ws-card--rail {
+  width: 220px;
+  height: auto;
+  flex: none;
+}
+
+.ws-card--rail .ws-card__body {
+  --ws-card-pad: var(--cx-s-3);
+}
+
+/* Compact: a 72px thumbnail row (cart suggestions, similar items, messages). */
+.ws-card--compact {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--cx-s-3);
+  padding: var(--cx-s-2);
+  height: auto;
+}
+
+.ws-card--compact .ws-card__media {
+  overflow: hidden;
+  border-radius: var(--cx-r-sm);
+}
+
+.ws-card--compact .ws-card__body {
+  --ws-title-size: var(--cx-small);
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+  align-items: flex-start;
+}
+
+.ws-card--compact .ws-card__title {
+  min-height: 0;
+}
+
+.ws-card--compact .ws-price {
+  justify-items: start;
+  text-align: start;
+}
+
+/* Narrow details (under 240px: phone grids, home rails, phone list view) follow eBay's app: same order,
+   fewer lines. Condition as plain text, price and "% off" on one line, "Total ₦X"
+   (the location bar names the area), distance only, one demand signal, the seller's
+   name. Everything trimmed is on the listing page. */
+@container ws-body (max-width: 240px) {
+  .ws-card__stack {
     --ws-title-size: var(--cx-small);
     --cx-price-size: 17px;
     --cx-meta: 12px;
-  }
-
-  .ws-card-grid .ws-card__body {
     gap: var(--cx-s-2);
   }
 
-  .ws-card-grid .ws-card__head {
+  .ws-card__head {
     gap: 2px;
   }
 
-  .ws-card-grid .ws-card__chips .cx-chip {
+  .ws-card__chips .cx-chip {
     height: auto;
     padding: 0;
     background: none;
@@ -462,95 +569,140 @@ a.ws-seller__name:hover {
     font-size: var(--cx-caption);
   }
 
-  .ws-card-grid .ws-card__rating {
+  .ws-card__rating {
     min-height: 16px;
   }
 
-  .ws-card-grid .ws-stars {
+  .ws-stars {
     --ws-star: 12px;
     font-size: var(--cx-caption);
   }
 
-  .ws-card-grid .ws-price {
+  .ws-price {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 2px 6px;
   }
 
-  .ws-card-grid .ws-price__was {
+  .ws-price__was {
     display: contents;
   }
 
-  .ws-card-grid .ws-price__was > span:first-child {
+  .ws-price__was > span:first-child {
     display: none;
   }
 
-  .ws-card-grid .ws-price .cx-chip {
+  .ws-price .cx-chip {
     height: 20px;
     padding: 0 6px;
     font-size: var(--cx-caption);
   }
 
-  .ws-card-grid .ws-price__note {
+  .ws-price__note {
     flex-basis: 100%;
     font-size: var(--cx-meta);
   }
 
-  .ws-card-grid .ws-card__meta {
+  .ws-card__meta {
     gap: 2px;
   }
 
-  .ws-card-grid .ws-total-to,
-  .ws-card-grid .ws-meta__item:has(time),
-  .ws-card-grid .ws-meta__item:has(.ws-loc__area):has(+ .ws-meta__item .ws-loc__km),
-  .ws-card-grid .ws-proof .ws-meta__item + .ws-meta__item {
+  .ws-total-to,
+  .ws-meta__item:has(time),
+  .ws-meta__item:has(.ws-loc__area):has(+ .ws-meta__item .ws-loc__km),
+  .ws-proof .ws-meta__item + .ws-meta__item {
     display: none;
   }
 
-  .ws-card-grid .ws-meta svg {
+  .ws-meta svg {
     width: 14px;
     height: 14px;
     margin-block-start: calc((1lh - 14px) / 2);
   }
 
-  .ws-card-grid .ws-delivery__total {
+  .ws-delivery__total {
     padding-inline-start: 20px;
   }
 
   /* Location on one line: the area gives way (ellipsis) before the distance does. */
-  .ws-card-grid .ws-card__meta .ws-meta__list {
+  .ws-card__meta .ws-meta__list {
     flex-wrap: nowrap;
   }
 
-  .ws-card-grid .ws-card__meta .ws-meta__item {
+  .ws-card__meta .ws-meta__item {
     min-width: 0;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
 
-  .ws-card-grid .ws-card__meta .ws-meta__item:not(:first-child) {
+  .ws-card__meta .ws-meta__item:not(:first-child) {
     flex: none;
   }
 
-  .ws-card-grid .ws-card__seller {
-    padding-top: var(--cx-s-2);
-  }
-
-  .ws-card-grid .ws-seller > :not(.ws-seller__name) {
+  .ws-seller > :not(.ws-seller__name) {
     display: none;
   }
 
-  .ws-card-grid .ws-seller__name {
+  .ws-seller__name {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
 
-  .ws-card-grid .ws-seller__name svg {
+  .ws-seller__name svg {
     width: 14px;
     height: 14px;
+  }
+}
+
+/* Phones: the list view's photo shrinks to 112px and its details trim the same way. */
+@media (max-width: 767px) {
+  .ws-card--list {
+    grid-template-columns: 112px minmax(0, 1fr);
+  }
+
+  .ws-card--list .ws-card__body {
+    --ws-card-pad: var(--cx-s-3);
+  }
+
+  .ws-card--list .ws-card__title {
+    font-size: var(--ws-title-size);
+    line-height: 1.35;
+  }
+
+  .ws-card--list .ws-card__save {
+    top: 4px;
+    right: 4px;
+  }
+
+  .ws-card--rail {
+    width: 160px;
+  }
+}
+
+/* Results grid (spec §5.2): 2 columns on phones, 3 from 768, 4 from 1200. Five
+   columns would make desktop cards narrow enough to trim, so 4 is the cap (the spec
+   allows 4–5). Phone cards are narrow, so they trim themselves. */
+.ws-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--cx-gap-grid);
+}
+
+.ws-card-list {
+  display: grid;
+  gap: var(--cx-s-3);
+}
+
+@media (max-width: 767px) {
+  .ws-card-grid {
+    --cx-gap-grid: var(--cx-s-3);
+  }
+
+  .ws-card-grid .ws-card__body {
+    --ws-card-pad: var(--cx-s-3);
   }
 }
 
@@ -563,12 +715,6 @@ a.ws-seller__name:hover {
 @media (min-width: 1200px) {
   .ws-card-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1320px) {
-  .ws-card-grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
 

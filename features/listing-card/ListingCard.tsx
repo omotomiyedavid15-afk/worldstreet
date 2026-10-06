@@ -1,26 +1,40 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { ImageIcon } from "@/components/icons";
 import { Card, Skeleton } from "@/components/ui";
+import { cx } from "@/lib/cx";
 import { listingPath } from "@/lib/data/repo";
 import type { ListingWithSeller } from "@/lib/data/types";
-import { haversineKm, type LatLng } from "@/lib/geo";
 import { plural } from "@/lib/format";
+import { haversineKm, type LatLng } from "@/lib/geo";
 import { ConditionChip, DeliveryLine, LocationLine, PriceBlock, RatingStars, SaveButton, SellerMini, SocialProof } from "./atoms";
+import { CardMenu, HideGate } from "./CardActions";
 
-/* ListingCard, grid variant (spec §5.1–5.2), in eBay's order: photo with the heart,
-   condition, title, rating, price, delivery and total, location, demand, seller.
-   The photo fills the card edge to edge at a fixed 1:1 ratio (no layout shift). The
-   title is the card's one link, stretched over the whole card (spec §16.6); Save sits
-   above it as its own button. */
+/* ListingCard (spec §5.1–5.2) in eBay's order: photo with the heart, condition, title,
+   rating, price, delivery and total, location, demand, then seller and the ⋮ menu.
+   The title is the card's one link, stretched over the card (spec §16.6); Save and the
+   menu are their own buttons above it.
+
+   Variants:
+   - grid: search and saved. The photo fills the card at 1:1.
+   - list: eBay's list view. Photo left (200px, 112px on phones), details right.
+   - rail: home rows, 220px wide (160px on phones), without the seller row.
+   - compact: a 72px thumbnail row for carts, similar items and messages.
+   Whenever the details column is narrower than 240px (phone grids, home rails, the
+   phone list view) it trims itself to eBay's app density (see listing.css), so every
+   variant shares one set of rules. */
 
 /** The buyer's location anchor (R-001): `label` is what the location bar shows. */
 export type Anchor = LatLng & { city: string; label: string };
 
+export type ListingCardVariant = "grid" | "list" | "rail" | "compact";
+
 type Props = {
   listing: ListingWithSeller;
+  variant?: ListingCardVariant;
   anchor?: Anchor;
-  /** Grid columns change with the viewport (spec §5.2); keeps srcset honest. */
+  /** Override the photo's `sizes` when a layout differs from the defaults below. */
   sizes?: string;
   /** Above-the-fold cards load their photo eagerly (LCP). */
   priority?: boolean;
@@ -28,16 +42,47 @@ type Props = {
   now?: number;
 };
 
-const GRID_SIZES = "(min-width: 1200px) 20vw, (min-width: 768px) 33vw, 50vw";
+const SIZES: Record<ListingCardVariant, string> = {
+  grid: "(min-width: 1200px) 20vw, (min-width: 768px) 33vw, 50vw",
+  list: "(min-width: 768px) 200px, 112px",
+  rail: "(min-width: 768px) 220px, 160px",
+  compact: "72px",
+};
 
-export function ListingCard({ listing, anchor, sizes = GRID_SIZES, priority, headingLevel: H = "h3", now }: Props) {
+export function ListingCard({ listing, variant = "grid", anchor, sizes, priority, headingLevel: H = "h3", now }: Props) {
   const photo = listing.media[0];
-  const distanceKm = anchor ? haversineKm(anchor, listing.location) : undefined;
+  const href = listingPath(listing);
+  const title = (
+    <H className="ws-card__title">
+      <Link href={href} className="ws-card__link">
+        {listing.title}
+      </Link>
+    </H>
+  );
+  const gate = (card: ReactNode) => (
+    <HideGate listingId={listing.id} sellerId={listing.seller.id} shopName={listing.seller.shop_name}>
+      {card}
+    </HideGate>
+  );
 
-  return (
-    <Card as="article" interactive className="ws-card">
+  if (variant === "compact") {
+    return gate(
+      <Card as="article" interactive className="ws-card ws-card--compact">
+        <div className="ws-card__media">{photo && <Image src={photo.url} alt={photo.alt} fill sizes={sizes ?? SIZES.compact} />}</div>
+        <div className="ws-card__body">
+          {title}
+          <PriceBlock price_minor={listing.price_minor} was_minor={listing.was_minor} variant="cart" className="ws-card__compact-price" />
+          <ConditionChip condition={listing.condition} />
+        </div>
+      </Card>,
+    );
+  }
+
+  const distanceKm = anchor ? haversineKm(anchor, listing.location) : undefined;
+  return gate(
+    <Card as="article" interactive className={cx("ws-card", `ws-card--${variant}`)}>
       <div className="ws-card__media">
-        {photo && <Image src={photo.url} alt={photo.alt} fill sizes={sizes} priority={priority} />}
+        {photo && <Image src={photo.url} alt={photo.alt} fill sizes={sizes ?? SIZES[variant]} priority={priority} />}
         <div className="ws-card__save">
           <SaveButton listingId={listing.id} title={listing.title} />
         </div>
@@ -51,62 +96,84 @@ export function ListingCard({ listing, anchor, sizes = GRID_SIZES, priority, hea
       </div>
 
       <div className="ws-card__body">
-        <div className="ws-card__head">
-          <div className="ws-card__chips">
-            <ConditionChip condition={listing.condition} />
+        <div className="ws-card__stack">
+          <div className="ws-card__head">
+            <div className="ws-card__chips">
+              <ConditionChip condition={listing.condition} />
+            </div>
+            {title}
+            <div className="ws-card__rating">{listing.rating && <RatingStars value={listing.rating.average} count={listing.rating.count} />}</div>
           </div>
-          <H className="ws-card__title">
-            <Link href={listingPath(listing)} className="ws-card__link">
-              {listing.title}
-            </Link>
-          </H>
-          <div className="ws-card__rating">{listing.rating && <RatingStars value={listing.rating.average} count={listing.rating.count} />}</div>
-        </div>
 
-        <PriceBlock price_minor={listing.price_minor} was_minor={listing.was_minor} bestOffer={listing.offers_enabled} />
+          <PriceBlock price_minor={listing.price_minor} was_minor={listing.was_minor} bestOffer={listing.offers_enabled} />
 
-        <div className="ws-card__meta">
-          <DeliveryLine
-            options={listing.delivery}
-            price_minor={listing.price_minor}
-            listingCity={listing.location.city}
-            buyer={anchor && { city: anchor.city, label: anchor.label }}
-          />
-          <LocationLine place={listing.location} distanceKm={distanceKm} postedAt={listing.created_at} now={now} />
-          <SocialProof listing={listing} showWatchers={listing.seller.show_watchers} />
-        </div>
+          <div className="ws-card__meta">
+            <DeliveryLine
+              options={listing.delivery}
+              price_minor={listing.price_minor}
+              listingCity={listing.location.city}
+              buyer={anchor && { city: anchor.city, label: anchor.label }}
+            />
+            <LocationLine place={listing.location} distanceKm={distanceKm} postedAt={listing.created_at} now={now} />
+            <SocialProof listing={listing} showWatchers={listing.seller.show_watchers} />
+          </div>
 
-        <div className="ws-card__seller">
-          <SellerMini seller={listing.seller} />
+          {variant !== "rail" && (
+            <div className="ws-card__foot">
+              <SellerMini seller={listing.seller} />
+              <div className="ws-card__menu">
+                <CardMenu listingId={listing.id} title={listing.title} sellerId={listing.seller.id} shopName={listing.seller.shop_name} />
+              </div>
+            </div>
+          )}
         </div>
       </div>
-    </Card>
+    </Card>,
   );
 }
 
 /** Same box as the card, so swapping it in causes no layout shift (spec §5.2). */
-export function ListingCardSkeleton() {
+export function ListingCardSkeleton({ variant = "grid" }: { variant?: ListingCardVariant }) {
+  if (variant === "compact") {
+    return (
+      <Card as="div" className="ws-card ws-card--compact ws-card--skeleton">
+        <div className="ws-card__media">
+          <Skeleton width="100%" height="100%" radius={0} />
+        </div>
+        <div className="ws-card__body">
+          <Skeleton width="90%" height={14} />
+          <Skeleton width="40%" height={16} />
+        </div>
+      </Card>
+    );
+  }
   return (
-    <Card as="div" className="ws-card ws-card--skeleton">
+    <Card as="div" className={cx("ws-card", `ws-card--${variant}`, "ws-card--skeleton")}>
       <div className="ws-card__media">
         <Skeleton width="100%" height="100%" radius={0} />
       </div>
       <div className="ws-card__body">
-        <div className="ws-card__head">
-          <Skeleton width={84} height={26} radius="var(--cx-r-pill)" />
-          <Skeleton width="92%" height={16} />
-          <Skeleton width="64%" height={16} />
-          <div className="ws-card__rating">
-            <Skeleton width={96} height={14} />
+        <div className="ws-card__stack">
+          <div className="ws-card__head">
+            <Skeleton width={84} height={20} radius="var(--cx-r-pill)" />
+            <div className="ws-card__title">
+              <Skeleton width="92%" height="0.9lh" />
+              <Skeleton width="64%" height="0.9lh" />
+            </div>
+            <div className="ws-card__rating">
+              <Skeleton width={96} height={12} />
+            </div>
           </div>
-        </div>
-        <Skeleton width="48%" height={24} />
-        <div className="ws-card__meta">
-          <Skeleton width="72%" height={14} />
-          <Skeleton width="58%" height={14} />
-        </div>
-        <div className="ws-card__seller">
-          <Skeleton width="80%" height={14} />
+          <Skeleton width="48%" height={22} />
+          <div className="ws-card__meta">
+            <Skeleton width="72%" height={14} />
+            <Skeleton width="58%" height={14} />
+          </div>
+          {variant !== "rail" && (
+            <div className="ws-card__foot">
+              <Skeleton width="70%" height={14} />
+            </div>
+          )}
         </div>
       </div>
     </Card>
