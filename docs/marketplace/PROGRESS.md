@@ -57,6 +57,10 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.9 done; next S0.10 (hom
 | 6 Oct | Routes | `/listing/:id-:slug` is a placeholder (photo, price, delivery, seller) with canonical-slug redirects; `/help/*` is a placeholder | Cards and the EC-004 policy link must not be dead ends (F5); the real pages are Phase 3 and S0.10 |
 | 6 Oct | Property cards | No condition chip on property (the row stays reserved) | "Brand new" means nothing for a flat to let |
 | 6 Oct | Deploys | `vercel.json` turns off Vercel's automatic Git deployments (`git.deploymentEnabled: false`) | Your direction (6 Oct): no more Vercel deploys. The Vercel GitHub app was building a preview of every push |
+| 6 Oct | Dark theme (UI research) | Dark only: `--cx-elevated` #1c1917→#292524, `--cx-text` #fff→#f5f5f4, `--cx-text-2` #f0f0f0→#d6d3d1; to keep AA on hover fills over the lighter surface, muted #a8a29e→#aaa5a1, loss #f36e6e→#f58686, gain #10b981→#10be84 | Raised surfaces were 1.13:1 against the page; Material, Apple HIG and eBay evo-dark lift them with lighter surfaces, and use distinct text tiers. **Worth raising upstream in the DS** |
+| 6 Oct | DS gap fixes (UI research) | `.cx-skel` stops shimmering under reduced motion; the DS card hover lift/wash only on `(hover: hover)` devices | Sticky hover after taps on phones; motion preference |
+| 6 Oct | Cards (UI research) | Stars in the text colour (price is the one gold element), visited titles a step dimmer, press feedback on tap, hover underline only on hover devices, faint photo scrim plus a hairline edge in dark | eBay item tile and image treatment, Baymard list items, NN/g visited links |
+| 6 Oct | Mock photos | Re-generated at mid-tone | Light placeholders glared on the dark page |
 | 6 Oct | Tooling | `PW_CHROMIUM_PATH` lets story tests use a preinstalled Chromium; Testing Library cleanup is explicit in `vitest.setup.ts` | Cloud containers ship a different Chromium build; auto-cleanup needs Vitest globals, which are off |
 
 ## Master checklist (266 items, spec Part X)
