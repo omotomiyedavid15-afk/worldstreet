@@ -1,5 +1,6 @@
 import type { Preview } from "@storybook/nextjs-vite";
 import { withThemeByDataAttribute } from "@storybook/addon-themes";
+import { MotionProvider } from "../components/motion/MotionProvider";
 import { fontVariables } from "../app/fonts";
 import "../app/globals.css";
 
@@ -24,6 +25,11 @@ const preview: Preview = {
     a11y: { test: "error" },
   },
   decorators: [
+    (Story) => (
+      <MotionProvider>
+        <Story />
+      </MotionProvider>
+    ),
     withThemeByDataAttribute({
       themes: { dark: "dark", light: "light" },
       defaultTheme: "dark",

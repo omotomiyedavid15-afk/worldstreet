@@ -1,6 +1,6 @@
 # UI research: best practices and plan (6 Oct 2026)
 
-Web research (Baymard, NN/g, eBay Skin/Playbook, Material, Apple HIG, web.dev and Nigerian market sources) on the Sprint 0 UI, excluding accessibility research by request. 79 findings → 55 distinct gaps → 52 survived a skeptic check of sources and code. Items 1–37 under "Do now" are implemented except those gated on a decision (1 C1, 10 C1, 11 C2, 13's object-fit C4) and Lighthouse CI (deferred, see PROGRESS). Decisions still open are in section 3.
+Web research (Baymard, NN/g, eBay Skin/Playbook, Material, Apple HIG, web.dev and Nigerian market sources) on the Sprint 0 UI, excluding accessibility research by request. 79 findings → 55 distinct gaps → 52 survived a skeptic check of sources and code. Items 1–37 under "Do now" are implemented except those gated on a decision (1 C1, 10 C1, 11 C2, 13's object-fit C4) and Lighthouse CI (deferred, see PROGRESS). Decisions still open are in section 3. Decided 6 Oct: C1 yes (photo stepping), C2 yes (subtitle line).
 
 
 This plan covers 50 verified gaps. Where a gap has a revised recommendation, this plan uses the revision. Items about accessibility are left out. Where a fix used to include accessibility-only parts (focus moves, extra live regions, keyboard parity), those parts have been removed. The existing AA rules still apply as limits: 4.5:1 text, 44px targets, aria-pressed, one h1.

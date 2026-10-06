@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { MotionProvider } from "@/components/motion/MotionProvider";
 import { ToastViewport } from "@/components/ui";
 import { ESCROW } from "@/lib/copy/escrow";
 import { fontVariables } from "./fonts";
@@ -22,8 +23,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     // "[data-theme=light] [data-brand=worldstreet]".
     <html lang="en" data-theme="dark" className={fontVariables}>
       <body className="cx-root" data-brand="worldstreet">
-        {children}
-        <ToastViewport />
+        <MotionProvider>
+          {children}
+          <ToastViewport />
+        </MotionProvider>
       </body>
     </html>
   );

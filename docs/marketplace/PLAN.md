@@ -7,6 +7,8 @@ Status: **approved 6 Oct 2026** (Q1–Q4 answered in §7) · Repo: `~/marketplac
 - Do not use the nagoya design sandbox.
 - The live site is the design system: rebuild it in this repo and use its components.
 - Icons come from **Atlas Icons**, and only Atlas: UI, illustrations and placeholders alike, through `components/icons`. Nothing hand-drawn.
+- **Motion is expressive (6 Oct).** Motion (motion.dev) for component and interaction motion, GSAP for scroll-driven and timeline motion, Three.js for the home hero and a listing 3D viewer. All of it eases with the DS curves (`lib/motion/tokens.ts`), loads after first paint or on demand, respects reduced motion, and never animates prices in lists.
+- **Card decisions (6 Oct, UI research C1/C2):** cards show condition and key facts as an eBay-style subtitle line instead of the condition chip, and buyers can step through up to four photos from a card.
 - **Build in dark mode.** Dark is the default theme and the one every component is designed and reviewed in; light keeps working through the DS tokens and stays AA, but it's checked, not designed first.
 - **Components mirror eBay** (anatomy, information order, behaviour and wording such as "Pre-owned", "or Best offer", "+₦2,500 delivery", "99.2% positive (1,284)", "64 sold"), **styled with the WorldStreet design system** (tokens, Manrope, DS chips, buttons and surfaces). Where eBay and an accessibility rule disagree, accessibility wins and the deviation is logged.
 
