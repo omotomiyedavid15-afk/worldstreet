@@ -36,3 +36,12 @@ export function countsByRadius(listings: readonly Pick<Listing, "location">[], a
   const km = listings.map((l) => haversineKm(anchor, l.location));
   return new Map(RADII.map((r) => [r, r === null ? km.length : km.filter((d) => d <= r).length]));
 }
+
+/**
+ * The next radius out that would show more than `current` results, or undefined.
+ * Shared by ZeroResults and the end-of-list nudge (NN/g scoped search).
+ */
+export function widerRadius(radius: Radius, counts: ReadonlyMap<Radius, number>, current: number): Radius | undefined {
+  if (radius === null) return undefined;
+  return RADII.filter((r) => r === null || r > radius).find((r) => (counts.get(r) ?? 0) > current);
+}

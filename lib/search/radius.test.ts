@@ -3,7 +3,7 @@ import { AREAS, findArea, nearestArea } from "@/lib/areas";
 import { repos } from "@/lib/data";
 import { haversineKm } from "@/lib/geo";
 import { hrefWith } from "./params";
-import { RADII, countsByRadius, filterByRadius, parseRadius, radiusParam } from "./radius";
+import { RADII, countsByRadius, filterByRadius, parseRadius, radiusParam, widerRadius } from "./radius";
 
 describe("location radius (Sprint 0 #4, R-001, R-016)", () => {
   it("never shows an item beyond the radius, for every radius × anchor", async () => {
@@ -59,5 +59,15 @@ describe("hrefWith", () => {
     expect(hrefWith("/search", { q: "phone", sort: "newest" }, "sort", null)).toBe("/search?q=phone");
     expect(hrefWith("/search", {}, "radius", "all")).toBe("/search?radius=all");
     expect(hrefWith("/search", { cond: ["new", "used"] }, "q", "tv")).toBe("/search?cond=new&cond=used&q=tv");
+  });
+});
+
+describe("widerRadius", () => {
+  const counts = new Map([[5, 0], [10, 0], [25, 3], [null, 9]] as const);
+  it("finds the first wider radius with more results", () => {
+    expect(widerRadius(5, counts, 0)).toBe(25);
+    expect(widerRadius(25, counts, 3)).toBeNull(); // nationwide
+    expect(widerRadius(null, counts, 9)).toBeUndefined();
+    expect(widerRadius(25, new Map([[25, 3], [null, 3]] as const), 3)).toBeUndefined();
   });
 });

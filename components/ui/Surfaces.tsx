@@ -78,8 +78,8 @@ type EmptyProps = {
   /** One next action (R-007). */
   action?: ReactNode;
   tone?: "default" | "error";
-  /** Keep the page's heading order: h2 by default. */
-  headingLevel?: "h2" | "h3";
+  /** Keep the page's heading order: h2 by default, h1 when it is the whole page (errors). */
+  headingLevel?: "h1" | "h2" | "h3";
 };
 
 export function EmptyState({ icon, title, children, action, tone = "default", headingLevel: H = "h2" }: EmptyProps) {

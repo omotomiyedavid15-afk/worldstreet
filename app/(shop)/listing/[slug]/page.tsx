@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
-import { InfoCircleIcon } from "@/components/icons";
+import { CheckShieldIcon, InfoCircleIcon } from "@/components/icons";
 import { Card } from "@/components/ui";
 import { ConditionChip, DeliveryLine, PriceBlock, SaveButton, SellerMini } from "@/features/listing-card/atoms";
 import { getAnchor } from "@/features/location/server";
+import { escrowLine } from "@/lib/copy/escrow";
 import { listingPath, parseListingParam, repos } from "@/lib/data";
 
 /* SCR-004 placeholder. Cards link here, so it shows the essentials now; the full page
@@ -39,10 +40,17 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
         </div>
       </div>
       <div className="ws-listing-stub__body">
-        <ConditionChip condition={listing.condition} />
+        {listing.category.kind !== "property" && <ConditionChip condition={listing.condition} />}
         <h1 className="ws-listing-stub__title">{listing.title}</h1>
-        <PriceBlock variant="detail" price_minor={listing.price_minor} was_minor={listing.was_minor} bestOffer={listing.offers_enabled} />
-        <DeliveryLine options={listing.delivery} price_minor={listing.price_minor} listingCity={listing.location.city} buyer={anchor} />
+        <PriceBlock variant="detail" price_minor={listing.price_minor} was_minor={listing.was_minor} period={listing.price_period} bestOffer={listing.offers_enabled} />
+        {listing.category.kind !== "property" && (
+          <DeliveryLine options={listing.delivery} price_minor={listing.price_minor} listingCity={listing.location.city} buyer={anchor} />
+        )}
+        {/* The start of the Phase 3 ProtectionPanel; wording from the one escrow source. */}
+        <p className="ws-listing-stub__escrow" data-covered={listing.category.kind === "goods" || undefined}>
+          {listing.category.kind === "goods" ? <CheckShieldIcon /> : <InfoCircleIcon />}
+          {escrowLine(listing.category)}
+        </p>
         <SellerMini seller={listing.seller} />
         <Card className="ws-listing-stub__note">
           <p>

@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { buttonClass } from "@/components/ui";
 import { rules } from "@/config/marketplace-rules";
 import { ListingCard } from "@/features/listing-card/ListingCard";
 import { setLocation } from "@/features/location/actions";
 import { LocationBar } from "@/features/location/LocationBar";
 import { getAnchor } from "@/features/location/server";
 import { GlobalSearchBox } from "@/features/search/GlobalSearchBox";
-import { ActiveFilterChips, ProhibitedResults, ResultsHeader, ZeroResults } from "@/features/search/Results";
+import { ActiveFilterChips, EndOfResults, ProhibitedResults, ResultsHeader, ZeroResults } from "@/features/search/Results";
+import { SearchTransitions, ShowMoreLink } from "@/features/search/SearchTransitions";
 import { SortMenu } from "@/features/search/SortMenu";
 import { listingPath, repos } from "@/lib/data";
+import { formatCount } from "@/lib/format";
 import { parseFilters } from "@/lib/search/filters";
 import { first, hrefWith, type SearchParams } from "@/lib/search/params";
 import { parseQuery, type ParsedQuery } from "@/lib/search/query";
@@ -65,7 +65,7 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
     return (
       <div className="ws-search-page">
         {box}
-        <ResultsHeader query={parsed.raw} total={0} shown={0} sortMenu={null} />
+        <ResultsHeader query={parsed.raw} anchor={anchor} near={false} total={0} shown={0} sortMenu={null} />
         <ProhibitedResults />
       </div>
     );
@@ -82,11 +82,12 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
   });
 
   return (
-    <div className="ws-search-page">
+    <SearchTransitions pathname={PATH}>
       {box}
       {bar}
       <ResultsHeader
         query={parsed.raw}
+        anchor={anchor}
         total={result.total}
         shown={result.shown.length}
         sortMenu={<SortMenu current={sort} pathname={PATH} params={params} />}
@@ -95,7 +96,6 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
 
       {result.total === 0 ? (
         <ZeroResults
-          query={parsed.raw}
           anchor={anchor}
           radius={radius}
           radiusCounts={result.radiusCounts}
@@ -119,15 +119,18 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
               </li>
             ))}
           </ul>
-          {result.shown.length < result.total && (
+          {result.shown.length < result.total ? (
             <div className="ws-results-more">
-              <Link href={hrefWith(PATH, params, "page", String(page + 1))} scroll={false} className={buttonClass({ variant: "ghost" })}>
-                Show more results
-              </Link>
+              <p className="ws-results-more__progress">
+                You&apos;ve viewed {formatCount(result.shown.length)} of {formatCount(result.total)} results
+              </p>
+              <ShowMoreLink href={hrefWith(PATH, params, "page", String(page + 1))} />
             </div>
+          ) : (
+            <EndOfResults total={result.total} radius={radius} radiusCounts={result.radiusCounts} pathname={PATH} params={params} />
           )}
         </>
       )}
-    </div>
+    </SearchTransitions>
   );
 }

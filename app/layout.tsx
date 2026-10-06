@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { ToastViewport } from "@/components/ui";
+import { ESCROW } from "@/lib/copy/escrow";
 import { fontVariables } from "./fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: { default: "WorldStreet Marketplace", template: "%s · WorldStreet Marketplace" },
-  description: "Buy and sell near you. Every deal protected by escrow.",
+  description: ESCROW.tagline,
 };
 
 /* The browser toolbar matches the dark page (built dark-first, 6 Oct). */

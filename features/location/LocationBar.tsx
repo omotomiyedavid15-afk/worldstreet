@@ -2,7 +2,7 @@ import { ArrowDownIcon, LocationIcon } from "@/components/icons";
 import { buttonClass } from "@/components/ui";
 import { areasByCity, type Anchor } from "@/lib/areas";
 import { RADII, radiusLabel, radiusParam, type Radius } from "@/lib/search/radius";
-import { UseMyLocation } from "./UseMyLocation";
+import { ApplyButton, UseMyLocation } from "./UseMyLocation";
 
 /* LocationBar and ShipToSelector (R-001, spec §3). The bar is inline, never a blocking
    modal: "Showing items near Lekki · within 25 km · Change". Change opens the selector:
@@ -32,7 +32,8 @@ export function LocationBar({ anchor, inferred, radius, returnTo, action }: Prop
         <span>
           Showing items near <strong>{anchor.label}</strong>
           {radius === null ? " · nationwide" : ` · within ${radius} km`}
-          {inferred && <span className="ws-locbar__hint"> (from your connection)</span>}
+          {/* IP location is often far off on mobile networks, so say it's a guess. */}
+          {inferred && <span className="ws-locbar__hint">Based on your connection. Not right?</span>}
         </span>
       </p>
       <button type="button" className={buttonClass({ variant: "quiet", size: "sm" })} popoverTarget={POPOVER_ID} aria-haspopup="dialog">
@@ -88,9 +89,7 @@ function ShipToSelector({ anchor, radius, returnTo, action }: Omit<Props, "infer
           <button type="button" className={buttonClass({ variant: "ghost" })} popoverTarget={POPOVER_ID} popoverTargetAction="hide">
             Cancel
           </button>
-          <button type="submit" className={buttonClass({})}>
-            Apply
-          </button>
+          <ApplyButton />
         </div>
       </form>
     </div>

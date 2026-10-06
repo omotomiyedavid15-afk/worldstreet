@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
+import { useFormStatus } from "react-dom";
 import { LocationIcon } from "@/components/icons";
 import { buttonClass } from "@/components/ui";
 import { nearestArea } from "@/lib/areas";
@@ -46,5 +47,15 @@ export function UseMyLocation({ selectId }: { selectId: string }) {
         {status}
       </p>
     </div>
+  );
+}
+
+/** The selector's submit, which says it's working while the new area loads. */
+export function ApplyButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" className={buttonClass({})} aria-disabled={pending || undefined} aria-busy={pending || undefined}>
+      {pending ? "Applying…" : "Apply"}
+    </button>
   );
 }

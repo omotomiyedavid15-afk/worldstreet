@@ -21,6 +21,8 @@ export function SortMenu({ current, pathname, params }: Props) {
           <span>
             Sort<span className="ws-sort__current">: {sortLabel(current)}</span>
           </span>
+          {/* On phones the label is just "Sort"; the dot says a non-default order is on. */}
+          {current !== "best" && <span className="ws-sort__dot" aria-hidden="true" />}
         </>
       }
       items={SORTS.map(({ key, label }) => ({

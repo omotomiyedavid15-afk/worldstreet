@@ -10,15 +10,16 @@ test("'head' finds the headphones (Sprint 0 #2)", async ({ page }) => {
   await page.getByRole("combobox", { name: "Search for anything" }).fill("head");
   await page.getByRole("button", { name: "Search", exact: true }).click();
   await expect(page).toHaveURL(/\/search\?q=head/);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Results for “head”");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/^\d+ results? for “head”$/);
   await expect(cards(page).first()).toContainText(/headphones/i);
   for (const title of await cards(page).getByRole("heading").allTextContents()) expect(title).toMatch(/head/i);
 });
 
 test("an empty search box offers trending searches and the page lists everything nearby", async ({ page }) => {
   await page.goto("/search");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("All listings");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/^\d+ listings near Lagos$/);
   await expect(cards(page)).toHaveCount(24);
+  await expect(page.getByText("You've viewed 24 of")).toBeVisible();
   const box = page.getByRole("combobox", { name: "Search for anything" });
   await box.focus();
   await expect(box).toHaveAttribute("aria-expanded", "true");
@@ -38,7 +39,8 @@ test("a listing id goes straight to the listing (EC-002)", async ({ page }) => {
 
 test("a prohibited search shows a neutral no-results with the policy link (EC-004)", async ({ page }) => {
   await page.goto("/search?q=pistol");
-  await expect(page.getByRole("heading", { name: "No results", level: 2 })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("No results for “pistol”");
+  await expect(page.getByRole("heading", { level: 2 })).toHaveCount(0); // said once, no suggestions
   await expect(page.getByRole("link", { name: "See what isn't allowed" })).toHaveAttribute("href", "/help/prohibited-items");
   await expect(cards(page)).toHaveCount(0);
 });
@@ -66,7 +68,7 @@ test("with 5 km chosen, no card is further than 5 km and the count matches (Spri
   await expect(page.getByText(/Showing items near/)).toContainText("Yaba · within 5 km");
   const count = await cards(page).count();
   expect(count).toBeGreaterThan(0);
-  await expect(page.locator(".ws-results-head__count")).toHaveText(new RegExp(`^(${count} results?|Showing ${count} of)`));
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(new RegExp(`^${count} listings? near Yaba$`));
   for (const text of await cards(page).locator(".ws-loc__km").allTextContents()) {
     const km = text.startsWith("Under") ? 0.5 : Number(text.replace(/[^\d.]/g, ""));
     expect(km).toBeLessThanOrEqual(5);
@@ -87,7 +89,7 @@ test("Enter on a card opens it, and Back restores the scroll position (Sprint 0 
   await page.keyboard.press("Enter");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(title!);
   await page.goBack();
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("All listings");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/listings near/);
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before - 50);
 });
 
@@ -99,3 +101,21 @@ for (const url of ["/search", "/search?q=head", "/search?q=sofa", "/listing/2045
     expect(bad.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
   });
 }
+
+test("after the last result, a wider area is offered with its count", async ({ page }) => {
+  await page.goto("/search?q=phone");
+  const end = page.locator(".ws-results-end");
+  await expect(end).toContainText("That's everything within 25 km.");
+  const wider = end.getByRole("link", { name: /more results? nationwide/ });
+  await wider.click();
+  await expect(page).toHaveURL(/radius=all/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/results? for “phone”/);
+});
+
+test("Show more keeps the current results and adds the next page", async ({ page }) => {
+  await page.goto("/search?radius=all");
+  await expect(cards(page)).toHaveCount(24);
+  await page.getByRole("link", { name: "Show more results" }).click();
+  await expect(page).toHaveURL(/page=2/);
+  await expect.poll(() => cards(page).count()).toBeGreaterThan(24);
+});
