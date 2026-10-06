@@ -121,3 +121,10 @@ html[data-theme=light] {
     scroll-behavior: auto;
   }
 }
+
+/* Radio menu items (sort orders): the current choice carries a tick in the gold text
+   token and is announced as checked. */
+.cx-menu [aria-checked=true] {
+  color: var(--cx-ember-text);
+  font-weight: 500;
+}

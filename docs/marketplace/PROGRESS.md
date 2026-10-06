@@ -48,6 +48,8 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.5 done; S0.6 (ListingCa
 | 6 Oct | Results grid | 4 columns from 1200px, not 5 at 1320 | Five columns make desktop cards narrow enough to trim; the spec allows 4–5 |
 | 6 Oct | Card menu | Only "Not interested" and "Hide {shop}" for now, each with Undo (focus moves to Undo) | "Find similar" (/search, S0.9) and "Report" (Phase 3) would be dead ends today (audit F5) |
 | 6 Oct | SellerMini | "Top rated" sits beside the shop name, a size down in seller rows | Keeps the card's seller row to two lines next to the ⋮ |
+| 6 Oct | Sort | Price sorts are labelled "Price: lowest/highest first" and use the item price; best match uses the B2 weights with relevance from search | "Price + delivery" needs delivery quotes (PLAN C10); the label doesn't promise what the sort doesn't do yet |
+| 6 Oct | Menu | Added `checked` items (menuitemradio + aria-checked); the menu opens on the checked one | Sort orders are a single choice |
 | 6 Oct | Tooling | `PW_CHROMIUM_PATH` lets story tests use a preinstalled Chromium; Testing Library cleanup is explicit in `vitest.setup.ts` | Cloud containers ship a different Chromium build; auto-cleanup needs Vitest globals, which are off |
 
 ## Master checklist (266 items, spec Part X)
@@ -118,7 +120,7 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.5 done; S0.6 (ListingCa
 ## D. Search & filters
 - [ ] ResultsHeader
 - [ ] SaveSearchButton
-- [ ] SortMenu
+- [x] SortMenu
 - [ ] ViewToggle
 - [ ] FilterRail (W)
 - [ ] FilterSheet (M)

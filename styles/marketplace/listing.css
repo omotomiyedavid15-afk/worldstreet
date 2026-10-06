@@ -723,3 +723,16 @@ a.ws-seller__name:hover {
     transform: none;
   }
 }
+
+/* SortMenu: keeps radio items' labels aligned whether or not they carry the tick. */
+.ws-menu-spacer {
+  flex: none;
+  width: 18px;
+}
+
+/* Phones show "Sort" alone; the menu says which order is on. */
+@media (max-width: 479px) {
+  .ws-sort__current {
+    display: none;
+  }
+}
