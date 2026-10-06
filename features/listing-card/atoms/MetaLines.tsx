@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { DeliveryTruckIcon, LocationIcon } from "@/components/icons";
 import { rules } from "@/config/marketplace-rules";
 import type { DeliveryOption, Listing, Place } from "@/lib/data/types";
@@ -11,21 +11,23 @@ import { buyerTotal } from "@/lib/pricing";
    SocialProof. Wording follows eBay ("Free delivery", "+₦2,500 delivery", "64 sold",
    "Last one"); each line says nothing rather than something it can't back up. */
 
-function Dot() {
+/**
+ * Items separated by "·". Each item carries its own leading dot and the list is pulled
+ * left inside a clipping box, so the dot on whichever item starts a line is cut off:
+ * a wrap never leaves a dot dangling at either end.
+ */
+function MetaList({ items }: { items: ReactNode[] }) {
   return (
-    <span className="ws-meta__sep" aria-hidden="true">
-      ·
+    <span className="ws-meta__clip">
+      <span className="ws-meta__list">
+        {items.map((item, i) => (
+          <span key={i} className="ws-meta__item">
+            {item}
+          </span>
+        ))}
+      </span>
     </span>
   );
-}
-
-function joinWithDots(parts: ReactNode[]) {
-  return parts.map((part, i) => (
-    <Fragment key={i}>
-      {i > 0 && <Dot />}
-      {part}
-    </Fragment>
-  ));
 }
 
 type DeliveryLineProps = {
@@ -87,7 +89,7 @@ export function LocationLine({ place, distanceKm, postedAt, now }: LocationLineP
   return (
     <p className="ws-meta">
       <LocationIcon />
-      {joinWithDots(parts)}
+      <MetaList items={parts} />
     </p>
   );
 }
@@ -117,13 +119,13 @@ export function SocialProof({ listing, showWatchers }: { listing: Pick<Listing, 
   if (signals.length === 0) return null;
   return (
     <p className="ws-meta">
-      {joinWithDots(
-        signals.map((s) => (
+      <MetaList
+        items={signals.map((s) => (
           <span key={s.text} className={s.urgent ? "ws-proof__urgent" : "ws-proof__strong"}>
             {s.text}
           </span>
-        )),
-      )}
+        ))}
+      />
     </p>
   );
 }

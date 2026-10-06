@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, userEvent, waitFor, within } from "storybook/test";
-import { Card, ToastViewport } from "@/components/ui";
+import { ToastViewport } from "@/components/ui";
 import { signIn, signOut } from "@/features/auth/session";
 import { saveListing, unsaveListing } from "@/features/saved/store";
 import type { DeliveryOption, Place } from "@/lib/data/types";
@@ -174,29 +174,5 @@ export const SignedInSave: Story = {
       <Photo id="story-3" title="Oraimo FreePods 4" />
       <ToastViewport />
     </>
-  ),
-};
-
-/** All the atoms in eBay's card order (spec §5.1), as S0.6's ListingCard will lay them out. */
-export const CardAnatomy: Story = {
-  beforeEach: () => {
-    signOut();
-    unsaveListing("204507");
-  },
-  render: () => (
-    <Card as="article" style={{ maxWidth: 300, display: "grid", gap: 10 }}>
-      <Photo id="204507" title="Sony WH-1000XM5 Wireless Noise Cancelling Headphones" />
-      <div style={row}>
-        <ConditionChip condition="new" />
-      </div>
-      <h3 style={{ font: "500 var(--cx-body)/1.35 var(--cx-font)", color: "var(--cx-text)" }}>Sony WH-1000XM5 Wireless Noise Cancelling Headphones</h3>
-      <RatingStars value={4.9} count={52} />
-      <PriceBlock price_minor={toMinor(485_000)} was_minor={toMinor(560_000)} />
-      <DeliveryLine options={[opt("courier", 0, "nationwide")]} price_minor={toMinor(485_000)} listingCity="Lagos" buyer={{ city: "Lagos", label: "Lekki" }} />
-      <LocationLine place={ikeja} distanceKm={14.6} postedAt={ago(2)} now={NOW} />
-      <SocialProof listing={{ qty: 12, sold_count: 38, watchers: 31, in_carts: 6 }} showWatchers />
-      <SellerMini seller={gadgetHub} />
-      <ToastViewport />
-    </Card>
   ),
 };

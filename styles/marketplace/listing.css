@@ -6,20 +6,44 @@
 .ws-meta {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   gap: 2px 6px;
   font-size: var(--cx-meta);
   line-height: 1.35;
   color: var(--cx-text-muted);
 }
 
+/* Icons sit level with the first line when the text wraps. */
 .ws-meta svg {
   flex: none;
   width: 16px;
   height: 16px;
+  margin-block-start: calc((1lh - 16px) / 2);
 }
 
-.ws-meta__sep {
+.ws-meta__clip {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ws-meta__list {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 2px;
+  margin-inline-start: -13px;
+}
+
+.ws-meta__item {
+  position: relative;
+  padding-inline-start: 13px;
+}
+
+/* Empty alt text keeps screen readers from reading "dot" between items. */
+.ws-meta__item::before {
+  content: "·" / "";
+  position: absolute;
+  inset-inline-start: 4px;
   color: var(--cx-text-muted);
 }
 
@@ -252,6 +276,193 @@ a.ws-seller__name:hover {
   }
 
   .ws-save:active svg {
+    transform: none;
+  }
+}
+
+/* ListingCard (spec §5.1–5.2). The photo is full-bleed at 1:1, then one spacing
+   rhythm: 16px padding (12px compact), 12px between groups, 6px inside the title
+   group, 4px between meta lines. The seller line sits on the bottom edge so cards in
+   a row line up. */
+.ws-card {
+  --ws-card-pad: var(--cx-s-4);
+  --ws-title-size: var(--cx-body);
+  height: 100%;
+  padding: 0;
+  gap: 0;
+}
+
+[data-density=compact] .ws-card {
+  --ws-card-pad: var(--cx-s-3);
+  --ws-title-size: var(--cx-small);
+}
+
+.ws-card__media {
+  position: relative;
+  aspect-ratio: 1;
+  background: var(--cx-surface-2);
+}
+
+.ws-card__media img {
+  object-fit: cover;
+}
+
+.ws-card__media > .cx-skel {
+  position: absolute;
+  inset: 0;
+}
+
+/* Above the stretched link, so it's its own target. */
+.ws-card__save {
+  position: absolute;
+  top: var(--cx-s-2);
+  right: var(--cx-s-2);
+  z-index: 2;
+}
+
+.ws-card__photos {
+  position: absolute;
+  right: var(--cx-s-2);
+  bottom: var(--cx-s-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: var(--cx-r-pill);
+  background: var(--cx-elevated);
+  box-shadow: var(--cx-shadow-sm);
+  color: var(--cx-text-2);
+  font: 500 var(--cx-caption)/1 var(--cx-font);
+  font-variant-numeric: tabular-nums;
+}
+
+.ws-card__photos svg {
+  width: 14px;
+  height: 14px;
+}
+
+.ws-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--cx-s-3);
+  padding: var(--ws-card-pad);
+}
+
+.ws-card__head {
+  display: grid;
+  gap: 6px;
+}
+
+.ws-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Two lines, always: titles clamp, and short ones still take two lines so prices line
+   up across a row. */
+.ws-card__title {
+  display: -webkit-box;
+  min-height: 2lh;
+  overflow: hidden;
+  color: var(--cx-text);
+  font: 500 var(--ws-title-size)/1.35 var(--cx-font);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.ws-card__link {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* The one link, stretched over the card (spec §16.6). */
+.ws-card__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.ws-card__link:focus-visible {
+  outline: none;
+}
+
+.ws-card.cx-card:has(.ws-card__link:focus-visible) {
+  box-shadow: var(--cx-focus-ring);
+}
+
+.ws-card:hover .ws-card__title {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Reserved even when a listing has no ratings, so prices line up across a row. */
+.ws-card__rating {
+  display: flex;
+  align-items: center;
+  min-height: 18px;
+}
+
+.ws-card__meta {
+  display: grid;
+  gap: 4px;
+}
+
+.ws-card__seller {
+  margin-top: auto;
+  padding-top: var(--cx-s-3);
+  border-top: 1px solid var(--cx-hairline);
+}
+
+.ws-card--skeleton .ws-card__seller {
+  border-top-color: transparent;
+}
+
+/* Results grid (spec §5.2): 2 columns in compact density on phones, 3 from 768,
+   4 from 1200, 5 from 1320. */
+.ws-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--cx-gap-grid);
+}
+
+@media (max-width: 767px) {
+  .ws-card-grid {
+    --cx-gap-grid: var(--cx-s-3);
+  }
+
+  .ws-card-grid .ws-card {
+    --ws-card-pad: var(--cx-s-3);
+    --ws-title-size: var(--cx-small);
+    --cx-price-size: 18px;
+    --cx-meta: 13px;
+  }
+}
+
+@media (min-width: 768px) {
+  .ws-card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .ws-card-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1320px) {
+  .ws-card-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-card.cx-card--interactive:hover {
     transform: none;
   }
 }

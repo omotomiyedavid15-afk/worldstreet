@@ -6,7 +6,7 @@ pass `npm run check`.
 
 ## Phase reports
 
-_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.5 done; next S0.6 (ListingCard). Components mirror eBay, styled with the DS (your direction, 6 Oct)._
+_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.5 done; S0.6 (ListingCard) in progress: grid and skeleton done, list/rail/compact next. Components mirror eBay, styled with the DS (your direction, 6 Oct)._
 
 ## Deviations from the docs and the design system
 
@@ -39,6 +39,8 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.5 done; next S0.6 (List
 | 6 Oct | DeliveryLine | No "How we calculate" popover; the total sits on its own line under the fee | The popover belongs with DeliveryPanel (Phase 3). Stacking avoids a stranded "·" when the line wraps |
 | 6 Oct | DeliveryOption | Added `coverage` (`same_city` / `nationwide`) | "Total to {area}" must use an option that reaches the buyer; riders and meet-ups don't leave the seller's city |
 | 6 Oct | RatingStars | Atlas's star detail stroke is hidden inside ratings | It reads as noise in empty and half stars |
+| 6 Oct | ListingCard | Photo is full-bleed at 1:1 on the DS card; the rating row and two title lines are always reserved | Your review (6 Oct): the photo should fill the card and spacing be even. Reserving rows keeps prices and seller lines level across a grid row |
+| 6 Oct | Meta lines | Separators are clipped at the start of a wrapped line instead of sitting between items in the markup | A wrap no longer strands a "·"; the dots are hidden from screen readers |
 | 6 Oct | Tooling | `PW_CHROMIUM_PATH` lets story tests use a preinstalled Chromium; Testing Library cleanup is explicit in `vitest.setup.ts` | Cloud containers ship a different Chromium build; auto-cleanup needs Vitest globals, which are off |
 
 ## Master checklist (266 items, spec Part X)
@@ -86,7 +88,7 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.5 done; next S0.6 (List
 - [ ] FeaturedBeamCard
 
 ## C. Cards & atoms
-- [ ] ListingCard: grid, list, rail, compact, sponsored, deal, auction, vehicle, property, service, skeleton, unavailable
+- [ ] ListingCard: grid, list, rail, compact, sponsored, deal, auction, vehicle, property, service, skeleton, unavailable (grid + skeleton done)
 - [x] ConditionChip
 - [x] FormatChip
 - [x] DiscountChip

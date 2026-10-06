@@ -128,7 +128,7 @@ describe("DeliveryLine", () => {
 describe("LocationLine", () => {
   it("shows area, distance and age, with words for screen readers", () => {
     const { container } = render(<LocationLine place={lagos} distanceKm={4.24} postedAt={hoursFromNow(-72)} now={NOW} />);
-    expect(container).toHaveTextContent("Ikeja GRA·4.2 km away·3d agoListed 3 days ago");
+    expect(container).toHaveTextContent("Ikeja GRA4.2 km away3d agoListed 3 days ago");
     expect(screen.getByText("3d ago")).toHaveAttribute("aria-hidden", "true");
     expect(container.querySelector("time")).toHaveAttribute("dateTime", hoursFromNow(-72));
   });
