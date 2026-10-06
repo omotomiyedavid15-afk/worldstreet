@@ -7,17 +7,18 @@ import { places, type PlaceKey } from "./fixtures/places";
 /** Mock flat fees by zone (PLAN risk 1), in naira for readability. */
 export const delivery = {
   lagos: [
-    { method: "rider", fee_minor: toMinor(2_500), eta_days: [1, 2] },
-    { method: "pickup_station", fee_minor: toMinor(1_500), eta_days: [2, 3] },
-    { method: "meet_up", fee_minor: toMinor(0), eta_days: [0, 1] },
+    { method: "rider", fee_minor: toMinor(2_500), eta_days: [1, 2], coverage: "same_city" },
+    { method: "pickup_station", fee_minor: toMinor(1_500), eta_days: [2, 3], coverage: "same_city" },
+    { method: "meet_up", fee_minor: toMinor(0), eta_days: [0, 1], coverage: "same_city" },
+    { method: "courier", fee_minor: toMinor(4_500), eta_days: [3, 5], coverage: "nationwide" },
   ],
-  free: [{ method: "courier", fee_minor: toMinor(0), eta_days: [2, 4] }],
+  free: [{ method: "courier", fee_minor: toMinor(0), eta_days: [2, 4], coverage: "nationwide" }],
   nationwide: [
-    { method: "courier", fee_minor: toMinor(4_500), eta_days: [3, 5] },
-    { method: "pickup_station", fee_minor: toMinor(3_000), eta_days: [3, 6] },
+    { method: "courier", fee_minor: toMinor(4_500), eta_days: [3, 5], coverage: "nationwide" },
+    { method: "pickup_station", fee_minor: toMinor(3_000), eta_days: [3, 6], coverage: "nationwide" },
   ],
-  pickup: [{ method: "meet_up", fee_minor: toMinor(0), eta_days: [0, 1] }],
-  bulky: [{ method: "rider", fee_minor: toMinor(15_000), eta_days: [2, 4] }],
+  pickup: [{ method: "meet_up", fee_minor: toMinor(0), eta_days: [0, 1], coverage: "same_city" }],
+  bulky: [{ method: "rider", fee_minor: toMinor(15_000), eta_days: [2, 4], coverage: "same_city" }],
 } as const satisfies Record<string, readonly DeliveryOption[]>;
 
 export type ListingSeed = {

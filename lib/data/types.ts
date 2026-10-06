@@ -48,6 +48,8 @@ export type DeliveryOption = {
   fee_minor: Kobo;
   /** Business days after dispatch, inclusive range. */
   eta_days: readonly [number, number];
+  /** Riders and meet-ups only work inside the seller's city; couriers go nationwide. */
+  coverage: "same_city" | "nationwide";
 };
 
 export type Place = LatLng & {
