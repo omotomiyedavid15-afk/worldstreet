@@ -6,7 +6,7 @@ pass `npm run check`.
 
 ## Phase reports
 
-_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.3 done; next S0.4 (money + data + mocks)._
+_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.4 done; next S0.5 (card atoms)._
 
 ## Deviations from the docs and the design system
 
@@ -25,6 +25,9 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.3 done; next S0.4 (mone
 | 6 Oct | DS a11y gaps | Small buttons get a 44px hit area; menu rows 44px on touch; Tooltip dismisses on Escape (1.4.13); DeltaChip uses sr-only text instead of `aria-label` on a span; light-theme tile icons use the gold text token (tile icon was ~1.3:1) | WCAG 2.2 AA rule outranks the DS |
 | 6 Oct | DS CSS loading | All component CSS loads once via `globals.css` (layer components) | Next 16 only documents global CSS imports from inside `app/` |
 | 6 Oct | Tooling | Local browser tests drive installed Chrome | Playwright has no Chromium build for macOS 13; CI uses bundled Chromium |
+| 6 Oct | Config | Low-price warning uses EC-027's "under 40% **of** the comparable median" (`priceWarnBelowPercentOfMedian`) | S2 step 4 says "< 40% below" the median (i.e. under 60% of it). The two disagree; EC-027 is the specific rule. **Confirm which you want** |
+| 6 Oct | Data | Entity fields keep Part G's snake_case (`price_minor`, `seller_id`, `created_at`) | Matches the docs and the eventual API, so nothing is renamed at the boundary |
+| 6 Oct | Mocks | Mock photos are one labelled SVG placeholder per category in `public/mock/img/` | No stock or real product photos; nothing to license or mistake for a real item |
 
 ## Master checklist (266 items, spec Part X)
 
