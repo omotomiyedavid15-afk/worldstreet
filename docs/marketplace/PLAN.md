@@ -1,9 +1,8 @@
 # WorldStreet Marketplace — Build Plan
 
-Status: **draft for approval** · 6 Oct 2026 · Repo: `~/marketplace` → GitHub `omotomiyedavid15-afk/worldstreet`
+Status: **approved 6 Oct 2026** (Q1–Q4 answered in §7) · Repo: `~/marketplace` → GitHub `omotomiyedavid15-afk/worldstreet`
 
-**Inputs read in full:** `worldstreet-ux-flows.md` (Parts A–L), `worldstreet-ebay-component-spec.md` (Sections 0–19, Parts I–XI), the live design system at https://worldstreet-design-system.vercel.app (Home, Foundations, Components, Patterns, Icons, Motion: page text, 53 code samples and the compiled CSS), and the `@vectoricons/atlas-icons-react` package.
-**Missing:** `worldstreet-marketplace-ux-blueprint.md` is not in the paths given or anywhere on disk. Its audit IDs (F1–F14) are only known where the other two docs quote them (see Q2).
+**Inputs read in full:** `worldstreet-marketplace-ux-blueprint.md` (audit F1–F17, scorecard 3B), `worldstreet-ux-flows.md` (Parts A–L), `worldstreet-ebay-component-spec.md` (Sections 0–19, Parts I–XI), the live design system at https://worldstreet-design-system.vercel.app (Home, Foundations, Components, Patterns, Icons, Motion: page text, 53 code samples and the compiled CSS), and the `@vectoricons/atlas-icons-react` package.
 **Direction from you (6 Oct):**
 - Do not use the nagoya design sandbox.
 - The live site is the design system: rebuild it in this repo and use its components.
@@ -58,6 +57,8 @@ Status: **draft for approval** · 6 Oct 2026 · Repo: `~/marketplace` → GitHub
 | C8 | R-062, R-150, R-151 and §6.5 vs Part L | **Part L wins** (category inspection windows, risk-tiered payout delay, line-item freezes) |
 | C9 | Phase numbering: flows Part J (4–9) vs spec §18 stages (0–9). Flows puts moderation in Phase 7, before Seller | The roadmap follows **spec §18 stages**. Moderation (A1) moves into the Admin phase; reviews and dispute UI stay in Orders & escrow |
 | C10 | Sort "Price + delivery" needs a delivery cost to the buyer's city | Sprint 0 sorts on `price_minor` (which is its acceptance test). Phase 2 adds `price_minor + delivery_minor(anchor)` once delivery quotes exist |
+| C12 | Category route: blueprint IA says `/c/:slug`; flows (the build spec) says `/search?cat=` and `/categories` | Flows wins: `/categories` index + `/search?cat=`. `/c/:slug` redirects to it |
+| C13 | Blueprint X7 breakpoints 360/480/768/1024/1400 vs DS 768/1200 | DS wins. 360/480/1024 only as grid/header subdivisions (spec §16.1); the QA pass still checks those widths for horizontal scroll |
 | C11 | Brief: "duotone gold icons" and "@/components/ui" assume DS source we don't have | Rebuild under `components/ui/` with the **same names and props as the site's code samples**, styled with **class names and tokens adapted from its compiled CSS**. Each component cites its DS sample in a header comment |
 
 ### 1.5 Things I'm flagging rather than silently following
@@ -159,7 +160,7 @@ DS components are built **in the phase that first needs them**, not all 38 up fr
 | S0.7 Sort | `SortMenu` (Best match, Price ↑↓, Newest, Nearest, Biggest discount), `sortListings()` | Sprint 0 #3: "for any sort, results are monotonic in `price_minor`" (property test over random fixtures). Part H guardrail |
 | S0.8 Location radius | Location store + `ShipToSelector` (popover W / sheet M; 5/10/25/Nationwide), inline `LocationBar` (never a modal), distance computed from the anchor | Sprint 0 #4: "with 10 km, no item beyond 10 km appears; counts consistent" (R-001, R-016). Test across every radius × anchor |
 | S0.9 Search | `/search?q=` URL-driven filters (`q`, `cat`, `sort`, `radius`, `min`, `max`), `ResultsHeader` (count, "Showing 24 of N"), `ZeroResults` (widen-radius suggestion with count, remove-filter suggestions), basic `GlobalSearchBox` with recents/trending | Sprint 0 #2: "querying 'head' returns the headphones; empty query shows trending"; EC-001 stop words; EC-002 listing ID → redirect. URL round-trips with Back |
-| S0.10 Home + a11y pass | Minimal home (B1): `HeroCarousel` (≤ 3 slides, **pause button, "2 / 3" counter**, no autoplay under reduced motion, `aria-roledescription="carousel"`), `TrustStrip` (copy from `lib/copy`), `CategoryTiles`, `ProductRail` (deduped, R-013; hides under 4, R-014), Sell CTA (ghost), one solid gold button per view | Sprint 0 #5: single `h1`, alt text (title + index), contrast ≥ 4.5:1, carousel pause, touch targets ≥ 44 px, meta ≥ 12 px. **axe: zero serious/critical** on `/` and `/search` at 375 and 1280 |
+| S0.10 Home + a11y pass | Placeholder routes for every header/footer/bottom-nav link with a "Coming in Phase N" state (F5: no dead `#` links, no badge without a panel); OG/meta per page + web manifest (F16); bottom padding = nav height and collapsing category rail (F17). Minimal home (B1): `HeroCarousel` (≤ 3 slides, **pause button, "2 / 3" counter**, no autoplay under reduced motion, `aria-roledescription="carousel"`), `TrustStrip` (copy from `lib/copy`), `CategoryTiles`, `ProductRail` (deduped, R-013; hides under 4, R-014), Sell CTA (ghost), one solid gold button per view | Sprint 0 #5 / blueprint F7–F12, F14: single `h1` (F11), alt text and named buttons (F12), contrast ≥ 4.5:1 with meta ≥ 12 px (F7), carousel pause + "2 / 3" counter (F8, F14), `aria-pressed` on Save (F9), touch targets ≥ 44 px (F10), no repeated listing across rails (F14). **axe: zero serious/critical** on `/` and `/search` at 375 and 1280 |
 
 ### Phase 1 — Header and search (spec stage 1, B1/B2)
 `AppHeader` (2-row W / 1-row M, sticky + shrink), `UtilityBar`, `CategoryMenuButton` + `MegaMenu` (W) / drill-down drawer (M), `CategoryRail`, full `GlobalSearchBox` (scope select, image-search stub), `SearchSuggestPanel` (≥ 2 chars, 150 ms debounce, ↑↓ Enter Esc, max 10 rows), mobile search overlay, `NotificationBell` (count must equal panel contents), `CartButton`, `AccountMenu`, `SellButton` (ghost), `BottomNav` (**5 tabs**: Home · Search · Sell · Inbox · Account, safe-area padding), `SkipLinks`, `SiteFooter` (accordion M), `CookieConsent` (equal-weight decline), `SystemBanner`. DS: Tabs, Drawer, Popover, Accordion, Breadcrumbs.
@@ -200,6 +201,8 @@ Cart by seller (`CartPage`, `CartSellerGroup`, `CartLineItem`, `SaveForLaterList
 ### Phase 8 — Admin (spec stage 8, A1–A4)
 `AdminShell`, `ModerationQueue` (SLA timers), `ListingReviewPanel`, `CaseView` + decision form (written rationale), `LedgerViewer` (reversal needs a second approver, R-260), `UserLookup`, `RiskRulesTable`, `AuditLogTable`, `SupportConsole` (read-only). Role-gated routes (mock roles).
 *Accept:* "SLA timers visible" (§18). Every action writes an audit entry.
+
+**Phase reviews:** each phase ends by scoring its screens against the blueprint's scorecard (§3B: D1–D8, S1–S8, C1–C8, L1–L10, K1–K7, M1–M7, X1–X10). The target is ≥ 85%, recorded in PROGRESS.md.
 
 ### Phase 9 — Growth (later; flags off)
 Auctions (`BidPanel`, `CountdownTimer`, `BidHistory`), `CompareTray`, `PriceHistorySparkline`, `QAThread`, promotions, alerts, `TrackingMap`, `BulkImport`, `AnalyticsDashboard`.
@@ -284,13 +287,8 @@ Gate before every commit: `npm run lint && npm run typecheck && npm test && npm 
 
 ---
 
-## 7. Questions for you (only what blocks)
-1. **Repo:** build in `~/marketplace` (GitHub `worldstreet`, Next.js 16) as above? *(Recommended: yes.)*
-2. **Blueprint doc:** can you share `worldstreet-marketplace-ux-blueprint.md`? Sprint 0 can start without it, but S0.10 "accessibility fixes from the audit" should be checked against its F1–F14 list.
-3. **PRs:** the GitHub CLI isn't installed, so I can't open PRs. Either type `! brew install gh && gh auth login` once, or I push each phase branch and you open the PR from the link GitHub prints.
-4. **Defaults OK?** These choices from §2.1:
-   - No state library.
-   - Server Components + repository with mock adapter.
-   - Tailwind for layout only, over the DS CSS.
-   - New devDependencies: Vitest, Testing Library, Storybook, Playwright, axe, Lighthouse CI, and Atlas Icons as an icon source only.
-   - Mock photos from Unsplash (free licence), credited in `mocks/img/SOURCES.md`.
+## 7. Decisions (answered 6 Oct 2026)
+1. **Repo:** `~/marketplace` → GitHub `worldstreet`. ✅
+2. **Blueprint:** provided; copied to `docs/marketplace/` and folded in (F1–F17, scorecard 3B, C12–C13). ✅
+3. **PRs:** GitHub CLI installed; one PR per phase branch. ✅
+4. **Defaults (§2.1):** approved. **A state library comes later.** For now the URL holds search state and a small `useSyncExternalStore` store holds guest data, kept behind `features/*/store.ts` so swapping in a library touches those files only. ✅
