@@ -48,6 +48,8 @@ export function CategoryRail({ categories }: { categories: readonly Pick<NavCate
     el.scrollBy({ left: dir * el.clientWidth * 0.7, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   };
 
+  // A listing has its own breadcrumb; the rail would push the photos down.
+  if (pathname.startsWith("/listing/")) return null;
   return (
     <nav aria-label="Categories" className="ws-catrail" data-start={ends.start} data-end={ends.end}>
       <div className="cx-container ws-catrail__inner">

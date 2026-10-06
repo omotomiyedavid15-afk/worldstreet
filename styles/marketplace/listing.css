@@ -348,8 +348,7 @@ a.ws-seller__name:hover {
 
 /* eBay's image treatment: a faint scrim so white product shots don't glare on dark,
    and a hairline edge in dark so light photos don't bleed into the card. */
-.ws-card__media::after,
-.ws-listing-stub__media::after {
+.ws-card__media::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -1330,65 +1329,6 @@ a.ws-seller__name:hover {
   text-decoration: underline;
 }
 
-/* Listing page placeholder (Phase 3 builds the real one). */
-.ws-listing-stub {
-  display: grid;
-  gap: var(--cx-s-6);
-  align-items: start;
-}
-
-@media (min-width: 768px) {
-  .ws-listing-stub {
-    grid-template-columns: minmax(0, 480px) minmax(0, 1fr);
-  }
-}
-
-.ws-listing-stub__media {
-  position: relative;
-  aspect-ratio: 1;
-  overflow: hidden;
-  border-radius: var(--cx-r-card);
-  background: var(--cx-surface-2);
-}
-
-.ws-listing-stub__media img {
-  object-fit: cover;
-}
-
-.ws-listing-stub__body {
-  display: grid;
-  gap: var(--cx-s-4);
-  justify-items: start;
-}
-
-.ws-listing-stub__title {
-  font: 500 var(--cx-h3)/var(--cx-h3-lh) var(--cx-font);
-  letter-spacing: var(--cx-h3-ls);
-}
-
-.ws-listing-stub__note {
-  width: 100%;
-  color: var(--cx-text-2);
-  font-size: var(--cx-small);
-}
-
-.ws-listing-stub__note p {
-  display: flex;
-  gap: var(--cx-s-2);
-}
-
-.ws-listing-stub__note svg {
-  flex: none;
-  width: 18px;
-  height: 18px;
-  color: var(--cx-ember-text);
-}
-
-.ws-listing-stub__note a {
-  color: var(--cx-ember-text);
-  text-decoration: underline;
-}
-
 /* The location sheet slides up on phones (Material bottom sheet). */
 @media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
   .ws-shipto {
@@ -1526,25 +1466,6 @@ a.ws-seller__name:hover {
   text-decoration: underline;
 }
 
-.ws-listing-stub__escrow {
-  display: flex;
-  gap: var(--cx-s-2);
-  color: var(--cx-text-2);
-  font-size: var(--cx-small);
-}
-
-.ws-listing-stub__escrow svg {
-  flex: none;
-  width: 18px;
-  height: 18px;
-  color: var(--cx-text-muted);
-}
-
-/* Green only when escrow really covers it. */
-.ws-listing-stub__escrow[data-covered] svg {
-  color: var(--cx-gain);
-}
-
 .ws-route-error {
   display: grid;
   gap: var(--cx-s-6);
@@ -1563,9 +1484,13 @@ a.ws-seller__name:hover {
   min-width: 0;
 }
 
-.ws-listing-stub__media > .cx-skel {
+.ws-gallery__skel > .cx-skel {
   position: absolute;
   inset: 0;
+}
+
+.ws-gallery__skel {
+  position: relative;
 }
 
 /* Subtitle line (eBay item tile): condition · key facts, one line, ellipsis. The row

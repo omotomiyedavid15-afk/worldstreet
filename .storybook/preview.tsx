@@ -36,6 +36,9 @@ const preview: Preview = {
     // Serious and critical axe violations fail the story test, not just warn.
     a11y: { test: "error" },
   },
+  // Motion's features load lazily; under a busy test run that can take over a second,
+  // and exit animations (hide → Undo) wait for them. Load them before any story renders.
+  loaders: [() => import("../components/motion/features")],
   decorators: [
     (Story) => (
       <MotionProvider>

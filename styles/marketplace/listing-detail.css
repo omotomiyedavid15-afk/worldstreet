@@ -1,0 +1,509 @@
+/* Listing detail (SCR-004, spec §7). */
+
+.ws-listing {
+  display: grid;
+  gap: var(--cx-s-3);
+}
+
+@media (min-width: 768px) {
+  .ws-listing {
+    gap: var(--cx-s-4);
+  }
+}
+
+/* Breadcrumb on desktop; "‹ Category" on phones. */
+.ws-crumbs ol {
+  display: none;
+  flex-wrap: wrap;
+  gap: var(--cx-s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--cx-text-2);
+  font-size: var(--cx-small);
+}
+
+.ws-crumbs li + li::before {
+  content: "›";
+  margin-right: var(--cx-s-2);
+  color: var(--cx-text-muted);
+}
+
+.ws-crumbs li[aria-current] {
+  overflow: hidden;
+  max-width: 40ch;
+  color: var(--cx-text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-crumbs a {
+  color: var(--cx-text-2);
+}
+
+.ws-crumbs__back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cx-s-1);
+  min-height: 32px;
+  color: var(--cx-text-2);
+  font-size: var(--cx-small);
+  text-decoration: none;
+}
+
+.ws-crumbs__back svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (min-width: 768px) {
+  .ws-crumbs ol {
+    display: flex;
+  }
+
+  .ws-crumbs__back {
+    display: none;
+  }
+}
+
+/* Gallery left, buy box right from 1024px. */
+.ws-listing__top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--cx-s-5);
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .ws-listing__top {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: var(--cx-s-8);
+  }
+
+  .ws-listing__side {
+    position: sticky;
+    top: calc(var(--cx-sticky-offset) + var(--cx-s-4));
+  }
+}
+
+.ws-listing__side {
+  display: grid;
+  gap: var(--cx-s-4);
+}
+
+/* ---------- Gallery ---------- */
+
+.ws-gallery {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--cx-s-3);
+}
+
+@media (min-width: 768px) {
+  .ws-gallery {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+}
+
+.ws-gallery__thumbs {
+  display: none;
+  flex-direction: column;
+  gap: var(--cx-s-2);
+  max-height: 560px;
+  margin: 0;
+  padding: 2px;
+  overflow-y: auto;
+  list-style: none;
+  scrollbar-width: none;
+}
+
+@media (min-width: 768px) {
+  .ws-gallery__thumbs {
+    display: flex;
+  }
+}
+
+.ws-gallery__thumb {
+  position: relative;
+  display: block;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: var(--cx-r-sm);
+  background: var(--cx-surface-2);
+  box-shadow: inset 0 0 0 1px var(--cx-hairline);
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.ws-gallery__thumb img {
+  object-fit: cover;
+}
+
+.ws-gallery__thumb[aria-current] {
+  opacity: 1;
+  box-shadow: 0 0 0 2px var(--cx-ember);
+}
+
+.ws-gallery__main {
+  position: relative;
+  min-width: 0;
+}
+
+/* The strip: one photo per screen, snapping. Square, but never taller than about half
+   a phone screen, so price and delivery stay above the fold (§18 stage 3). */
+.ws-gallery__strip {
+  display: flex;
+  aspect-ratio: 1;
+  max-height: min(560px, 34vh);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  border-radius: var(--cx-r-card);
+  background: var(--cx-surface-2);
+  scrollbar-width: none;
+}
+
+@media (min-width: 1024px) {
+  .ws-gallery__strip {
+    max-height: 560px;
+  }
+}
+
+.ws-gallery__strip::-webkit-scrollbar {
+  display: none;
+}
+
+.ws-gallery__slide {
+  position: relative;
+  flex: 0 0 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+  scroll-snap-align: start;
+}
+
+.ws-gallery__slide img {
+  object-fit: contain;
+}
+
+/* !important: the unlayered small-button rule (44px hit area) sets position: relative. */
+.ws-gallery__arrow {
+  position: absolute !important;
+  top: 50%;
+  translate: 0 -50%;
+  background: color-mix(in srgb, var(--cx-elevated) 85%, transparent) !important;
+  color: var(--cx-text);
+  box-shadow: inset 0 0 0 1px var(--cx-hairline);
+}
+
+.ws-gallery__arrow--prev {
+  left: var(--cx-s-3);
+}
+
+.ws-gallery__arrow--next {
+  right: var(--cx-s-3);
+}
+
+@media (hover: none) {
+  .ws-gallery__arrow {
+    display: none;
+  }
+}
+
+.ws-gallery__count {
+  position: absolute;
+  right: var(--cx-s-3);
+  bottom: var(--cx-s-3);
+  padding: 4px 10px;
+  border-radius: var(--cx-r-pill);
+  background: color-mix(in srgb, var(--cx-bg) 75%, transparent);
+  color: var(--cx-text);
+  font-size: var(--cx-small);
+}
+
+.ws-gallery__3d {
+  position: absolute;
+  left: var(--cx-s-3);
+  bottom: var(--cx-s-3);
+  background: color-mix(in srgb, var(--cx-bg) 70%, transparent);
+}
+
+/* Phones: full width, 30% of the screen tall, so price, delivery, returns and the
+   escrow line fit above the fold at 375×812 (§18 stage 3). */
+@media (max-width: 767px) {
+  .ws-gallery__strip,
+  .ws-gallery .ws-viewer3d .ws-stage {
+    aspect-ratio: auto;
+    height: max(220px, 30vh);
+    max-height: none;
+  }
+}
+
+.ws-gallery .ws-viewer3d .ws-stage {
+  aspect-ratio: 1;
+}
+
+@media (min-width: 768px) {
+  .ws-gallery__strip,
+  .ws-gallery .ws-viewer3d .ws-stage {
+    max-height: 560px;
+  }
+}
+
+/* Lightbox: full screen, one photo per screen. */
+.ws-lightbox {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--cx-bg);
+  color: var(--cx-text);
+}
+
+.ws-lightbox[open] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.ws-lightbox__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--cx-s-2) var(--cx-s-4);
+  color: var(--cx-text-2);
+}
+
+.ws-lightbox__strip {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.ws-lightbox__slide {
+  position: relative;
+  flex: 0 0 100%;
+  margin: 0;
+  scroll-snap-align: start;
+}
+
+.ws-lightbox__slide img {
+  object-fit: contain;
+}
+
+.ws-lightbox__slide figcaption {
+  position: absolute;
+  bottom: var(--cx-s-4);
+  left: 50%;
+  translate: -50% 0;
+  color: var(--cx-text-2);
+  font-size: var(--cx-small);
+}
+
+/* ---------- Title and buy box ---------- */
+
+.ws-listing__title {
+  display: grid;
+  gap: var(--cx-s-2);
+  justify-items: start;
+}
+
+.ws-listing__facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cx-s-1) var(--cx-s-3);
+}
+
+.ws-reassure__link {
+  color: var(--cx-ember-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+.ws-listing__title h1 {
+  margin: 0;
+  color: var(--cx-text);
+  font: 500 22px / 1.3 var(--cx-font);
+  letter-spacing: -0.3px;
+  text-wrap: pretty;
+}
+
+@media (min-width: 1024px) {
+  .ws-listing__facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cx-s-1) var(--cx-s-3);
+}
+
+.ws-reassure__link {
+  color: var(--cx-ember-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+.ws-listing__title h1 {
+    font-size: 26px;
+  }
+}
+
+.ws-buybox {
+  display: grid;
+  gap: var(--cx-s-3);
+}
+
+.ws-reassure {
+  display: grid;
+  gap: var(--cx-s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--cx-text-2);
+  font-size: var(--cx-small);
+  line-height: 1.45;
+}
+
+.ws-reassure li {
+  display: flex;
+  gap: var(--cx-s-2);
+}
+
+.ws-reassure svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--cx-text-2);
+}
+
+.ws-reassure li[data-covered] svg {
+  color: var(--cx-ember-text);
+}
+
+.ws-actions {
+  display: grid;
+  gap: var(--cx-s-2);
+  margin-top: var(--cx-s-2);
+}
+
+.ws-actions__save {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cx-s-1);
+  color: var(--cx-text-2);
+  font-size: var(--cx-small);
+}
+
+.ws-qty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cx-s-2) var(--cx-s-3);
+  margin-bottom: var(--cx-s-2);
+}
+
+.ws-qty__label {
+  font-weight: 500;
+}
+
+.ws-qty__stepper {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--cx-r-pill);
+  box-shadow: inset 0 0 0 1px var(--cx-field-border);
+}
+
+.ws-qty__n {
+  min-width: 2.5ch;
+  text-align: center;
+}
+
+.ws-qty__stock {
+  color: var(--cx-text-muted);
+  font-size: var(--cx-small);
+}
+
+.ws-demand {
+  display: flex;
+  gap: var(--cx-s-2);
+  margin: 0;
+  color: var(--cx-text-2);
+  font-size: var(--cx-small);
+}
+
+.ws-demand svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+.ws-demand strong {
+  color: var(--cx-text);
+}
+
+.ws-buybox__seller {
+  padding-top: var(--cx-s-3);
+  border-top: 1px solid var(--cx-hairline);
+}
+
+/* ---------- Sticky buy bar (phones) ---------- */
+
+.ws-stickybuy {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .ws-stickybuy {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: var(--cx-z-nav);
+    display: flex;
+    align-items: center;
+    gap: var(--cx-s-2);
+    padding: var(--cx-s-2) var(--cx-gutter) calc(var(--cx-s-2) + env(safe-area-inset-bottom, 0px));
+    background: color-mix(in srgb, var(--cx-elevated) 96%, transparent);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 -1px 0 var(--cx-hairline);
+    transform: translateY(110%);
+    transition: transform 360ms var(--cx-spring);
+  }
+
+  .ws-stickybuy[data-shown=true] {
+    transform: none;
+  }
+}
+
+.ws-stickybuy__price {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.ws-stickybuy__now {
+  color: var(--cx-ember-text);
+  font-weight: 600;
+}
+
+.ws-stickybuy__total {
+  overflow: hidden;
+  color: var(--cx-text-2);
+  font-size: var(--cx-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-stickybuy {
+    transition: none;
+  }
+}

@@ -24,6 +24,8 @@ export const ESCROW = {
   stripTitle: "Escrow on every checkout",
   // Not "until you confirm": the inspection window can also end it (L11.4).
   strip: "We hold your payment while you check the item, then pay the seller.",
+  /** A goods listing with no returns: what still protects the buyer (L7). */
+  noReturns: "No returns, but escrow still covers an item that isn't as described.",
   /** Seller payout timing (L11.4: the one claim every surface uses). */
   payout: "Sellers are paid after delivery is confirmed, usually within 24 hours.",
   /** Where the rules are explained. */

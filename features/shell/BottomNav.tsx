@@ -26,7 +26,8 @@ export function BottomNav() {
   const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const el = ref.current!;
+    const el = ref.current;
+    if (!el) return;
     let last = window.scrollY;
     let frame = 0;
     const onScroll = () => {
@@ -43,13 +44,15 @@ export function BottomNav() {
       cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
     };
-  }, []);
+  }, [pathname]);
 
   // A new page starts with the nav showing.
   useEffect(() => {
     if (ref.current) ref.current.dataset.hidden = "false";
   }, [pathname]);
 
+  // On a listing the sticky buy bar takes this place (spec §3.2).
+  if (pathname.startsWith("/listing/")) return null;
   return (
     <nav ref={ref} aria-label="Main" className="ws-bottomnav" data-hidden="false">
       <ul>

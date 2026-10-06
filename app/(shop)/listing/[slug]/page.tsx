@@ -1,20 +1,24 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
-import { CheckShieldIcon, InfoCircleIcon } from "@/components/icons";
-import { Morph } from "@/components/motion/Morph";
-import { Card } from "@/components/ui";
-import { RecordView } from "@/features/recent/RecordView";
-import { ConditionChip, DeliveryLine, PriceBlock, SaveButton, SellerMini, conditionLabel } from "@/features/listing-card/atoms";
+import { ArrowLeftIcon } from "@/components/icons";
+import { DeliveryLine, KeyFacts, PriceBlock, RatingStars, SellerMini, conditionLabel } from "@/features/listing-card/atoms";
+import { BuyActions } from "@/features/listing-detail/BuyActions";
+import { Gallery } from "@/features/listing-detail/Gallery";
+import { DemandLine, ReassuranceLine } from "@/features/listing-detail/Lines";
+import { StickyBuyBar } from "@/features/listing-detail/StickyBuyBar";
 import { getAnchor } from "@/features/location/server";
-import { escrowLine } from "@/lib/copy/escrow";
+import { RecordView } from "@/features/recent/RecordView";
 import { listingPath, parseListingParam, repos } from "@/lib/data";
+import { deliveryFee, summariseDelivery } from "@/lib/delivery";
 import { formatCurrency } from "@/lib/money";
+import { buyerTotal } from "@/lib/pricing";
 
-/* SCR-004 placeholder. Cards link here, so it shows the essentials now; the full page
-   (gallery, buy box, panels, reviews) is Phase 3. Old or wrong slugs redirect to the
-   canonical /listing/:id-:slug (R-011). */
+/* SCR-004 Listing detail (flows B3, spec §7), eBay's layout: gallery left, the buy box
+   right from 1024px (stacked below that), with the page's one h1 in the title block.
+   Price, delivery to the buyer's area, returns and the escrow line sit above the fold on
+   a 375×812 phone (§18 stage 3), and a sticky buy bar replaces the bottom nav there.
+   Old or wrong slugs redirect to the canonical /listing/:id-:slug (R-011). */
 
 async function load(slug: string) {
   const parsed = parseListingParam(slug);
@@ -46,41 +50,85 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
   const { listing, parsed } = found;
   if (parsed.slug !== listing.slug) permanentRedirect(listingPath(listing));
   const { anchor } = await getAnchor();
-  const photo = listing.media[0];
+
+  const goods = listing.category.kind === "goods";
+  const summary = summariseDelivery(listing.delivery, anchor.city === listing.location.city);
+  const fee = deliveryFee(summary);
+  // One total for the buy box and the sticky bar (R-020).
+  const total = goods && fee !== null && fee > 0 ? `Total to ${anchor.label} ${formatCurrency(buyerTotal({ item_minor: listing.price_minor, delivery_minor: fee }))}` : undefined;
+  const price = `${formatCurrency(listing.price_minor)}${listing.price_period ? ` per ${listing.price_period}` : ""}`;
+  const catHref = `/search?cat=${listing.category.id}`;
 
   return (
-    <article className="ws-listing-stub">
+    <article className="ws-listing">
       <RecordView id={listing.id} />
-      {/* Same name as the card photo: the photo morphs from the card into place. */}
-      <Morph name={`photo-${listing.id}`}>
-        <div className="ws-listing-stub__media">
-          {photo && <Image src={photo.url} alt={photo.alt} fill sizes="(min-width: 768px) 480px, 100vw" loading="eager" fetchPriority="high" />}
-          <div className="ws-card__save">
-            <SaveButton listingId={listing.id} title={listing.title} price_minor={listing.price_minor} />
-          </div>
+      <nav aria-label="Breadcrumb" className="ws-crumbs">
+        <ol>
+          <li>
+            <Link href="/">Home</Link>
+          </li>
+          <li>
+            <Link href={catHref}>{listing.category.name}</Link>
+          </li>
+          <li aria-current="page">{listing.title}</li>
+        </ol>
+        <Link href={catHref} className="ws-crumbs__back">
+          <ArrowLeftIcon />
+          {listing.category.name}
+        </Link>
+      </nav>
+
+      <div className="ws-listing__top">
+        <Gallery listingId={listing.id} title={listing.title} media={listing.media} />
+
+        <div className="ws-listing__side">
+          <header className="ws-listing__title">
+            <h1>{listing.title}</h1>
+            {/* Condition leads the facts line, eBay style (no separate chip). */}
+            <div className="ws-listing__facts">
+              <KeyFacts listing={listing} />
+              {listing.rating && <RatingStars value={listing.rating.average} count={listing.rating.count} />}
+            </div>
+          </header>
+
+          <section className="ws-buybox" aria-label="Price and buying">
+            <PriceBlock
+              variant="detail"
+              price_minor={listing.price_minor}
+              was_minor={listing.was_minor}
+              period={listing.price_period}
+              bestOffer={listing.offers_enabled}
+            />
+            {goods && <DeliveryLine options={listing.delivery} price_minor={listing.price_minor} listingCity={listing.location.city} buyer={anchor} />}
+            <ReassuranceLine listing={listing} />
+            <div id="buybox-actions">
+              <BuyActions
+                listingId={listing.id}
+                title={listing.title}
+                price_minor={listing.price_minor}
+                available={listing.qty}
+                sold={listing.sold_count}
+                kind={listing.category.kind}
+                offers={listing.offers_enabled}
+              />
+            </div>
+            <DemandLine listing={listing} />
+            <div className="ws-buybox__seller">
+              <SellerMini seller={listing.seller} link avatar />
+            </div>
+          </section>
         </div>
-      </Morph>
-      <div className="ws-listing-stub__body">
-        {listing.category.kind !== "property" && <ConditionChip condition={listing.condition} />}
-        <h1 className="ws-listing-stub__title">{listing.title}</h1>
-        <PriceBlock variant="detail" price_minor={listing.price_minor} was_minor={listing.was_minor} period={listing.price_period} bestOffer={listing.offers_enabled} />
-        {listing.category.kind !== "property" && (
-          <DeliveryLine options={listing.delivery} price_minor={listing.price_minor} listingCity={listing.location.city} buyer={anchor} />
-        )}
-        {/* The start of the Phase 3 ProtectionPanel; wording from the one escrow source. */}
-        <p className="ws-listing-stub__escrow" data-covered={listing.category.kind === "goods" || undefined}>
-          {listing.category.kind === "goods" ? <CheckShieldIcon /> : <InfoCircleIcon />}
-          {escrowLine(listing.category)}
-        </p>
-        <SellerMini seller={listing.seller} />
-        <Card className="ws-listing-stub__note">
-          <p>
-            <InfoCircleIcon />
-            The full listing page, with photos, buying options and seller details, arrives in Phase 3.
-          </p>
-          <Link href="/search">Back to search</Link>
-        </Card>
       </div>
+
+      <StickyBuyBar
+        watch="buybox-actions"
+        listingId={listing.id}
+        title={listing.title}
+        price={price}
+        price_minor={listing.price_minor}
+        total={total}
+        action={goods ? { label: "Buy it now", href: `/checkout?listing=${listing.id}` } : { label: "Contact seller", href: `/inbox?listing=${listing.id}` }}
+      />
     </article>
   );
 }

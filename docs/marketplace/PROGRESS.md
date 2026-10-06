@@ -6,7 +6,7 @@ pass `npm run check`.
 
 ## Phase reports
 
-_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placeholder routes, manifest, a11y pass: axe zero serious/critical on `/`, `/search`, placeholders and the 404 at 375, 360 and 1280); Sprint 0 check #5 passes (e2e/home.spec.ts). Phase 1 (header and search) done: shell, category navigation, live suggestions; e2e/shell.spec.ts and e2e/suggest.spec.ts. Phase 2 (results and filters) done: filters with counts, rail and sheet, chips, Price + delivery sort, grid/list, Saved, saved searches, Recently viewed, Did you mean, related searches; e2e/filters.spec.ts and e2e/saved.spec.ts. Next: Phase 3 (listing detail). Building in dark mode (your direction, 6 Oct). Sprint 0 checks #1–#4 pass end to end (e2e/search.spec.ts, 375 and 1280). Components mirror eBay, styled with the DS (your direction, 6 Oct)._
+_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placeholder routes, manifest, a11y pass: axe zero serious/critical on `/`, `/search`, placeholders and the 404 at 375, 360 and 1280); Sprint 0 check #5 passes (e2e/home.spec.ts). Phase 1 (header and search) done: shell, category navigation, live suggestions; e2e/shell.spec.ts and e2e/suggest.spec.ts. Phase 2 (results and filters) done: filters with counts, rail and sheet, chips, Price + delivery sort, grid/list, Saved, saved searches, Recently viewed, Did you mean, related searches; e2e/filters.spec.ts and e2e/saved.spec.ts. Phase 3 (listing detail) in progress: P3a layout, gallery, buy box and sticky bar done (e2e/listing.spec.ts). Building in dark mode (your direction, 6 Oct). Sprint 0 checks #1–#4 pass end to end (e2e/search.spec.ts, 375 and 1280). Components mirror eBay, styled with the DS (your direction, 6 Oct)._
 
 ## Deviations from the docs and the design system
 
@@ -24,6 +24,11 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 | 6 Oct | DS components | Batch 1 rebuilt in `components/ui` (Button, Chip, DeltaChip, Count, Card, IconTile, Badge, Avatar, Skeleton, EmptyState, Toast, Menu, Tooltip) from the site's code samples, rendered markup and CSS | DS React source isn't available |
 | 6 Oct | DS a11y gaps | Small buttons get a 44px hit area; menu rows 44px on touch; Tooltip dismisses on Escape (1.4.13); DeltaChip uses sr-only text instead of `aria-label` on a span; light-theme tile icons use the gold text token (tile icon was ~1.3:1) | WCAG 2.2 AA rule outranks the DS |
 | 6 Oct | DS CSS loading | All component CSS loads once via `globals.css` (layer components) | Next 16 only documents global CSS imports from inside `app/` |
+| 6 Oct | Listing layout (Phase 3) | eBay's: gallery left, title + buy box right from 1024px, stacked below. Breadcrumb (a back link on phones), one h1, a facts line with condition first (no separate chip). On a 375×812 phone the price, delivery to the buyer's area, returns and the escrow line all sit above the fold | Spec §7, §18 stage 3. The total to the buyer's area is shown once in the buy box (DeliveryLine) and the same string feeds the sticky bar (R-020) |
+| 6 Oct | Gallery | One scroll-snap strip (native swipe, works before scripts load) with thumbnails from 1024px, arrows, ← → keys and a "2 / 6" counter; tap opens a full-screen native dialog. "View in 3D" (the photo ring) appears on capable devices with 3+ photos | Spec §7 Gallery/GalleryLightbox; 3D is the owner's pick. Photo 1 keeps the card's morph name |
+| 6 Oct | Buy box actions | Goods: quantity stepper (stock and sold count), Buy it now (solid), Add to cart, Make offer when enabled, Save. Vehicles and property: Contact seller (+ Book a viewing for property). Checkout, cart, offers and inbox are placeholder pages until Phases 4–5 | PLAN risk 7: no checkout for vehicles and property. Every button lands on a page that says what it will do (F5) |
+| 6 Oct | Sticky buy bar | On phones, once the buy box's main button scrolls under the header, price, total, Save and the main action stay at the bottom; the bottom nav and category rail are hidden on listing pages | Spec §3.2: one bottom bar at a time |
+| 6 Oct | Story tests | Motion's lazily loaded features are preloaded by a Storybook loader | Under a full run they arrived after 1 s and held the hide → Undo exit, so "Hide And Undo" failed only in the full suite |
 | 6 Oct | Tooling | Local browser tests drive installed Chrome | Playwright has no Chromium build for macOS 13; CI uses bundled Chromium |
 | 6 Oct | Config | Low-price warning uses EC-027's "under 40% **of** the comparable median" (`priceWarnBelowPercentOfMedian`) | S2 step 4 says "< 40% below" the median (i.e. under 60% of it). The two disagree; EC-027 is the specific rule. **Confirm which you want** |
 | 6 Oct | Data | Entity fields keep Part G's snake_case (`price_minor`, `seller_id`, `created_at`) | Matches the docs and the eventual API, so nothing is renamed at the boundary |
@@ -212,20 +217,20 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 - [ ] CompareTray
 
 ## E. Detail
-- [ ] ListingPageLayout
-- [ ] ListingBreadcrumb
-- [ ] Gallery
-- [ ] GalleryLightbox
+- [x] ListingPageLayout
+- [x] ListingBreadcrumb
+- [x] Gallery
+- [x] GalleryLightbox
 - [ ] VideoPlayer
-- [ ] ListingTitleBlock
+- [x] ListingTitleBlock
 - [ ] SellerStrip
-- [ ] BuyBox
+- [x] BuyBox
 - [ ] VariationSelector
-- [ ] QuantityStepper
-- [ ] ActionStack
-- [ ] StickyBuyBar (M)
-- [ ] DemandLine
-- [ ] ReassuranceLine
+- [x] QuantityStepper
+- [x] ActionStack
+- [x] StickyBuyBar (M)
+- [x] DemandLine
+- [x] ReassuranceLine
 - [ ] DeliveryPanel
 - [ ] ReturnsPanel
 - [ ] PaymentsPanel

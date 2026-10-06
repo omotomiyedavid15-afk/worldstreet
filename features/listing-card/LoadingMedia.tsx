@@ -12,7 +12,7 @@ export function LoadingMedia() {
   const id = parseListingParam(slug ?? "")?.id;
   return (
     <Morph name={id ? `photo-${id}` : undefined}>
-      <div className="ws-listing-stub__media">
+      <div className="ws-gallery__strip ws-gallery__skel">
         <Skeleton width="100%" height="100%" radius={0} />
       </div>
     </Morph>
