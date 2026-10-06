@@ -32,10 +32,16 @@ export interface CategoryRepo {
   list(): Promise<Category[]>;
 }
 
+export interface SearchRepo {
+  /** Popular searches for the empty search box (B2 step 1). */
+  trending(): Promise<string[]>;
+}
+
 export type Repos = {
   listings: ListingRepo;
   sellers: SellerRepo;
   categories: CategoryRepo;
+  search: SearchRepo;
 };
 
 /** `/listing/:id-:slug` (R-011). Ids never contain "-", so the first one splits. */

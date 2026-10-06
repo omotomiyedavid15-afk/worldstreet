@@ -5,6 +5,7 @@ export type Dataset = {
   categories: readonly Category[];
   sellers: readonly SellerProfile[];
   listings: readonly Listing[];
+  trending?: readonly string[];
 };
 
 /**
@@ -60,6 +61,11 @@ export function createMemoryRepos(data: Dataset): Repos {
       },
       async list() {
         return [...data.categories];
+      },
+    },
+    search: {
+      async trending() {
+        return [...(data.trending ?? [])];
       },
     },
   };

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ToastViewport } from "@/components/ui";
 import { fontVariables } from "./fonts";
 import "./globals.css";
 
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" data-theme="dark" className={fontVariables}>
       <body className="cx-root" data-brand="worldstreet">
         {children}
+        <ToastViewport />
       </body>
     </html>
   );

@@ -99,7 +99,8 @@ export function ListingCard({ listing, variant = "grid", anchor, sizes, priority
         <div className="ws-card__stack">
           <div className="ws-card__head">
             <div className="ws-card__chips">
-              <ConditionChip condition={listing.condition} />
+              {/* Condition means nothing for a flat to let. */}
+              {listing.category.kind !== "property" && <ConditionChip condition={listing.condition} />}
             </div>
             {title}
             <div className="ws-card__rating">{listing.rating && <RatingStars value={listing.rating.average} count={listing.rating.count} />}</div>

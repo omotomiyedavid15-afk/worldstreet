@@ -6,7 +6,7 @@ pass `npm run check`.
 
 ## Phase reports
 
-_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.5 done; S0.6 (ListingCard) in progress: grid, list, rail, compact, skeleton and the ⋮ menu done; Back-restores-scroll e2e lands with /search (S0.9). Building in dark mode (your direction, 6 Oct). Components mirror eBay, styled with the DS (your direction, 6 Oct)._
+_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.9 done; next S0.10 (home, placeholder routes, a11y pass). Building in dark mode (your direction, 6 Oct). Sprint 0 checks #1–#4 pass end to end (e2e/search.spec.ts, 375 and 1280). Components mirror eBay, styled with the DS (your direction, 6 Oct)._
 
 ## Deviations from the docs and the design system
 
@@ -52,6 +52,10 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.5 done; S0.6 (ListingCa
 | 6 Oct | Menu | Added `checked` items (menuitemradio + aria-checked); the menu opens on the checked one | Sort orders are a single choice |
 | 6 Oct | Location | Area in an httpOnly cookie (`ws-area`, area id only), radius in the URL (`?radius=5|10|25|all`, default 25 omitted). No cookie = IP city, mocked as Lagos | The server renders nearby results without client JS; radius is a shareable, Back-able state (R-011) |
 | 6 Oct | ShipToSelector | A form on a native popover posting to a Server Action (validated inputs, same-site return path only); "Use my location" asks only on tap and keeps just the nearest named area | Works before scripts load; no open redirect; position never leaves the device (F8) |
+| 6 Oct | Search | Prefix matching, every word must match (title, category, attributes, shop); a starter synonyms table (EC-003) and an illustrative prohibited list (EC-004) in `lib/search/query.ts` | Ops own the real lists; the prohibited list belongs server-side in the moderation service |
+| 6 Oct | Search | "Show more" is a link to `?page=N` showing N×24 results, not infinite scroll | Keeps every state a URL (R-011) and Back exact; InfiniteLoader is Phase 2 |
+| 6 Oct | Routes | `/listing/:id-:slug` is a placeholder (photo, price, delivery, seller) with canonical-slug redirects; `/help/*` is a placeholder | Cards and the EC-004 policy link must not be dead ends (F5); the real pages are Phase 3 and S0.10 |
+| 6 Oct | Property cards | No condition chip on property (the row stays reserved) | "Brand new" means nothing for a flat to let |
 | 6 Oct | Tooling | `PW_CHROMIUM_PATH` lets story tests use a preinstalled Chromium; Testing Library cleanup is explicit in `vitest.setup.ts` | Cloud containers ship a different Chromium build; auto-cleanup needs Vitest globals, which are off |
 
 ## Master checklist (266 items, spec Part X)
@@ -64,7 +68,7 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.5 done; S0.6 (ListingCa
 - [ ] CategoryMenuButton + MegaMenu (W)
 - [ ] Category drill-down drawer (M)
 - [ ] CategoryRail
-- [ ] GlobalSearchBox with scope select + camera
+- [ ] GlobalSearchBox with scope select + camera (Sprint 0 box with recents/trending done; scope, camera and live suggestions in Phase 1)
 - [ ] SearchSuggestPanel
 - [ ] Mobile search overlay
 - [ ] ImageSearchButton
@@ -120,7 +124,7 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.5 done; S0.6 (ListingCa
 - [ ] Card overflow menu (Hide/Report): Not interested + Hide seller with Undo done; Report and Find similar join when their pages exist
 
 ## D. Search & filters
-- [ ] ResultsHeader
+- [x] ResultsHeader
 - [ ] SaveSearchButton
 - [x] SortMenu
 - [ ] ViewToggle
@@ -138,13 +142,13 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.5 done; S0.6 (ListingCa
 - [ ] ColorSwatchFilter
 - [ ] SizeFilter
 - [ ] BrandFilter
-- [ ] ActiveFilterChips
+- [x] ActiveFilterChips (category and price; more filters in Phase 2)
 - [ ] PopularFilterChips
 - [ ] RelatedSearches
 - [ ] IncludeDescriptionToggle
 - [ ] SpellCorrection
-- [ ] ZeroResults
-- [ ] ResultsGrid/List
+- [x] ZeroResults
+- [ ] ResultsGrid/List (grid done with 'Show more' paging; list toggle in Phase 2)
 - [ ] ResultsPagination
 - [ ] InfiniteLoader
 - [ ] CompareTray

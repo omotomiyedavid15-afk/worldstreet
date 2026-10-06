@@ -9,8 +9,11 @@ export default defineConfig({
   use: {
     baseURL: "http://localhost:3100",
     trace: "on-first-retry",
-    // See vitest.config.ts: installed Chrome locally, bundled Chromium in CI.
-    ...(local ? { channel: "chrome" } : {}),
+    // See vitest.config.ts: installed Chrome locally, bundled Chromium in CI, or a
+    // preinstalled browser via PW_CHROMIUM_PATH (cloud containers).
+    ...(process.env.PW_CHROMIUM_PATH
+      ? { launchOptions: { executablePath: process.env.PW_CHROMIUM_PATH } }
+      : local ? { channel: "chrome" } : {}),
   },
   projects: [
     { name: "mobile", use: { ...devices["Desktop Chrome"], viewport: { width: 375, height: 812 }, hasTouch: true } },
