@@ -22,7 +22,8 @@ type Props = {
 };
 
 const SELECT_ID = "ship-to-area";
-const POPOVER_ID = "ship-to";
+export const SHIP_TO_ID = "ship-to";
+const POPOVER_ID = SHIP_TO_ID;
 
 export function LocationBar({ anchor, inferred, radius, returnTo, action }: Props) {
   return (
@@ -44,7 +45,8 @@ export function LocationBar({ anchor, inferred, radius, returnTo, action }: Prop
   );
 }
 
-function ShipToSelector({ anchor, radius, returnTo, action }: Omit<Props, "inferred">) {
+/** Without a `radius` (the listing page) there's no distance to choose, only the area. */
+export function ShipToSelector({ anchor, radius, returnTo, action }: Omit<Props, "inferred" | "radius"> & { radius?: Radius }) {
   return (
     <div id={POPOVER_ID} popover="auto" role="dialog" aria-modal="false" aria-labelledby="ship-to-title" className="ws-shipto">
       <form action={action} className="ws-shipto__form">
@@ -73,17 +75,19 @@ function ShipToSelector({ anchor, radius, returnTo, action }: Omit<Props, "infer
           <UseMyLocation selectId={SELECT_ID} />
         </div>
 
-        <fieldset className="ws-field ws-radios">
-          <legend>Distance</legend>
-          <div className="ws-radios__row">
-            {RADII.map((r) => (
-              <label key={radiusParam(r)} className="ws-radio-pill">
-                <input type="radio" name="radius" value={radiusParam(r)} defaultChecked={r === radius} />
-                <span>{radiusLabel(r)}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
+        {radius !== undefined && (
+          <fieldset className="ws-field ws-radios">
+            <legend>Distance</legend>
+            <div className="ws-radios__row">
+              {RADII.map((r) => (
+                <label key={radiusParam(r)} className="ws-radio-pill">
+                  <input type="radio" name="radius" value={radiusParam(r)} defaultChecked={r === radius} />
+                  <span>{radiusLabel(r)}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
 
         <div className="ws-shipto__actions">
           <button type="button" className={buttonClass({ variant: "ghost" })} popoverTarget={POPOVER_ID} popoverTargetAction="hide">

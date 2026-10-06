@@ -1,3 +1,4 @@
+import { rules } from "@/config/marketplace-rules";
 import type { Category } from "@/lib/data/types";
 
 /*
@@ -28,6 +29,12 @@ export const ESCROW = {
   noReturns: "No returns, but escrow still covers an item that isn't as described.",
   /** Seller payout timing (L11.4: the one claim every surface uses). */
   payout: "Sellers are paid after delivery is confirmed, usually within 24 hours.",
+  /** The listing page's protection block (spec §7 ProtectionPanel, eBay "Shop with confidence"). */
+  protectionTitle: "Shop with confidence",
+  /** L7: protection doesn't end when the money is released. */
+  afterRelease: `Something wrong after that? Report it within ${rules.protection.anyIssueDays} days of delivery; fakes and safety problems, within ${rules.protection.counterfeitSafetyDays} days.`,
+  /** R-005: only checkout is covered. */
+  offPlatform: "Paying the seller directly (transfer, cash before you see the item) isn't covered.",
   /** Where the rules are explained. */
   learnMoreHref: "/help/escrow",
 } as const;

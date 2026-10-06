@@ -3,16 +3,24 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { ArrowLeftIcon } from "@/components/icons";
 import { DeliveryLine, KeyFacts, PriceBlock, RatingStars, SellerMini, conditionLabel } from "@/features/listing-card/atoms";
+import { CopyField, DescriptionBlock } from "@/features/listing-detail/About";
 import { BuyActions } from "@/features/listing-detail/BuyActions";
 import { Gallery } from "@/features/listing-detail/Gallery";
 import { DemandLine, ReassuranceLine } from "@/features/listing-detail/Lines";
+import { DeliveryPanel, ItemSpecifics, PaymentsPanel, ProtectionPanel, ReturnsPanel, SafetyTipsCard } from "@/features/listing-detail/Panels";
+import { ReportButton, ReportListingModal } from "@/features/listing-detail/ReportListing";
+import { reportListing } from "@/features/listing-detail/report-action";
+import { ShareButton, ShareSheet } from "@/features/listing-detail/ShareSheet";
 import { StickyBuyBar } from "@/features/listing-detail/StickyBuyBar";
+import { setLocation } from "@/features/location/actions";
 import { getAnchor } from "@/features/location/server";
 import { RecordView } from "@/features/recent/RecordView";
 import { listingPath, parseListingParam, repos } from "@/lib/data";
 import { deliveryFee, summariseDelivery } from "@/lib/delivery";
+import { timeAgo } from "@/lib/format";
 import { formatCurrency } from "@/lib/money";
 import { buyerTotal } from "@/lib/pricing";
+import { requestTime, siteOrigin } from "@/lib/site";
 
 /* SCR-004 Listing detail (flows B3, spec §7), eBay's layout: gallery left, the buy box
    right from 1024px (stacked below that), with the page's one h1 in the title block.
@@ -58,6 +66,10 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
   const total = goods && fee !== null && fee > 0 ? `Total to ${anchor.label} ${formatCurrency(buyerTotal({ item_minor: listing.price_minor, delivery_minor: fee }))}` : undefined;
   const price = `${formatCurrency(listing.price_minor)}${listing.price_period ? ` per ${listing.price_period}` : ""}`;
   const catHref = `/search?cat=${listing.category.id}`;
+  const path = listingPath(listing);
+  const share = { url: `${await siteOrigin()}${path}`, title: listing.title, text: `${listing.title}, ${price} on WorldStreet` };
+  const now = requestTime();
+  const listed = timeAgo(listing.created_at, now);
 
   return (
     <article className="ws-listing">
@@ -79,7 +91,9 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
       </nav>
 
       <div className="ws-listing__top">
-        <Gallery listingId={listing.id} title={listing.title} media={listing.media} />
+        <Gallery listingId={listing.id} title={listing.title} media={listing.media}>
+          <ShareButton {...share} className="ws-gallery__share" />
+        </Gallery>
 
         <div className="ws-listing__side">
           <header className="ws-listing__title">
@@ -120,6 +134,42 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
         </div>
       </div>
 
+      <div className="ws-listing__more">
+        <div className="ws-listing__panels">
+          <DeliveryPanel listing={listing} anchor={anchor} total={total} now={now} returnTo={path} action={setLocation} />
+          <ReturnsPanel listing={listing} />
+          <PaymentsPanel listing={listing} />
+          <ProtectionPanel listing={listing} report={<ReportButton className="ws-protect__report" />} />
+        </div>
+
+        <section className="ws-about" aria-labelledby="about-title">
+          <h2 id="about-title" className="ws-section-title">
+            About this item
+          </h2>
+          <ItemSpecifics listing={listing} />
+          <DescriptionBlock text={listing.description} />
+          <dl className="ws-itemmeta">
+            <div>
+              <dt>Item number</dt>
+              <dd>
+                <CopyField label="item number" value={listing.id} />
+              </dd>
+            </div>
+            <div>
+              <dt>Listed</dt>
+              <dd>
+                <time dateTime={listing.created_at}>{listed.long.replace(/^./, (c) => c.toUpperCase())}</time>
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <SafetyTipsCard listing={listing} />
+      </div>
+
+      <ShareSheet {...share} />
+      <ReportListingModal listingId={listing.id} title={listing.title} submit={reportListing} />
+
       <StickyBuyBar
         watch="buybox-actions"
         listingId={listing.id}
@@ -127,6 +177,7 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
         price={price}
         price_minor={listing.price_minor}
         total={total}
+        share={share}
         action={goods ? { label: "Buy it now", href: `/checkout?listing=${listing.id}` } : { label: "Contact seller", href: `/inbox?listing=${listing.id}` }}
       />
     </article>

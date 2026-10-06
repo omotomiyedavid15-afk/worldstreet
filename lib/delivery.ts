@@ -54,3 +54,38 @@ export function deliveryFee(summary: DeliverySummary): Kobo | null {
 export function deliveryEstimate(option: DeliveryOption): readonly [number, number] {
   return [option.eta_days[0] + rules.delivery.typicalHandlingDays, option.eta_days[1] + rules.orders.handlingDays];
 }
+
+/* Nigeria is UTC+1 all year (no daylight saving), so Lagos dates are UTC dates an hour on. */
+const LAGOS_OFFSET_MS = 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** The Lagos calendar day `n` business days (Mon–Fri) after `from`, as midnight UTC of that date. */
+export function addBusinessDays(from: number, n: number): Date {
+  const d = new Date(from + LAGOS_OFFSET_MS);
+  let day = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+  for (let left = n; left > 0; ) {
+    day += DAY_MS;
+    const wd = new Date(day).getUTCDay();
+    if (wd !== 0 && wd !== 6) left--;
+  }
+  return new Date(day);
+}
+
+/** The arrival window for an order placed at `now`: handling plus transit, in business days. */
+export function arrivalRange(option: DeliveryOption, now: number): readonly [Date, Date] {
+  const [min, max] = deliveryEstimate(option);
+  return [addBusinessDays(now, min), addBusinessDays(now, max)];
+}
+
+// Built by hand: ICU builds disagree on the comma ("Tue, 13 Oct" vs "Tue 13 Oct").
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const day = (d: Date) => `${WEEKDAYS[d.getUTCDay()]} ${d.getUTCDate()}`;
+const dayMonth = (d: Date) => `${day(d)} ${MONTHS[d.getUTCMonth()]}`;
+
+/** "Thu 8 – Sat 10 Oct", or "Thu 30 Oct – Mon 3 Nov" across a month (flows B3 step 3). */
+export function formatDateRange([a, b]: readonly [Date, Date]) {
+  if (a.getTime() === b.getTime()) return dayMonth(a);
+  const sameMonth = a.getUTCMonth() === b.getUTCMonth();
+  return `${sameMonth ? day(a) : dayMonth(a)} – ${dayMonth(b)}`;
+}

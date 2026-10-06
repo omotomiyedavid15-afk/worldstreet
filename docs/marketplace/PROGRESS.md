@@ -6,7 +6,7 @@ pass `npm run check`.
 
 ## Phase reports
 
-_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placeholder routes, manifest, a11y pass: axe zero serious/critical on `/`, `/search`, placeholders and the 404 at 375, 360 and 1280); Sprint 0 check #5 passes (e2e/home.spec.ts). Phase 1 (header and search) done: shell, category navigation, live suggestions; e2e/shell.spec.ts and e2e/suggest.spec.ts. Phase 2 (results and filters) done: filters with counts, rail and sheet, chips, Price + delivery sort, grid/list, Saved, saved searches, Recently viewed, Did you mean, related searches; e2e/filters.spec.ts and e2e/saved.spec.ts. Phase 3 (listing detail) in progress: P3a layout, gallery, buy box and sticky bar done (e2e/listing.spec.ts). Building in dark mode (your direction, 6 Oct). Sprint 0 checks #1–#4 pass end to end (e2e/search.spec.ts, 375 and 1280). Components mirror eBay, styled with the DS (your direction, 6 Oct)._
+_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placeholder routes, manifest, a11y pass: axe zero serious/critical on `/`, `/search`, placeholders and the 404 at 375, 360 and 1280); Sprint 0 check #5 passes (e2e/home.spec.ts). Phase 1 (header and search) done: shell, category navigation, live suggestions; e2e/shell.spec.ts and e2e/suggest.spec.ts. Phase 2 (results and filters) done: filters with counts, rail and sheet, chips, Price + delivery sort, grid/list, Saved, saved searches, Recently viewed, Did you mean, related searches; e2e/filters.spec.ts and e2e/saved.spec.ts. Phase 3 (listing detail) in progress: P3a layout, gallery, buy box and sticky bar, and P3b panels, share and report done (e2e/listing.spec.ts). Building in dark mode (your direction, 6 Oct). Sprint 0 checks #1–#4 pass end to end (e2e/search.spec.ts, 375 and 1280). Components mirror eBay, styled with the DS (your direction, 6 Oct)._
 
 ## Deviations from the docs and the design system
 
@@ -28,6 +28,13 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 | 6 Oct | Gallery | One scroll-snap strip (native swipe, works before scripts load) with thumbnails from 1024px, arrows, ← → keys and a "2 / 6" counter; tap opens a full-screen native dialog. "View in 3D" (the photo ring) appears on capable devices with 3+ photos | Spec §7 Gallery/GalleryLightbox; 3D is the owner's pick. Photo 1 keeps the card's morph name |
 | 6 Oct | Buy box actions | Goods: quantity stepper (stock and sold count), Buy it now (solid), Add to cart, Make offer when enabled, Save. Vehicles and property: Contact seller (+ Book a viewing for property). Checkout, cart, offers and inbox are placeholder pages until Phases 4–5 | PLAN risk 7: no checkout for vehicles and property. Every button lands on a page that says what it will do (F5) |
 | 6 Oct | Sticky buy bar | On phones, once the buy box's main button scrolls under the header, price, total, Save and the main action stay at the bottom; the bottom nav and category rail are hidden on listing pages | Spec §3.2: one bottom bar at a time |
+| 6 Oct | Listing panels (P3b) | Delivery (open), Returns and Payments are `<details>` sections under the buy box on phones and beside "About this item" from 1024px. Delivery lists every method with its fee and an arrival date range to the buyer's area ("Arrives Thu 8 – Tue 13 Oct": handling + transit in Mon–Fri business days, Lagos dates), greys out same-city methods for other cities, repeats the buy box's total (R-020) and has Change (the area picker without distance) | Flows B3 step 3. Saturday deliveries aren't counted until a courier quote provider says otherwise |
+| 6 Oct | Returns copy | "7-day returns": seller pays return delivery if faulty or not as described; buyer pays for a change of mind, item unused and complete. "No returns" still says not-as-described is covered | Listings have no who-pays field yet; this is flows B11's default (seller pays for faulty/not-as-described). Restocking fees: none, until sellers can set them |
+| 6 Oct | Shop with confidence | The escrow claim, L7's after-release windows (14 days, fakes and safety 45, from config), Verified ID, "paying the seller directly isn't covered" (R-005), How escrow works, Report this listing | All from lib/copy/escrow.ts (L14 test 8) |
+| 6 Oct | About this item | Item specifics (two columns from 768px, past 8 rows under "Show all"), Condition with a definition popover listing every grade, the description as plain escaped paragraphs clamped at 12 lines with Read more, item number with Copy, and "Listed 2 days ago" | SellerNotes and RevisionHistory wait for listing data that has them (seller notes, edit history: Phase 7 seller tools); showing an empty history would be made up (PLAN F7). LocalPickupMap waits for a map provider |
+| 6 Oct | Share | Icon button on the gallery's corner (eBay); the phone's own share sheet where there is one, else our sheet: Copy link, WhatsApp, Telegram, X, Text message, with an absolute link. Also in the sticky bar's overflow | Atlas has no Telegram or X marks: Airplane (Telegram's paper plane) and Messages stand in, always with the name |
+| 6 Oct | Report | A dialog with seven reasons (prohibited, fake, scam, misleading, wrong category, offensive, other), optional details (500 characters, required for "Something else"), posting to a Server Action that validates everything; "We review reports within 24 hours. We don't tell the seller who reported." No anonymous-report limit or queue yet | Flows §632. Reports are accepted and dropped until the admin phase |
+| 6 Oct | Safety tips | Four tips; goods: pay on checkout only, meet in public, check before confirming, keep the chat on WorldStreet. Vehicles and property: no payment before inspecting, mechanic or document checks | Flows B3 step 9 and the vehicle/property alternate |
 | 6 Oct | Story tests | Motion's lazily loaded features are preloaded by a Storybook loader | Under a full run they arrived after 1 s and held the hide → Undo exit, so "Hide And Undo" failed only in the full suite |
 | 6 Oct | Tooling | Local browser tests drive installed Chrome | Playwright has no Chromium build for macOS 13; CI uses bundled Chromium |
 | 6 Oct | Config | Low-price warning uses EC-027's "under 40% **of** the comparable median" (`priceWarnBelowPercentOfMedian`) | S2 step 4 says "< 40% below" the median (i.e. under 60% of it). The two disagree; EC-027 is the specific rule. **Confirm which you want** |
@@ -231,16 +238,16 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 - [x] StickyBuyBar (M)
 - [x] DemandLine
 - [x] ReassuranceLine
-- [ ] DeliveryPanel
-- [ ] ReturnsPanel
-- [ ] PaymentsPanel
-- [ ] ProtectionPanel
-- [ ] ConditionInfo
-- [ ] ItemSpecifics
+- [x] DeliveryPanel
+- [x] ReturnsPanel
+- [x] PaymentsPanel
+- [x] ProtectionPanel
+- [x] ConditionInfo
+- [x] ItemSpecifics
 - [ ] SellerNotes
-- [ ] DescriptionBlock
+- [x] DescriptionBlock
 - [ ] RevisionHistory
-- [ ] ListingMeta
+- [x] ListingMeta
 - [ ] SellerCard
 - [ ] SellerRatingsBreakdown
 - [ ] ReviewsSection (+ filters, cards, photos)
@@ -248,9 +255,9 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 - [ ] SimilarItemsRail
 - [ ] SellerOtherItemsRail
 - [ ] CategoryBestSellers
-- [ ] ShareSheet
-- [ ] ReportListingModal
-- [ ] SafetyTipsCard
+- [x] ShareSheet
+- [x] ReportListingModal
+- [x] SafetyTipsCard
 - [ ] LocalPickupMap
 - [ ] UnavailableState
 - [ ] PriceHistorySparkline

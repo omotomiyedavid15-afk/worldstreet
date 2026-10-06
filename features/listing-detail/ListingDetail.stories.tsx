@@ -91,7 +91,7 @@ export const StickyBar: Story = {
       <div id="story-actions">
         <a href="/checkout">Buy it now</a>
       </div>
-      <StickyBuyBar watch="story-actions" listingId={sony.id} title={sony.title} price="₦485,000" price_minor={sony.price_minor} total="Total to Lekki ₦489,500" action={{ label: "Buy it now", href: `/checkout?listing=${sony.id}` }} />
+      <StickyBuyBar watch="story-actions" listingId={sony.id} title={sony.title} price="₦485,000" price_minor={sony.price_minor} total="Total to Lekki ₦489,500" action={{ label: "Buy it now", href: `/checkout?listing=${sony.id}` }} share={{ url: "https://worldstreet.example/listing/204507", title: sony.title, text: sony.title }} />
     </div>
   ),
   play: async ({ canvasElement }) => {

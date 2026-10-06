@@ -23,3 +23,12 @@ describe("home trust copy", () => {
     expect(ESCROW.strip).not.toMatch(/until you confirm/i);
   });
 });
+
+describe("listing protection copy (L7, R-005)", () => {
+  it("states the protection windows from config", async () => {
+    const { rules } = await import("@/config/marketplace-rules");
+    expect(ESCROW.afterRelease).toContain(`${rules.protection.anyIssueDays} days`);
+    expect(ESCROW.afterRelease).toContain(`${rules.protection.counterfeitSafetyDays} days`);
+    expect(ESCROW.offPlatform).toMatch(/isn't covered/);
+  });
+});

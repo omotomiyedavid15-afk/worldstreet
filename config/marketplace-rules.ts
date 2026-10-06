@@ -172,6 +172,14 @@ export const rules = {
     maxPhotos: 3, // B5 step 2
     newThreadsPerDay: 20, // R-053 (L1 buyers)
   },
+  listing: {
+    specificsShown: 8, // spec §7 ItemSpecifics: collapsible after 8 rows
+    descriptionLines: 12, // spec §7 DescriptionBlock: "Read more" after 12 lines
+  },
+  moderation: {
+    reportReviewHours: 24, // flows §632: normal-risk SLA (high risk is 1 h, internal)
+    reportDetailsMax: 500,
+  },
   demand: {
     watchersThreshold: 10, // R-025, PLAN C7
   },
