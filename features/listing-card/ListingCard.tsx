@@ -7,7 +7,8 @@ import { cx } from "@/lib/cx";
 import { listingPath } from "@/lib/data/repo";
 import type { ListingWithSeller } from "@/lib/data/types";
 import { plural } from "@/lib/format";
-import { haversineKm, type LatLng } from "@/lib/geo";
+import type { Anchor } from "@/lib/areas";
+import { haversineKm } from "@/lib/geo";
 import { ConditionChip, DeliveryLine, LocationLine, PriceBlock, RatingStars, SaveButton, SellerMini, SocialProof } from "./atoms";
 import { CardMenu, HideGate } from "./CardActions";
 
@@ -25,8 +26,7 @@ import { CardMenu, HideGate } from "./CardActions";
    phone list view) it trims itself to eBay's app density (see listing.css), so every
    variant shares one set of rules. */
 
-/** The buyer's location anchor (R-001): `label` is what the location bar shows. */
-export type Anchor = LatLng & { city: string; label: string };
+export type { Anchor } from "@/lib/areas";
 
 export type ListingCardVariant = "grid" | "list" | "rail" | "compact";
 

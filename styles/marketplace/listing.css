@@ -736,3 +736,217 @@ a.ws-seller__name:hover {
     display: none;
   }
 }
+
+/* LocationBar (R-001): inline, one line, never a modal. */
+.ws-locbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cx-s-2) var(--cx-s-3);
+  flex-wrap: wrap;
+  padding: var(--cx-s-2) var(--cx-s-3) var(--cx-s-2) var(--cx-s-4);
+  border-radius: var(--cx-r-md);
+  background: var(--cx-surface);
+  box-shadow: inset 0 0 0 1px var(--cx-hairline);
+}
+
+.ws-locbar__text {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cx-s-2);
+  color: var(--cx-text-2);
+  font-size: var(--cx-small);
+  line-height: 1.4;
+}
+
+.ws-locbar__text svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-block-start: calc((1lh - 18px) / 2);
+  color: var(--cx-ember-text);
+}
+
+.ws-locbar__text strong {
+  color: var(--cx-text);
+  font-weight: 600;
+}
+
+.ws-locbar__hint {
+  color: var(--cx-text-muted);
+}
+
+/* ShipToSelector: a centred card on desktop, a bottom sheet on phones. */
+/* Tailwind's reset zeroes margins, which undoes the browser's centring of popovers. */
+.ws-shipto {
+  margin: auto;
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: var(--cx-s-6);
+  border: 0;
+  border-radius: var(--cx-r-card);
+  background: var(--cx-elevated);
+  box-shadow: var(--cx-shadow-xl);
+  color: var(--cx-text);
+}
+
+.ws-shipto::backdrop {
+  background: var(--cx-overlay);
+}
+
+@media (max-width: 767px) {
+  .ws-shipto {
+    inset: auto 0 0;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: var(--cx-s-5) var(--cx-s-4) calc(var(--cx-s-5) + env(safe-area-inset-bottom, 0px));
+    border-radius: var(--cx-sheet-radius) var(--cx-sheet-radius) 0 0;
+  }
+}
+
+.ws-shipto__form {
+  display: grid;
+  gap: var(--cx-s-5);
+}
+
+.ws-shipto__title {
+  font: 500 var(--cx-h4)/var(--cx-h4-lh) var(--cx-font);
+  letter-spacing: var(--cx-h4-ls);
+}
+
+.ws-shipto__lead {
+  margin-top: calc(var(--cx-s-4) * -1);
+  color: var(--cx-text-muted);
+  font-size: var(--cx-small);
+}
+
+.ws-shipto__locate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cx-s-2);
+  margin-inline-start: -12px;
+}
+
+.ws-shipto__status {
+  color: var(--cx-text-muted);
+  font-size: var(--cx-meta);
+}
+
+.ws-shipto__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--cx-s-3);
+}
+
+/* Fields: DS field metrics (label 14/500, 48px control, field tokens). */
+.ws-field {
+  display: grid;
+  gap: var(--cx-s-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ws-field > label,
+.ws-field > legend {
+  padding: 0;
+  margin-bottom: var(--cx-s-2);
+  color: var(--cx-text-2);
+  font-size: var(--cx-small);
+  font-weight: 500;
+}
+
+.ws-field > label {
+  margin-bottom: 0;
+}
+
+.ws-select {
+  height: var(--cx-control-h);
+  padding: 0 40px 0 var(--cx-s-4);
+  border: 1px solid var(--cx-field-border);
+  border-radius: var(--cx-r-md);
+  width: 100%;
+  background: var(--cx-field);
+  color: var(--cx-text);
+  font: 400 var(--cx-body) var(--cx-font);
+  appearance: none;
+}
+
+/* The arrow is Atlas ArrowDown (the icon set's chevron stand-in), laid over the field. */
+.ws-select-wrap {
+  position: relative;
+  display: block;
+}
+
+.ws-select-wrap > svg {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  width: 18px;
+  height: 18px;
+  color: var(--cx-text-muted);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.ws-select:hover {
+  background-color: var(--cx-field-hover);
+}
+
+.ws-select:focus-visible {
+  outline: none;
+  border-color: var(--cx-focus-border);
+  box-shadow: var(--cx-focus-halo);
+}
+
+.ws-select option,
+.ws-select optgroup {
+  background: var(--cx-elevated);
+  color: var(--cx-text);
+}
+
+/* Radio pills: real radios, visually DS chips. */
+.ws-radios__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cx-s-2);
+}
+
+.ws-radio-pill {
+  position: relative;
+}
+
+.ws-radio-pill input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.ws-radio-pill span {
+  display: inline-flex;
+  align-items: center;
+  height: var(--cx-touch);
+  padding: 0 var(--cx-s-4);
+  border-radius: var(--cx-r-pill);
+  background: var(--cx-surface-2);
+  box-shadow: inset 0 0 0 1px var(--cx-hairline);
+  color: var(--cx-text-2);
+  font-size: var(--cx-small);
+  font-weight: 500;
+}
+
+.ws-radio-pill input:checked + span {
+  background: var(--cx-brand-wash);
+  box-shadow: inset 0 0 0 1px var(--cx-ember-text);
+  color: var(--cx-ember-text);
+}
+
+.ws-radio-pill input:focus-visible + span {
+  box-shadow: var(--cx-focus-ring);
+}

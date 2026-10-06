@@ -16,7 +16,7 @@ const ajah = place("Ajah", "Lagos", "Lagos", 6.4672, 3.5717);
 const wuse = place("Wuse 2", "Abuja", "FCT", 9.0801, 7.4694);
 
 /** A buyer in Lekki. */
-export const lekkiAnchor: Anchor = { ...lekki, label: "Lekki" };
+export const lekkiAnchor: Anchor = { id: "lekki", label: "Lekki", city: lekki.city, lat: lekki.lat, lng: lekki.lng };
 
 const opt = (method: DeliveryOption["method"], naira: number, coverage: DeliveryOption["coverage"]): DeliveryOption => ({
   method,

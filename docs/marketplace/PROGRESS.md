@@ -50,6 +50,8 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.5 done; S0.6 (ListingCa
 | 6 Oct | SellerMini | "Top rated" sits beside the shop name, a size down in seller rows | Keeps the card's seller row to two lines next to the ⋮ |
 | 6 Oct | Sort | Price sorts are labelled "Price: lowest/highest first" and use the item price; best match uses the B2 weights with relevance from search | "Price + delivery" needs delivery quotes (PLAN C10); the label doesn't promise what the sort doesn't do yet |
 | 6 Oct | Menu | Added `checked` items (menuitemradio + aria-checked); the menu opens on the checked one | Sort orders are a single choice |
+| 6 Oct | Location | Area in an httpOnly cookie (`ws-area`, area id only), radius in the URL (`?radius=5|10|25|all`, default 25 omitted). No cookie = IP city, mocked as Lagos | The server renders nearby results without client JS; radius is a shareable, Back-able state (R-011) |
+| 6 Oct | ShipToSelector | A form on a native popover posting to a Server Action (validated inputs, same-site return path only); "Use my location" asks only on tap and keeps just the nearest named area | Works before scripts load; no open redirect; position never leaves the device (F8) |
 | 6 Oct | Tooling | `PW_CHROMIUM_PATH` lets story tests use a preinstalled Chromium; Testing Library cleanup is explicit in `vitest.setup.ts` | Cloud containers ship a different Chromium build; auto-cleanup needs Vitest globals, which are off |
 
 ## Master checklist (266 items, spec Part X)
@@ -57,8 +59,8 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.5 done; S0.6 (ListingCa
 ## A. Shell
 - [ ] AppHeader (W two-row, M single-row)
 - [ ] UtilityBar (W)
-- [ ] ShipToSelector (W popover, M sheet)
-- [ ] LocationBar inline
+- [x] ShipToSelector (W popover, M sheet)
+- [x] LocationBar inline
 - [ ] CategoryMenuButton + MegaMenu (W)
 - [ ] Category drill-down drawer (M)
 - [ ] CategoryRail
@@ -130,7 +132,7 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.5 done; S0.6 (ListingCa
 - [ ] PriceRangeFilter
 - [ ] ConditionFilter
 - [ ] FormatFilter
-- [ ] LocationRadiusFilter
+- [ ] LocationRadiusFilter (radius logic + selector done in S0.8; the filter-rail control is Phase 2)
 - [ ] DeliveryFilter
 - [ ] SellerFilter
 - [ ] ColorSwatchFilter
