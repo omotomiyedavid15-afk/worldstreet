@@ -6,7 +6,7 @@ pass `npm run check`.
 
 ## Phase reports
 
-_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placeholder routes, manifest, a11y pass: axe zero serious/critical on `/`, `/search`, placeholders and the 404 at 375, 360 and 1280); Sprint 0 check #5 passes (e2e/home.spec.ts). Phase 1 (header and search) done: shell, category navigation, live suggestions; e2e/shell.spec.ts and e2e/suggest.spec.ts. Next: Phase 2 (results and filters). Building in dark mode (your direction, 6 Oct). Sprint 0 checks #1–#4 pass end to end (e2e/search.spec.ts, 375 and 1280). Components mirror eBay, styled with the DS (your direction, 6 Oct)._
+_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placeholder routes, manifest, a11y pass: axe zero serious/critical on `/`, `/search`, placeholders and the 404 at 375, 360 and 1280); Sprint 0 check #5 passes (e2e/home.spec.ts). Phase 1 (header and search) done: shell, category navigation, live suggestions; e2e/shell.spec.ts and e2e/suggest.spec.ts. Phase 2 (results and filters) done: filters with counts, rail and sheet, chips, Price + delivery sort, grid/list, Saved, saved searches, Recently viewed, Did you mean, related searches; e2e/filters.spec.ts and e2e/saved.spec.ts. Next: Phase 3 (listing detail). Building in dark mode (your direction, 6 Oct). Sprint 0 checks #1–#4 pass end to end (e2e/search.spec.ts, 375 and 1280). Components mirror eBay, styled with the DS (your direction, 6 Oct)._
 
 ## Deviations from the docs and the design system
 
@@ -110,6 +110,9 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 | 6 Oct | Saved searches | "Save this search" toggle under the results heading (sign-in first, R-004), up to 50 (R-027), listed in Saved › Searches with their filters in the label | Spec §6 SaveSearchButton. Alerts for them come with notifications (R-012) |
 | 6 Oct | Recently viewed | Opening a listing records it (device + a small `ws-recent` cookie of ids); home renders the rail on the server, first in B1 order, and the other rails leave those listings out | A client rail would pop in after load (CLS) and lose every duplicate to the server rails; B1 puts it before Near you |
 | 6 Oct | Popovers before hydration | The mega menu and Menu catch up on a popover opened before scripts loaded, and the mega menu no longer closes itself on mount | Caught by a flaky desktop e2e; same family as the drawer fix |
+| 6 Oct | Did you mean (Phase 2) | A typed word that matches nothing is swapped for the closest catalogue word one edit away (4+ letters, `lib/search/spell.ts`), shown as "Did you mean “headphones”? (2 results)" only when it finds more | UI research C16: a link, never a silent auto-correct |
+| 6 Oct | Related searches | Up to 6 chips after the results: completions and "q in Category" for the current query | Spec §6 RelatedSearches |
+| 6 Oct | Show more | Stays a button (`?page=N`) with "Showing 48 of 60" as a polite live region, so each load is announced | UI research C11/C12 (auto-loading to 60 on desktop, no auto-append on phones) wait for your decision; ResultsPagination waits for category landing pages |
 | 6 Oct | Mock photos | Four views per category (`{cat}-1..4.svg`) | So stepping shows different images |
 | 6 Oct | Tooling | `PW_CHROMIUM_PATH` lets story tests use a preinstalled Chromium; Testing Library cleanup is explicit in `vitest.setup.ts` | Cloud containers ship a different Chromium build; auto-cleanup needs Vitest globals, which are off |
 
@@ -199,13 +202,13 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 - [ ] BrandFilter
 - [x] ActiveFilterChips
 - [ ] PopularFilterChips
-- [ ] RelatedSearches
+- [x] RelatedSearches
 - [ ] IncludeDescriptionToggle
-- [ ] SpellCorrection
+- [x] SpellCorrection
 - [x] ZeroResults
-- [ ] ResultsGrid/List (grid done with 'Show more' paging; list toggle in Phase 2)
+- [x] ResultsGrid/List
 - [ ] ResultsPagination
-- [ ] InfiniteLoader
+- [ ] InfiniteLoader (Show more + announcement done; auto-loading waits for C11/C12)
 - [ ] CompareTray
 
 ## E. Detail

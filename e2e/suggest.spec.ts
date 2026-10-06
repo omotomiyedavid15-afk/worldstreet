@@ -74,6 +74,8 @@ test("axe: no serious or critical issues with suggestions open", async ({ page }
   await box(page).click();
   await box(page).fill("head");
   await expect(options(page).first()).toBeVisible();
+  // Rows fade in one after another; check contrast once they've settled.
+  await expect(options(page).last()).toHaveCSS("opacity", "1");
   const { violations } = await new AxeBuilder({ page }).analyze();
   const bad = violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   expect(bad.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);

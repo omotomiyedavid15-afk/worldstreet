@@ -79,3 +79,19 @@ test("the grid/list choice is remembered (spec §6 ViewToggle)", async ({ page }
   await page.getByRole("button", { name: "Grid view" }).filter({ visible: true }).click();
   await expect(page.locator("ul.ws-card-grid.ws-results")).toBeVisible();
 });
+
+test("a misspelling offers 'Did you mean' as a link, never a silent fix (C16)", async ({ page }) => {
+  await page.goto("/search?q=headphnes");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("No results for “headphnes”");
+  const link = page.getByRole("link", { name: "“headphones”" });
+  await expect(link).toHaveAttribute("href", "/search?q=headphones");
+  await Promise.all([page.waitForURL(/q=headphones/, { timeout: 20_000 }), link.click()]);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/results? for “headphones”/);
+});
+
+test("related searches lead to other searches", async ({ page }) => {
+  await page.goto("/search?q=head");
+  const related = page.getByRole("navigation", { name: "Related searches" });
+  await expect(related.getByRole("link").first()).toBeVisible();
+  for (const href of await related.getByRole("link").evaluateAll((as) => as.map((a) => a.getAttribute("href")))) expect(href).toMatch(/^\/search\?q=/);
+});

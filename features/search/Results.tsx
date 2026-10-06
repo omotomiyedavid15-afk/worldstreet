@@ -45,11 +45,10 @@ export function ResultsHeader({ query, anchor, total, shown, sortMenu, near = tr
         <h1 className="ws-results-head__title">
           {title}
         </h1>
-        {shown < total && (
-          <p className="ws-results-head__count">
-            Showing {formatCount(shown)} of {formatCount(total)}
-          </p>
-        )}
+        {/* Always there and polite, so "Show more" is announced as the count grows. */}
+        <p className="ws-results-head__count" aria-live="polite">
+          {shown < total ? `Showing ${formatCount(shown)} of ${formatCount(total)}` : null}
+        </p>
       </div>
       {total > 0 && sortMenu}
     </div>

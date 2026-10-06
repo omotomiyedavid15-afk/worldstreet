@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { rules } from "@/config/marketplace-rules";
 import { Morph } from "@/components/motion/Morph";
@@ -22,6 +23,8 @@ import { listingPath, repos } from "@/lib/data";
 import { formatCount } from "@/lib/format";
 import { filterChips } from "@/lib/search/filter-labels";
 import { parseFilters } from "@/lib/search/filters";
+import { correct, vocabulary } from "@/lib/search/spell";
+import { suggest } from "@/lib/search/suggest";
 import { first, hrefWith, type SearchParams } from "@/lib/search/params";
 import { parseQuery, type ParsedQuery } from "@/lib/search/query";
 import { parseRadius } from "@/lib/search/radius";
@@ -92,6 +95,19 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
     city: anchor.city,
   });
 
+  // "Did you mean…" (C16: a link, not an auto-correct), only when it finds more.
+  const searchFor = (q: string) => runSearch({ listings, query: parseQuery(q) as ParsedQuery & { kind: "text" }, filters, anchor, radius, sort, page: 1, hidden, city: anchor.city });
+  const corrected = query.kind === "text" ? correct(parsed.raw, vocabulary(listings, categories)) : null;
+  const better = corrected && parseQuery(corrected).kind === "text" ? searchFor(corrected).total : 0;
+  const didYouMean = corrected && better > result.total ? { q: corrected, total: better } : null;
+  // Related searches: other ways in from this query (completions and categories).
+  const related =
+    query.kind === "text"
+      ? suggest({ typed: parsed.raw, listings, categories, sellers: [], trending: [], max: rules.search.relatedShown })
+          .filter((x) => x.kind === "query" || x.kind === "category")
+          .map((x) => (x.kind === "category" ? { label: `${x.text} in ${x.name}`, href: `${PATH}?q=${encodeURIComponent(x.text)}&cat=${x.cat}` } : { label: x.text, href: `${PATH}?q=${encodeURIComponent(x.text)}` }))
+      : [];
+
   const panel = (variant: "rail" | "sheet", id: string) => (
     <FilterPanel
       id={id}
@@ -140,6 +156,15 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
         {result.total > 0 && sortMenu}
         {result.total > 0 && <ViewToggle view={view} returnTo={thisPage} className="ws-filterbar__view" />}
       </div>
+      {didYouMean && (
+        <p className="ws-didyoumean">
+          Did you mean{" "}
+          <Link href={hrefWith(PATH, params, "q", didYouMean.q)}>
+            “{didYouMean.q}”
+          </Link>
+          ? <span className="ws-didyoumean__n">({formatCount(didYouMean.total)} {didYouMean.total === 1 ? "result" : "results"})</span>
+        </p>
+      )}
       <ActiveFilterChips filters={filters} categories={categories} pathname={PATH} params={params} />
 
       {result.total === 0 ? (
@@ -184,6 +209,22 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
             <EndOfResults total={result.total} radius={radius} radiusCounts={result.radiusCounts} pathname={PATH} params={params} />
           )}
         </>
+      )}
+      {related.length > 0 && (
+        <nav className="ws-related" aria-labelledby="related-title">
+          <h2 id="related-title" className="ws-related__title">
+            Related searches
+          </h2>
+          <ul>
+            {related.map((r) => (
+              <li key={r.href}>
+                <Link href={r.href} className="ws-related__chip">
+                  {r.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
       )}
         </div>
       </div>

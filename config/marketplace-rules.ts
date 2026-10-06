@@ -30,6 +30,9 @@ export const rules = {
     // after up to 2 handling days), so the filter uses the card's upper bound.
     fastDeliveryDays: 4,
     listedWithinDays: [1, 7, 30] as const, // B2 "Listed within" (24 h, 7 d, 30 d)
+    spellMinLength: 4, // UI research Phase 2: only correct words of 4+ letters…
+    spellMaxEdits: 1, // …one edit away (Damerau–Levenshtein)
+    relatedShown: 6, // RelatedSearches chips at the end of results
     facetOptionsShown: 5, // a filter group shows this many before "Show more" (eBay)
     // PriceRangeFilter presets in naira (spec §6: "Under ₦10k, ₦10–50k…"); null = open end
     pricePresets: [
