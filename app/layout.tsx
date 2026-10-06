@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { MotionProvider } from "@/components/motion/MotionProvider";
+import { ScrollState } from "@/components/motion/ScrollState";
 import { ToastViewport } from "@/components/ui";
 import { connection } from "next/server";
 import { CATEGORY_ICONS } from "@/features/home/category-icons";
@@ -65,6 +66,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <SiteFooter />
           <BottomNav />
           <ToastViewport />
+          <ScrollState />
         </MotionProvider>
       </body>
     </html>

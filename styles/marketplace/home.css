@@ -500,6 +500,11 @@
   animation: ws-aurora 20s var(--cx-ease-in-out) infinite alternate;
 }
 
+/* The blurred, blended aurora holds still while the page scrolls (ScrollState). */
+html[data-scrolling] .ws-sell__aurora span {
+  animation-play-state: paused;
+}
+
 .ws-sell__aurora span + span {
   top: 10%;
   left: 68%;
