@@ -1088,8 +1088,40 @@ a.ws-seller__name:hover {
   color: var(--cx-text-muted);
 }
 
+/* Our own Clear button replaces the browser's (eBay search field, Apple HIG). */
 .ws-search__input::-webkit-search-cancel-button {
-  filter: grayscale(1);
+  appearance: none;
+  display: none;
+}
+
+.ws-search__clear {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--cx-text-muted);
+  cursor: pointer;
+}
+
+/* 44px to the finger without growing the pill. */
+.ws-search__clear::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+
+.ws-search__clear:hover {
+  color: var(--cx-text);
+}
+
+.ws-search__clear svg {
+  width: 20px;
+  height: 20px;
 }
 
 .ws-suggest {
@@ -1131,9 +1163,49 @@ a.ws-seller__name:hover {
   color: var(--cx-text-muted);
 }
 
-.ws-suggest__option:hover,
+/* One highlighted row, shared by pointer and keyboard, marked with a gold edge. */
 .ws-suggest__option[aria-selected=true] {
   background: var(--cx-surface-2);
+  box-shadow: inset 3px 0 0 var(--cx-ember-text);
+}
+
+@media (forced-colors: active) {
+  .ws-suggest__option[aria-selected=true] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}
+
+.ws-suggest__text {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Reverse highlighting: typed part plain, the rest bold. */
+.ws-suggest__typed {
+  color: var(--cx-text-2);
+  font-weight: 400;
+}
+
+.ws-suggest__more {
+  color: var(--cx-text);
+  font-weight: 700;
+}
+
+.ws-suggest__remove {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  margin-inline-end: -8px;
+  border-radius: 50%;
+  color: var(--cx-text-muted);
+}
+
+.ws-suggest__remove:hover {
+  background: var(--cx-surface-3);
+  color: var(--cx-text);
 }
 
 .ws-suggest__clear {

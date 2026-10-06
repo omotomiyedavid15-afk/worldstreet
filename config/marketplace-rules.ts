@@ -22,6 +22,10 @@ export const rules = {
     minChars: 2, // B2
     pageSize: 24, // §16.7
     maxSuggestions: 10, // spec §6 search box
+    recentShown: 5, // Baymard/NN/g: a short list scans; research 6 Oct
+    trendingShown: 5,
+    recentStored: 8,
+    maxSuggestionsPhone: 6, // the Phase 1 full-screen phone search
   },
   home: {
     maxHeroSlides: 3, // R-015 (stricter than spec §4, PLAN C6)

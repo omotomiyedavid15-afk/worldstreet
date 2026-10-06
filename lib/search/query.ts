@@ -1,4 +1,5 @@
 import type { ListingWithSeller } from "@/lib/data/types";
+import { SYNONYMS, normalise, wordMatches, words } from "./words";
 
 /*
  * Search queries (flows B2). Words are matched as prefixes, so "head" finds
@@ -17,29 +18,11 @@ const STOP_WORDS = new Set([
  */
 const PROHIBITED = new Set(["gun", "guns", "pistol", "rifle", "ammunition", "ammo", "cocaine", "heroin", "tramadol", "codeine"]);
 
-/**
- * Local spellings and shorthand (EC-003). A starter set; ops maintain the real table.
- * Keys are matched after lowercasing and accent stripping.
- */
-const SYNONYMS: Record<string, string> = {
-  fone: "phone",
-  phon: "phone",
-  gen: "generator",
-  gena: "generator",
-  telly: "tv",
-  ac: "air conditioner",
-  lappy: "laptop",
-  sneakers: "nike",
-};
-
 export type ParsedQuery =
   | { kind: "browse"; raw: string }
   | { kind: "text"; raw: string; tokens: string[] }
   | { kind: "listing-id"; raw: string; id: string }
   | { kind: "prohibited"; raw: string };
-
-const normalise = (s: string) => s.normalize("NFKD").replace(/\p{Diacritic}/gu, "").toLowerCase();
-const words = (s: string) => normalise(s).split(/[^\p{Letter}\p{Number}]+/u).filter(Boolean);
 
 export function parseQuery(input: string | undefined): ParsedQuery {
   const raw = (input ?? "").trim().slice(0, 200);
@@ -73,8 +56,7 @@ export function matchListings(listings: readonly ListingWithSeller[], tokens: re
     let total = 0;
     let all = true;
     for (const t of tokens) {
-      // One-letter tokens must match a whole word; longer ones may be a prefix.
-      const hit = (w: string) => (t.length < 2 ? w === t : w.startsWith(t));
+      const hit = (w: string) => wordMatches(w, t);
       const best = Math.max(0, ...fields.filter((f) => f.words.some(hit)).map((f) => f.weight));
       if (best === 0) {
         all = false;

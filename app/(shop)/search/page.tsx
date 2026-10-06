@@ -64,7 +64,7 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
   if (query.kind === "prohibited") {
     return (
       <div className="ws-search-page">
-        {box}
+        <GlobalSearchBox key={parsed.raw} defaultValue={parsed.raw} trending={[]} keep={keep} suggestions={false} forget={parsed.raw} />
         <ResultsHeader query={parsed.raw} anchor={anchor} near={false} total={0} shown={0} sortMenu={null} />
         <ProhibitedResults />
       </div>
