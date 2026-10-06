@@ -15,7 +15,8 @@
     "build-storybook": "storybook build --quiet",
     "check": "npm run icons:check && npm run lint && npm run typecheck && npm test && npm run build-storybook",
     "icons": "node scripts/gen-icons.mjs",
-    "icons:check": "node scripts/gen-icons.mjs --check"
+    "icons:check": "node scripts/gen-icons.mjs --check",
+    "mock-photos": "node scripts/gen-mock-photos.mjs"
   },
   "dependencies": {
     "next": "16.3.8",

@@ -430,6 +430,10 @@ a.ws-seller__name:hover {
   gap: var(--cx-gap-grid);
 }
 
+/* Phones: eBay's app grid card. Same content order, fewer lines: condition as plain
+   text, price and "% off" on one line, a one-line location without the age, one
+   demand signal, and just the seller's name. Anything dropped here is on the
+   listing page, and the location bar already names the buyer's area. */
 @media (max-width: 767px) {
   .ws-card-grid {
     --cx-gap-grid: var(--cx-s-3);
@@ -438,8 +442,115 @@ a.ws-seller__name:hover {
   .ws-card-grid .ws-card {
     --ws-card-pad: var(--cx-s-3);
     --ws-title-size: var(--cx-small);
-    --cx-price-size: 18px;
-    --cx-meta: 13px;
+    --cx-price-size: 17px;
+    --cx-meta: 12px;
+  }
+
+  .ws-card-grid .ws-card__body {
+    gap: var(--cx-s-2);
+  }
+
+  .ws-card-grid .ws-card__head {
+    gap: 2px;
+  }
+
+  .ws-card-grid .ws-card__chips .cx-chip {
+    height: auto;
+    padding: 0;
+    background: none;
+    color: var(--cx-text-muted);
+    font-size: var(--cx-caption);
+  }
+
+  .ws-card-grid .ws-card__rating {
+    min-height: 16px;
+  }
+
+  .ws-card-grid .ws-stars {
+    --ws-star: 12px;
+    font-size: var(--cx-caption);
+  }
+
+  .ws-card-grid .ws-price {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 6px;
+  }
+
+  .ws-card-grid .ws-price__was {
+    display: contents;
+  }
+
+  .ws-card-grid .ws-price__was > span:first-child {
+    display: none;
+  }
+
+  .ws-card-grid .ws-price .cx-chip {
+    height: 20px;
+    padding: 0 6px;
+    font-size: var(--cx-caption);
+  }
+
+  .ws-card-grid .ws-price__note {
+    flex-basis: 100%;
+    font-size: var(--cx-meta);
+  }
+
+  .ws-card-grid .ws-card__meta {
+    gap: 2px;
+  }
+
+  .ws-card-grid .ws-total-to,
+  .ws-card-grid .ws-meta__item:has(time),
+  .ws-card-grid .ws-meta__item:has(.ws-loc__area):has(+ .ws-meta__item .ws-loc__km),
+  .ws-card-grid .ws-proof .ws-meta__item + .ws-meta__item {
+    display: none;
+  }
+
+  .ws-card-grid .ws-meta svg {
+    width: 14px;
+    height: 14px;
+    margin-block-start: calc((1lh - 14px) / 2);
+  }
+
+  .ws-card-grid .ws-delivery__total {
+    padding-inline-start: 20px;
+  }
+
+  /* Location on one line: the area gives way (ellipsis) before the distance does. */
+  .ws-card-grid .ws-card__meta .ws-meta__list {
+    flex-wrap: nowrap;
+  }
+
+  .ws-card-grid .ws-card__meta .ws-meta__item {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .ws-card-grid .ws-card__meta .ws-meta__item:not(:first-child) {
+    flex: none;
+  }
+
+  .ws-card-grid .ws-card__seller {
+    padding-top: var(--cx-s-2);
+  }
+
+  .ws-card-grid .ws-seller > :not(.ws-seller__name) {
+    display: none;
+  }
+
+  .ws-card-grid .ws-seller__name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .ws-card-grid .ws-seller__name svg {
+    width: 14px;
+    height: 14px;
   }
 }
 

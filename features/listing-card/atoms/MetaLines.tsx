@@ -57,7 +57,10 @@ export function DeliveryLine({ options, price_minor, listingCity, buyer }: Deliv
       </p>
       {buyer && fee !== null && (
         <p className="ws-meta ws-delivery__total">
-          Total to {buyer.label} <strong>{formatCurrency(buyerTotal({ item_minor: price_minor, delivery_minor: fee }))}</strong>
+          <span>
+            Total<span className="ws-total-to"> to {buyer.label}</span>
+          </span>{" "}
+          <strong>{formatCurrency(buyerTotal({ item_minor: price_minor, delivery_minor: fee }))}</strong>
         </p>
       )}
     </div>
@@ -75,8 +78,12 @@ type LocationLineProps = {
 /** "Ikeja GRA · 4.2 km away · 3d ago". Far or unanchored items also name the city. */
 export function LocationLine({ place, distanceKm, postedAt, now }: LocationLineProps) {
   const far = distanceKm === undefined || distanceKm > 50;
-  const parts: ReactNode[] = [<span key="area">{far ? `${place.area}, ${place.city}` : place.area}</span>];
-  if (distanceKm !== undefined) parts.push(<span key="km">{formatDistance(distanceKm)} away</span>);
+  const parts: ReactNode[] = [
+    <span key="area" className="ws-loc__area">
+      {far ? `${place.area}, ${place.city}` : place.area}
+    </span>,
+  ];
+  if (distanceKm !== undefined) parts.push(<span key="km" className="ws-loc__km">{formatDistance(distanceKm)} away</span>);
   if (postedAt) {
     const ago = timeAgo(postedAt, now);
     parts.push(
@@ -118,7 +125,7 @@ export function SocialProof({ listing, showWatchers }: { listing: Pick<Listing, 
   const signals = socialSignals(listing, { showWatchers });
   if (signals.length === 0) return null;
   return (
-    <p className="ws-meta">
+    <p className="ws-meta ws-proof">
       <MetaList
         items={signals.map((s) => (
           <span key={s.text} className={s.urgent ? "ws-proof__urgent" : "ws-proof__strong"}>
