@@ -44,6 +44,7 @@
     "eslint-plugin-storybook": "^10.6.1",
     "jsdom": "^30.1.2",
     "storybook": "^10.6.1",
+    "storybook-addon-pseudo-states": "^10.6.1",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vite": "^8.3.3",

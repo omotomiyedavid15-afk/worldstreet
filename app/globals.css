@@ -2,6 +2,7 @@
 @import "../styles/ds/tokens.css";
 /* DS classes sit in the components layer so a layout utility can still override them. */
 @import "../styles/ds/base.css" layer(components);
+@import "../styles/ds/components/index.css" layer(components);
 @import "../styles/marketplace.css";
 
 /* Tailwind is for layout only (PLAN §2.1). Its palette is cleared so a raw colour
