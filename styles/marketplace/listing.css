@@ -1,0 +1,257 @@
+/* Listing card atoms (spec §5.3). Anatomy and wording follow eBay; everything visual is
+   DS tokens. Marketplace components use the `ws-` prefix so they're never mistaken for
+   DS classes (`cx-`), which they compose rather than restyle. */
+
+/* Shared meta line: location, delivery, social proof. */
+.ws-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  font-size: var(--cx-meta);
+  line-height: 1.35;
+  color: var(--cx-text-muted);
+}
+
+.ws-meta svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+
+.ws-meta__sep {
+  color: var(--cx-text-muted);
+}
+
+.ws-meta strong {
+  color: var(--cx-text);
+  font-weight: 600;
+}
+
+/* PriceBlock. Gold text token: gold on dark, gold-deep on light (spec §16.4). */
+.ws-price {
+  display: grid;
+  gap: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ws-price__now {
+  color: var(--cx-ember-text);
+  font-size: var(--cx-price-size);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.2px;
+}
+
+.ws-price--detail .ws-price__now {
+  font-size: var(--cx-h3);
+  font-weight: 500;
+  line-height: var(--cx-h3-lh);
+  letter-spacing: var(--cx-h3-ls);
+}
+
+.ws-price--cart .ws-price__now {
+  font-size: var(--cx-body);
+}
+
+.ws-price--sticky .ws-price__now {
+  font-size: 18px;
+}
+
+.ws-price--cart {
+  justify-items: end;
+  text-align: end;
+}
+
+.ws-price__was {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: var(--cx-meta);
+  color: var(--cx-text-muted);
+}
+
+.ws-price__was s {
+  text-decoration-thickness: 1px;
+}
+
+.ws-price__save {
+  color: var(--cx-savings);
+  font-weight: 600;
+}
+
+.ws-price__note {
+  font-size: var(--cx-meta);
+  color: var(--cx-text-muted);
+}
+
+.ws-price__total {
+  font-size: var(--cx-meta);
+  color: var(--cx-text-2);
+}
+
+.ws-price__total strong {
+  color: var(--cx-text);
+  font-weight: 600;
+}
+
+/* RatingStars: a filled row clipped over an outline row, so partial stars need no ids. */
+.ws-stars {
+  --ws-star: 14px;
+  --ws-star-gap: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--cx-meta);
+  color: var(--cx-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ws-stars--lg {
+  --ws-star: 20px;
+}
+
+.ws-stars__track {
+  position: relative;
+  display: inline-flex;
+  gap: var(--ws-star-gap);
+  color: var(--cx-text-muted);
+}
+
+.ws-stars__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  display: inline-flex;
+  gap: var(--ws-star-gap);
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--cx-ember-text);
+}
+
+.ws-stars svg {
+  flex: none;
+  width: var(--ws-star);
+  height: var(--ws-star);
+}
+
+.ws-stars__fill svg {
+  fill: currentColor;
+}
+
+/* Atlas's star carries a decorative inner stroke (its second path). It reads as noise
+   in empty and half stars, so ratings draw the outline only. */
+.ws-stars svg path + path {
+  display: none;
+}
+
+/* SaveButton: the DS quiet icon button, with a backdrop so it reads over photos. */
+.ws-save.cx-btn--quiet {
+  color: var(--cx-text);
+  background: var(--cx-elevated);
+  box-shadow: var(--cx-shadow-sm);
+}
+
+.ws-save.cx-btn--quiet:hover {
+  background: var(--cx-elevated);
+  color: var(--cx-ember-text);
+}
+
+.ws-save.cx-btn--quiet:focus-visible {
+  box-shadow: var(--cx-focus-ring);
+}
+
+.ws-save.cx-btn svg {
+  width: 20px;
+  height: 20px;
+  transition: transform var(--cx-dur-fast) var(--cx-ease);
+}
+
+.ws-save[aria-pressed=true] {
+  color: var(--cx-ember-text);
+}
+
+.ws-save.cx-btn[aria-pressed=true] svg {
+  fill: currentColor;
+}
+
+.ws-save:active svg {
+  transform: scale(0.88);
+}
+
+/* SellerMini (eBay: "name · 99.2% positive (1,284)"). */
+.ws-seller {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: var(--cx-meta);
+  color: var(--cx-text-muted);
+}
+
+.ws-seller__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  color: var(--cx-text-2);
+  font-weight: 500;
+}
+
+a.ws-seller__name:hover {
+  color: var(--cx-text);
+  text-decoration: underline;
+}
+
+.ws-seller__name svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--cx-ember-text);
+}
+
+.ws-chip-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* SocialProof: urgency in the warning token, never loss red (spec §16.4). */
+.ws-proof__urgent {
+  color: var(--cx-urgent);
+  font-weight: 600;
+}
+
+.ws-proof__strong {
+  color: var(--cx-text-2);
+  font-weight: 500;
+}
+
+/* DeliveryLine: the fee, then the total on its own line under the text (eBay stacks
+   these too), so a wrap never strands a separator. */
+.ws-delivery {
+  display: grid;
+  gap: 2px;
+}
+
+.ws-delivery__total {
+  padding-inline-start: 22px; /* icon 16 + gap 6 */
+}
+
+.ws-delivery__free {
+  color: var(--cx-gain);
+  font-weight: 600;
+}
+
+.ws-delivery__fee {
+  color: var(--cx-text-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-save.cx-btn svg {
+    transition: none;
+  }
+
+  .ws-save:active svg {
+    transform: none;
+  }
+}

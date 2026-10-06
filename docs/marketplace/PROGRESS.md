@@ -6,7 +6,7 @@ pass `npm run check`.
 
 ## Phase reports
 
-_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.4 done; next S0.5 (card atoms)._
+_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.5 done; next S0.6 (ListingCard). Components mirror eBay, styled with the DS (your direction, 6 Oct)._
 
 ## Deviations from the docs and the design system
 
@@ -28,6 +28,18 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.4 done; next S0.5 (card
 | 6 Oct | Config | Low-price warning uses EC-027's "under 40% **of** the comparable median" (`priceWarnBelowPercentOfMedian`) | S2 step 4 says "< 40% below" the median (i.e. under 60% of it). The two disagree; EC-027 is the specific rule. **Confirm which you want** |
 | 6 Oct | Data | Entity fields keep Part G's snake_case (`price_minor`, `seller_id`, `created_at`) | Matches the docs and the eventual API, so nothing is renamed at the boundary |
 | 6 Oct | Mocks | Mock photos are one labelled SVG placeholder per category in `public/mock/img/` | No stock or real product photos; nothing to license or mistake for a real item |
+| 6 Oct | Direction | Components mirror eBay's anatomy, order and wording, styled with the DS | Your direction (6 Oct). Recorded in PLAN.md |
+| 6 Oct | SaveButton | Name stays "Save {title}" and `aria-pressed` carries the state; it doesn't swap to "Remove from saved" | Spec §5.3 asks for both, but a toggle whose label changes is announced wrongly (WAI-ARIA APG). The title keeps every card's button unique (§16.6) |
+| 6 Oct | DiscountChip | Reads "13% off" (eBay) rather than "−13%" | eBay's wording, and it needs no screen-reader workaround. Still the savings colour, never red |
+| 6 Oct | FormatChip / PriceBlock | eBay puts "or Best offer" under the price as text, so PriceBlock has `bestOffer`; the chip says "Best offer" | Mirrors eBay; the chip stays for detail and filters |
+| 6 Oct | ConditionChip | eBay's condition names: Brand new, Like new, Refurbished, Pre-owned, For parts or not working | eBay's wording in the DS's sentence case |
+| 6 Oct | R-004 gate | Guests get a "Sign in to save listings" toast with a Sign in action (mock session), and the save completes after | SignInSheet + useAuthGate land in Phase 4; callers of `requireAuth()` won't change |
+| 6 Oct | Saved | Saved listings live in localStorage (`features/saved/store.ts`), capped at 500 | No accounts yet. Only that file changes when a server store exists |
+| 6 Oct | TopRatedBadge | Not a link yet | The standards page arrives with the S0.10 placeholder routes; no dead links (F5) |
+| 6 Oct | DeliveryLine | No "How we calculate" popover; the total sits on its own line under the fee | The popover belongs with DeliveryPanel (Phase 3). Stacking avoids a stranded "·" when the line wraps |
+| 6 Oct | DeliveryOption | Added `coverage` (`same_city` / `nationwide`) | "Total to {area}" must use an option that reaches the buyer; riders and meet-ups don't leave the seller's city |
+| 6 Oct | RatingStars | Atlas's star detail stroke is hidden inside ratings | It reads as noise in empty and half stars |
+| 6 Oct | Tooling | `PW_CHROMIUM_PATH` lets story tests use a preinstalled Chromium; Testing Library cleanup is explicit in `vitest.setup.ts` | Cloud containers ship a different Chromium build; auto-cleanup needs Vitest globals, which are off |
 
 ## Master checklist (266 items, spec Part X)
 
@@ -75,20 +87,20 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.4 done; next S0.5 (card
 
 ## C. Cards & atoms
 - [ ] ListingCard: grid, list, rail, compact, sponsored, deal, auction, vehicle, property, service, skeleton, unavailable
-- [ ] ConditionChip
-- [ ] FormatChip
-- [ ] DiscountChip
+- [x] ConditionChip
+- [x] FormatChip
+- [x] DiscountChip
 - [ ] UrgencyBadge
 - [ ] SponsoredLabel
-- [ ] VerifiedTick
-- [ ] TopRatedBadge
-- [ ] RatingStars (read + input)
-- [ ] PriceBlock (card/detail/cart/sticky)
-- [ ] DeliveryLine (+ Total to city)
-- [ ] LocationLine
-- [ ] SocialProof
-- [ ] SellerMini
-- [ ] SaveButton
+- [x] VerifiedTick
+- [x] TopRatedBadge (link waits for S0.10 routes)
+- [ ] RatingStars (read + input): read done; input with ReviewForm (Phase 6)
+- [x] PriceBlock (card/detail/cart/sticky)
+- [x] DeliveryLine (+ Total to city)
+- [x] LocationLine
+- [x] SocialProof
+- [x] SellerMini
+- [x] SaveButton
 - [ ] PhotoCount
 - [ ] QuickAddButton
 - [ ] FindSimilarButton

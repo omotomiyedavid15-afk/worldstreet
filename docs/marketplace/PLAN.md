@@ -7,6 +7,7 @@ Status: **approved 6 Oct 2026** (Q1–Q4 answered in §7) · Repo: `~/marketplac
 - Do not use the nagoya design sandbox.
 - The live site is the design system: rebuild it in this repo and use its components.
 - Icons come from **Atlas Icons**.
+- **Components mirror eBay** (anatomy, information order, behaviour and wording such as "Pre-owned", "or Best offer", "+₦2,500 delivery", "99.2% positive (1,284)", "64 sold"), **styled with the WorldStreet design system** (tokens, Manrope, DS chips, buttons and surfaces). Where eBay and an accessibility rule disagree, accessibility wins and the deviation is logged.
 
 ---
 

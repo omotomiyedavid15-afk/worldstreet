@@ -4,6 +4,7 @@
 @import "../styles/ds/base.css" layer(components);
 @import "../styles/ds/components/index.css" layer(components);
 @import "../styles/marketplace.css";
+@import "../styles/marketplace/listing.css" layer(components);
 
 /* Tailwind is for layout only (PLAN §2.1). Its palette is cleared so a raw colour
    can't be reached; the only colours are the DS tokens below. */

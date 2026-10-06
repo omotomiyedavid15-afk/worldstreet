@@ -1,0 +1,55 @@
+import { HammerIcon, HandshakeAgreementDealIcon } from "@/components/icons";
+import { Chip, type ChipTone } from "@/components/ui";
+import type { Condition, ListingFormat } from "@/lib/data/types";
+import { timeLeft } from "@/lib/format";
+
+/* ConditionChip and FormatChip (spec §5.3) on the DS Chip. Condition names are eBay's,
+   in the DS's sentence case. */
+
+const CONDITION: Record<Condition, { label: string; tone: ChipTone }> = {
+  new: { label: "Brand new", tone: "neutral" },
+  like_new: { label: "Like new", tone: "neutral" },
+  refurbished: { label: "Refurbished", tone: "neutral" },
+  used: { label: "Pre-owned", tone: "neutral" },
+  for_parts: { label: "For parts or not working", tone: "warning" },
+};
+
+export function conditionLabel(condition: Condition) {
+  return CONDITION[condition].label;
+}
+
+/** `certified` marks a refurbishment programme item: gold "Certified refurbished". */
+export function ConditionChip({ condition, certified }: { condition: Condition; certified?: boolean }) {
+  if (condition === "refurbished" && certified) return <Chip tone="brand">Certified refurbished</Chip>;
+  const { label, tone } = CONDITION[condition];
+  return <Chip tone={tone}>{label}</Chip>;
+}
+
+type FormatChipProps = {
+  format: ListingFormat;
+  /** Auctions only: when bidding closes (UTC ISO). */
+  endsAt?: string;
+  now?: number;
+};
+
+/** "Buy now", "Best offer" or "Auction · 2d 4h". Buy now is the default, so cards may omit it. */
+export function FormatChip({ format, endsAt, now }: FormatChipProps) {
+  if (format === "best_offer") {
+    return (
+      <Chip className="ws-chip-icon">
+        <HandshakeAgreementDealIcon />
+        Best offer
+      </Chip>
+    );
+  }
+  if (format === "auction") {
+    const left = endsAt ? timeLeft(endsAt, now) : null;
+    return (
+      <Chip className="ws-chip-icon" tone={left ? "neutral" : "warning"}>
+        <HammerIcon />
+        {left ? `Auction · ${left}` : "Auction ended"}
+      </Chip>
+    );
+  }
+  return <Chip>Buy now</Chip>;
+}
