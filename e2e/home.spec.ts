@@ -37,7 +37,9 @@ test("the hero carousel has a pause button, a counter and labelled slides (F8, F
 test("changing slide by hand stops rotation", async ({ page }) => {
   await page.goto("/");
   const hero = page.getByRole("region", { name: "Highlights" });
-  await expect(hero.getByRole("button", { name: "Pause slides" })).toBeVisible();
+  // Rotation starts at hydration (~2.7 s measured on a busy machine), past the 5 s
+  // default when the machine is loaded; wait for it rather than race it.
+  await expect(hero.getByRole("button", { name: "Pause slides" })).toBeVisible({ timeout: 20_000 });
   await hero.getByRole("button", { name: "Next slide" }).click();
   await expect(hero.getByRole("button", { name: "Play slides" })).toBeVisible();
 });
