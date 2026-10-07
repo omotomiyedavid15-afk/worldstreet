@@ -28,7 +28,7 @@ export function OfferForm({ price, qty, available, left, run }: { price: number;
     <label className="ws-field">Note (optional)<textarea value={note} onChange={(e) => { setNote(e.target.value); setAcknowledge(false); }} maxLength={rules.messaging.maxChars} rows={3} /></label>
     {risky && <SafetyWarning checked={acknowledge} change={setAcknowledge} />}
     <p id="offer-help" className="ws-deal-muted">Valid for {rules.offers.validityHours} hours. If accepted, you agree to pay the seller’s WorldStore payment request within {rules.offers.payWindowHours} hours. Delivery is agreed in chat before payment.</p>
-    <button className={buttonClass({})} disabled={left === 0 || (risky && !acknowledge)}>Send offer</button>
+    <button className={buttonClass({ size: "sm" })} disabled={left === 0 || (risky && !acknowledge)}>Send offer</button>
   </form>;
 }
 export function SafetyWarning({ checked, change }: { checked: boolean; change: (checked: boolean) => void }) {

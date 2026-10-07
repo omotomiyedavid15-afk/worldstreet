@@ -50,6 +50,9 @@ test("messaging warns about outside payments, preserves chat, and blocks the sel
   await expect(page.getByRole("log")).toContainText("Pay me directly on WhatsApp");
   await page.reload();
   await expect(page.getByRole("log")).toContainText("Pay me directly on WhatsApp");
+  // Under 1200px the deal panel (with Block) is a sheet opened from the thread header.
+  const dealToggle = page.getByRole("button", { name: "Deal details" });
+  if (await dealToggle.isVisible()) await dealToggle.click();
   await page.getByRole("button", { name: "Block seller", exact: true }).click();
   await expect(page.getByRole("button", { name: "Send message" })).toBeDisabled();
   await page.getByRole("button", { name: "Unblock seller", exact: true }).click();

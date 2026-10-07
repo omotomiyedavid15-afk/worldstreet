@@ -48,8 +48,9 @@ export function CategoryRail({ categories }: { categories: readonly Pick<NavCate
     el.scrollBy({ left: dir * el.clientWidth * 0.7, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   };
 
-  // A listing has its own breadcrumb; the rail would push the photos down.
-  if (pathname.startsWith("/listing/")) return null;
+  // A listing has its own breadcrumb; the rail would push the photos down. Inbox and
+  // Offers fill the screen with the chat, so it would push the composer off it.
+  if (["/listing/", "/inbox", "/offers"].some((p) => pathname.startsWith(p))) return null;
   return (
     <nav aria-label="Categories" className="ws-catrail" data-start={ends.start} data-end={ends.end}>
       <div className="cx-container ws-catrail__inner">
