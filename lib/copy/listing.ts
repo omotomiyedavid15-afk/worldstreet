@@ -84,3 +84,14 @@ export const REPORT_REASONS = [
 export type ReportReason = (typeof REPORT_REASONS)[number]["id"];
 
 export const REPORT_THANKS = `Thanks. Our team reviews reports within ${rules.moderation.reportReviewHours} hours. We don't tell the seller who reported.`;
+
+/** Listing pages that can't be bought (R-021, R-032, R-121). */
+export const UNAVAILABLE = {
+  sold: { title: "This item has sold", body: "The seller has none left. Similar items are below." },
+  ended: { title: "This listing has ended", body: "The seller ended it before it sold. Similar items are below." },
+  paused: { title: "Out of stock right now", body: "The seller has paused this listing until they restock. Save it to find it again." },
+  reserved: {
+    title: "Offer pending",
+    body: "The seller accepted another buyer's offer and they're paying now. If that sale doesn't complete, it goes back on sale.",
+  },
+} as const;

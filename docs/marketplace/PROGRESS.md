@@ -36,6 +36,8 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 | 6 Oct | Report | A dialog with seven reasons (prohibited, fake, scam, misleading, wrong category, offensive, other), optional details (500 characters, required for "Something else"), posting to a Server Action that validates everything; "We review reports within 24 hours. We don't tell the seller who reported." No anonymous-report limit or queue yet | Flows §632. Reports are accepted and dropped until the admin phase |
 | 6 Oct | Safety tips | Four tips; goods: pay on checkout only, meet in public, check before confirming, keep the chat on WorldStreet. Vehicles and property: no payment before inspecting, mechanic or document checks | Flows B3 step 9 and the vehicle/property alternate |
 | 6 Oct | Story tests | Motion's lazily loaded features are preloaded by a Storybook loader | Under a full run they arrived after 1 s and held the hide → Undo exit, so "Hide And Undo" failed only in the full suite |
+| 7 Oct | Listing P3d | Sold, ended and out-of-stock listings keep their page with "No longer available" (UnavailableState: See similar items, Visit shop, Save when it may return); reserved ones say "Offer pending" with Message seller; removed/draft/in-review/rejected answer not found. Revision history (R-112) and seller notes on the listing. The shop page `/seller/:handle` (header; Items / Reviews / About; tab in `?tab=`). Three fixtures added: reserved, paused, removed | Flows R-021, R-032, R-121, R-112, spec §7 and §13. **Deviation:** the spec's 410 for removed listings isn't possible from a Next page; with streaming the status is 200 + robots noindex, which search engines also drop. **Deferred:** LocalPickupMap (needs a map provider: tiles are an external service, a licence and a privacy choice), VariationSelector and VideoPlayer (no variations or video in the data yet), R-024 live price-change notice (needs realtime) |
+| 7 Oct | Mock data (flagged) | Revision history now shows that most discounted mock listings dropped their price days after listing, so their struck-through "was" price breaks flows S2 step 4 (a higher price must have held ≥ 7 days). Nothing enforces that rule yet | The rule belongs to the listing wizard (Phase 7) plus a display guard. Adding the guard now removes most mock discounts and the Deals rail, so it waits for your call |
 | 7 Oct | Icons | Checked for Lucide: none in dependencies, imports, inline SVGs, CSS or app icons; all 80 icons and the app icon come from Atlas. Icon weight is now set by role (`styles/marketplace.css`): **linear** (Atlas medium, 1.5px) for things you read, **bold** (Atlas bold, 2px) for icon buttons, solid buttons, the selected/pressed/current item, chips, alerts and the logo; `weight` on an icon overrides it (`linear` accepted as a name) | Your direction, 7 Oct. Replaces the DS's per-component widths (1.6–1.8px), which also silently overrode any weight set on an icon. Foundations › Icons › Weights tests the rule |
 | 7 Oct | Listing P3c | About this seller (SellerCard + four detailed ratings), Ratings and reviews (This item / All items tabs, star spread, topic chips, Verified purchase, seller replies, Show more), Similar items and Seller's other items rails. DS Tabs rebuilt (`components/ui/Tabs.tsx`). "Save seller" waits for Saved › Sellers; review photos wait for uploads (Phase 7) | Spec §7, flows B3 steps 6–8, B11. Mock reviews are generated from each seed's rating and every listing's displayed rating is computed from its records (lib/reviews.ts), so card, page and list agree (F13, PLAN F7). Item and seller summaries are labelled apart (R-073). Similar skips the seller's own items so nothing shows twice (R-013) and collapses under 4 (R-014); the seller rail shows at any size. Time zone added to config (R-006) |
 | 7 Oct | Home layout | Trust strip removed from the home page (component, story, CSS and its copy); the hero carousel moved below Near you (or its nationwide fallback) | Your direction, 7 Oct. Departs from flows B1 step 3 ("trust strip above the fold") and the blueprint's "keep it"; escrow is still stated by the hero's first slide, the sell block and every listing page |
@@ -248,9 +250,9 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 - [x] ProtectionPanel
 - [x] ConditionInfo
 - [x] ItemSpecifics
-- [ ] SellerNotes
+- [x] SellerNotes
 - [x] DescriptionBlock
-- [ ] RevisionHistory
+- [x] RevisionHistory
 - [x] ListingMeta
 - [x] SellerCard
 - [x] SellerRatingsBreakdown
@@ -263,7 +265,7 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 - [x] ReportListingModal
 - [x] SafetyTipsCard
 - [ ] LocalPickupMap
-- [ ] UnavailableState
+- [x] UnavailableState
 - [ ] PriceHistorySparkline
 
 ## F. Offers & bids
@@ -361,8 +363,8 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 - [ ] LevelBadge
 - [ ] VerifiedBadge
 - [ ] NewSellerBadge
-- [ ] SellerPublicProfile + SellerProfileHeader
-- [ ] SellerStats
+- [x] SellerPublicProfile + SellerProfileHeader
+- [x] SellerStats
 - [x] SavedPage + SavedSearchRow
 - [ ] NotificationCentre
 - [ ] NotificationPreferences

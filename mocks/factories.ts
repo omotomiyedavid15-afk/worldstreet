@@ -1,6 +1,6 @@
 /* MOCK DATA ONLY. Not real people, shops or listings. Imported only by mocks/fixtures. */
 
-import type { CategoryId, Condition, DeliveryOption, Listing, ListingFormat, ListingStatus, Review, ReviewTopic } from "@/lib/data/types";
+import type { CategoryId, Condition, DeliveryOption, Listing, ListingFormat, ListingRevision, ListingStatus, Review, ReviewTopic } from "@/lib/data/types";
 import { toMinor } from "@/lib/money";
 import { places, type PlaceKey } from "./fixtures/places";
 
@@ -43,10 +43,30 @@ export type ListingSeed = {
   attributes?: Record<string, string>;
   description?: string;
   rating?: [average: number, count: number];
+  /** Seller notes on condition (spec §7). */
+  notes?: string;
+  /** Days ago the description was last edited, logged as a revision (R-112). */
+  editedDaysAgo?: number;
   sold?: number;
   watchers?: number;
   inCarts?: number;
 };
+
+/** Revisions a listing's own data implies (R-112): a struck-through price means the price
+ *  was lowered after listing, so the history shows that change; an edited description is
+ *  logged when the seed says so. Oldest first. */
+function revisionsFor(seed: ListingSeed): ListingRevision[] {
+  const day = 86_400_000;
+  const created = MOCK_NOW - seed.daysAgo * day;
+  const out: ListingRevision[] = [];
+  if (seed.was !== undefined) {
+    out.push({ at: new Date(created + (seed.daysAgo * day) / 2).toISOString(), change: "price", from_minor: toMinor(seed.was), to_minor: toMinor(seed.price) });
+  }
+  if (seed.editedDaysAgo !== undefined && seed.editedDaysAgo < seed.daysAgo) {
+    out.push({ at: new Date(MOCK_NOW - seed.editedDaysAgo * day).toISOString(), change: "description" });
+  }
+  return out.sort((a, b) => a.at.localeCompare(b.at));
+}
 
 /** Fixed "now" so fixtures and tests are deterministic. */
 export const MOCK_NOW = Date.parse("2026-10-06T09:00:00Z");
@@ -92,6 +112,8 @@ export function makeListing(seed: ListingSeed): Listing {
     })),
     attributes: Object.entries(seed.attributes ?? {}).map(([key, value]) => ({ key, value })),
     status: seed.status ?? "live",
+    ...(seed.notes && { seller_notes: seed.notes }),
+    ...(revisionsFor(seed).length > 0 && { revisions: revisionsFor(seed) }),
     created_at: new Date(MOCK_NOW - seed.daysAgo * 86_400_000).toISOString(),
     ...(seed.sold !== undefined && { sold_count: seed.sold }),
     ...(seed.watchers !== undefined && { watchers: seed.watchers }),

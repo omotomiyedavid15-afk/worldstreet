@@ -110,6 +110,11 @@ export type Review = {
   reply?: { text: string; created_at: ISODateTime };
 };
 
+/** One logged edit to a live listing (R-112), shown in "View history" (B3 step 5). */
+export type ListingRevision =
+  | { at: ISODateTime; change: "price"; from_minor: Kobo; to_minor: Kobo }
+  | { at: ISODateTime; change: "description" | "photos" | "quantity" };
+
 export type ListingMedia = {
   url: string;
   alt: string;
@@ -143,6 +148,10 @@ export type Listing = {
   delivery: readonly DeliveryOption[];
   /** Days, or null for no returns (S2 step 6). */
   return_days: 3 | 7 | 14 | null;
+  /** The seller's own words on condition, flaws and what's included (spec §7 SellerNotes). */
+  seller_notes?: string;
+  /** Edits since listing, oldest first (R-112). */
+  revisions?: readonly ListingRevision[];
   media: readonly ListingMedia[];
   attributes: readonly ListingAttribute[];
   status: ListingStatus;

@@ -132,3 +132,21 @@ describe("reviews", () => {
     expect([...r].sort((a, b) => b.created_at.localeCompare(a.created_at))).toEqual(r);
   });
 });
+
+describe("listing history (R-112)", () => {
+  it("every struck-through price comes from a logged price change", async () => {
+    for (const l of await all()) {
+      if (l.was_minor === undefined) continue;
+      const change = l.revisions?.find((r) => r.change === "price");
+      expect(change, l.id).toMatchObject({ from_minor: l.was_minor, to_minor: l.price_minor });
+    }
+  });
+
+  it("logs revisions after the listing went up, oldest first", async () => {
+    for (const l of await all()) {
+      const revs = l.revisions ?? [];
+      for (const r of revs) expect(r.at > l.created_at, l.id).toBe(true);
+      expect(revs.map((r) => r.at), l.id).toEqual([...revs.map((r) => r.at)].sort());
+    }
+  });
+});

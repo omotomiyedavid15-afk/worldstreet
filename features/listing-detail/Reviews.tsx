@@ -76,9 +76,11 @@ type ListProps = {
   titles: Readonly<Record<string, string>>;
   now: number;
   onSeeSeller?: () => void;
+  /** Keep the page's heading order (h3 inside the listing page's reviews section). */
+  headingLevel?: "h2" | "h3";
 };
 
-function ReviewList({ reviews, scope, shopName, titles, now, onSeeSeller }: ListProps) {
+export function ReviewList({ reviews, scope, shopName, titles, now, onSeeSeller, headingLevel = "h3" }: ListProps) {
   const [topic, setTopic] = useState<ReviewTopic | null>(null);
   const [shown, setShown] = useState<number>(rules.listing.reviewsShown);
   const [announce, setAnnounce] = useState("");
@@ -88,7 +90,7 @@ function ReviewList({ reviews, scope, shopName, titles, now, onSeeSeller }: List
       <EmptyState
         icon={<StarIcon />}
         title={scope === "item" ? "No reviews of this item yet" : `No reviews for ${shopName} yet`}
-        headingLevel="h3"
+        headingLevel={headingLevel}
         action={
           onSeeSeller && (
             <Button variant="ghost" size="sm" onClick={onSeeSeller}>

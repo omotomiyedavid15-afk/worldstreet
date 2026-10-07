@@ -104,10 +104,10 @@ export function SellerCard({ seller, listingId, dimensions, ratingCount }: Props
 }
 
 /** eBay's four detailed seller ratings: a bar and the average for each, out of 5. */
-export function SellerRatingsBreakdown({ dimensions, count }: { dimensions: ReviewDimensions; count: number }) {
+export function SellerRatingsBreakdown({ dimensions, count, headingLevel: H = "h3" }: { dimensions: ReviewDimensions; count: number; headingLevel?: "h2" | "h3" }) {
   return (
     <div className="ws-dims">
-      <h3 className="ws-subtitle">Detailed seller ratings</h3>
+      <H className="ws-subtitle">Detailed seller ratings</H>
       <p className="ws-dims__note">Average from {plural(count, "review")} of this seller&apos;s items</p>
       <ul className="ws-dims__list">
         {DIMENSIONS.map(({ key, label }) => (

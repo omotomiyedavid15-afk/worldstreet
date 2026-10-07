@@ -155,3 +155,50 @@ test("Similar items and Seller's other items never repeat a listing or show this
   expect(unique.size).toBe(hrefs.length);
   expect([...unique]).not.toContain(IPHONE);
 });
+
+/* P3d: listings that can't be bought, revision history, the shop page. */
+
+test("a sold listing keeps its page but can't be bought (R-021)", async ({ page }) => {
+  await page.goto("/listing/204518-lenovo-thinkpad-x1-carbon-gen-9");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Lenovo ThinkPad X1 Carbon Gen 9");
+  await expect(page.getByText("This item has sold")).toBeVisible();
+  await expect(page.getByText("Sold for", { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Buy it now" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "See similar items" }).first()).toBeVisible();
+});
+
+test("a reserved listing says Offer pending and offers no checkout (R-032)", async ({ page }) => {
+  await page.goto("/listing/204543-nintendo-switch-oled-white");
+  await expect(page.getByText("Offer pending")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Buy it now" })).toHaveCount(0);
+});
+
+test("a removed listing answers not found, with a way on and noindex", async ({ page }) => {
+  await page.goto("/listing/204545-designer-handbag-removed-listing");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("This listing isn't available");
+  await expect(page.getByRole("link", { name: /Search for something similar/ })).toHaveAttribute("href", "/search");
+  await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute("content", /noindex/);
+});
+
+test("View history lists the price change behind a struck-through price (R-112)", async ({ page }) => {
+  await page.goto(IPHONE);
+  await page.getByRole("button", { name: /View history/ }).click();
+  const dialog = page.getByRole("dialog", { name: "Revision history" });
+  await expect(dialog.getByText("Price lowered from ₦920,000 to ₦845,000")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+});
+
+test("the shop page: header, a card per live item, and tabs kept in the URL (SCR-005, R-011)", async ({ page }) => {
+  await page.goto("/seller/gadgethub-ikeja");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Gadget Hub Ikeja");
+  const tab = page.getByRole("tab", { name: /^Items \((\d+)\)$/ });
+  const n = Number((await tab.textContent())!.match(/\d+/)![0]);
+  await expect(page.getByRole("list", { name: "Items from Gadget Hub Ikeja" }).getByRole("listitem")).toHaveCount(n);
+  await page.getByRole("tab", { name: /Reviews/ }).click();
+  await expect(page).toHaveURL(/\?tab=reviews$/);
+  await page.reload();
+  await expect(page.getByRole("tab", { name: /Reviews/ })).toHaveAttribute("aria-selected", "true");
+  const { violations } = await new AxeBuilder({ page }).analyze();
+  expect(violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => v.id)).toEqual([]);
+});
