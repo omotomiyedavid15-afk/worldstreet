@@ -37,16 +37,45 @@ describe("local P2P repository", () => {
     state = execute(state, { type: "request", id: "request", offer_id: "one", delivery_minor: 500 }, seller);
     state = execute(state, { type: "pay", id: "fail", offer_id: "one", outcome: "declined" }, ctx);
     expect(state.offers[0].status).toBe("accepted");
-    state = execute(state, { type: "pay", id: "pay", offer_id: "one", outcome: "success" }, ctx);
+    expect(state.requests[0]).toMatchObject({
+      id: "request",
+      unit_minor: 90_000,
+      qty: 1,
+      item_subtotal_minor: 90_000,
+      delivery_minor: 500,
+      total_minor: 90_500,
+      status: "declined",
+      attempts: 1,
+      last_attempted_at: ctx.now,
+      inventory_lock_expires_at: ctx.now + rules.paymentRequest.lockMinutes * 60_000,
+    });
+    const retry = { ...ctx, now: ctx.now + 1_000 };
+    state = execute(state, { type: "pay", id: "pay", offer_id: "one", outcome: "success" }, retry);
     expect(state.offers[0].status).toBe("paid");
-    expect(state.requests[0].total_minor).toBe(90_500);
-    expect(execute(state, { type: "pay", id: "pay", offer_id: "one", outcome: "success" }, ctx)).toEqual(state);
-    expect(() => execute(state, { type: "pay", id: "again", offer_id: "one", outcome: "success" }, ctx)).toThrow();
+    expect(state.requests[0]).toMatchObject({ status: "paid", attempts: 2, paid_at: retry.now });
+    expect(execute(state, { type: "pay", id: "pay", offer_id: "one", outcome: "success" }, retry)).toEqual(state);
+    expect(() => execute(state, { type: "pay", id: "again", offer_id: "one", outcome: "success" }, retry)).toThrow();
+  });
+  it("keeps the accepted deal total fixed when the listing price changes", () => {
+    let state = execute(accepted(), { type: "request", id: "request", offer_id: "one", delivery_minor: 500 }, seller);
+    state = execute(state, { type: "pay", id: "pay", offer_id: "one", outcome: "success" }, { ...ctx, listing: { ...ctx.listing, price_minor: kobo(200_000) } });
+    expect(state.requests[0]).toMatchObject({ unit_minor: 90_000, item_subtotal_minor: 90_000, total_minor: 90_500, status: "paid" });
+  });
+  it("lets only one accepted deal pay for the final unit (EC-008)", () => {
+    const second = { ...accepted().offers[0], id: "two" };
+    let state = { ...accepted(), offers: [accepted().offers[0], second] };
+    const oneLeft = { ...seller, listing: { ...seller.listing, qty: 1 } };
+    state = execute(state, { type: "request", id: "request-one", offer_id: "one", delivery_minor: 0 }, oneLeft);
+    state = execute(state, { type: "request", id: "request-two", offer_id: "two", delivery_minor: 0 }, oneLeft);
+    state = execute(state, { type: "pay", id: "pay-one", offer_id: "one", outcome: "success" }, { ...oneLeft, role: "buyer" });
+    expect(() => execute(state, { type: "pay", id: "pay-two", offer_id: "two", outcome: "success" }, { ...oneLeft, role: "buyer" })).toThrow(/no longer available/i);
   });
   it("lapses accepted offers and refuses late or ineligible payments", () => {
     const state = accepted();
     const later = { ...seller, now: ctx.now + rules.offers.payWindowHours * 3600000 };
-    expect(expire(state, later.now).offers[0].status).toBe("lapsed");
+    const requested = execute(state, { type: "request", id: "request", offer_id: "one", delivery_minor: 0 }, seller);
+    expect(expire(requested, later.now).offers[0].status).toBe("lapsed");
+    expect(expire(requested, later.now).requests[0].status).toBe("expired");
     expect(() => execute(state, { type: "request", id: "late", offer_id: "one", delivery_minor: 0 }, later)).toThrow();
     expect(() => execute(state, { type: "request", id: "car", offer_id: "one", delivery_minor: 0 }, { ...seller, listing: { ...ctx.listing, category_id: "vehicles" } })).toThrow(/category/i);
   });
@@ -76,5 +105,18 @@ describe("local P2P repository", () => {
   it("rejects corrupted browser data", () => {
     expect(parseState({ offers: [null] })).toEqual(emptyState);
     expect(parseState(JSON.parse(JSON.stringify(accepted())))).toEqual(accepted());
+  });
+  it("migrates Phase 4 payment requests without changing their total", () => {
+    const legacy = execute(accepted(), { type: "request", id: "request", offer_id: "one", delivery_minor: 500 }, seller);
+    const raw = JSON.parse(JSON.stringify(legacy));
+    raw.requests = [{ offer_id: "one", delivery_minor: 500, total_minor: 90_500, outcome: "declined" }];
+    expect(parseState(raw).requests[0]).toMatchObject({
+      id: "legacy:one",
+      unit_minor: 90_000,
+      item_subtotal_minor: 90_000,
+      total_minor: 90_500,
+      status: "declined",
+      attempts: 1,
+    });
   });
 });

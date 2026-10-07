@@ -33,14 +33,20 @@ export function OfferCard({ offer, request, role, escrow, run, blocked }: { offe
         <button className={buttonClass({})}>Send payment request</button>
       </form> : <p>Deal agreed. Waiting for the seller’s payment request.</p>)}
       {request && <section className="ws-deal-request ws-deal-stack" aria-label="Payment request">
-        <h3>Payment request</h3>
-        <dl><div><dt>Items</dt><dd>{formatCurrency(kobo(offer.amount_minor * offer.qty))}</dd></div><div><dt>Agreed delivery</dt><dd>{formatCurrency(kobo(request.delivery_minor))}</dd></div><div><dt>Total</dt><dd data-testid="request-total">{formatCurrency(kobo(request.total_minor))}</dd></div></dl>
-        {offer.status === "paid" ? <p role="status">Demo payment complete. No funds moved.</p> : offer.status === "accepted" && role === "buyer" ? <>
+        <div className="ws-deal-heading"><h3>Payment request</h3><span className="ws-deal-status" data-testid="request-status">{request.status.replace("_", " ")}</span></div>
+        <dl>
+          <div><dt>Accepted price</dt><dd>{formatCurrency(kobo(request.unit_minor))} × {request.qty}</dd></div>
+          <div><dt>Items subtotal</dt><dd>{formatCurrency(kobo(request.item_subtotal_minor))}</dd></div>
+          <div><dt>Agreed delivery</dt><dd>{formatCurrency(kobo(request.delivery_minor))}</dd></div>
+          <div><dt>Total</dt><dd data-testid="request-total">{formatCurrency(kobo(request.total_minor))}</dd></div>
+        </dl>
+        {request.status === "paid" ? <p role="status">Demo payment complete. No funds moved.</p> : request.status === "expired" ? <p>This payment request has expired.</p> : offer.status === "accepted" && role === "buyer" ? <>
           <p>This is a simulated payment into escrow. No card details are needed and no funds will move.</p>
-          {request.outcome !== "unpaid" && <p role="status">Payment {request.outcome}. No money taken. Try again before the deadline.</p>}
+          <p className="ws-deal-muted">Before each attempt, WorldStore rechecks availability and reserves the quantity for up to {rules.paymentRequest.lockMinutes} minutes. The agreed total cannot change.</p>
+          {["declined", "timed_out"].includes(request.status) && <p role="status">Payment {request.status === "timed_out" ? "timed out" : "declined"}. No money taken. Try again before the deadline.</p>}
           <label className="ws-field">Demo payment result<select value={outcome} onChange={(e) => setOutcome(e.target.value as typeof outcome)}><option value="success">Success</option><option value="declined">Declined</option><option value="timeout">Timeout</option></select></label>
           <button className={buttonClass({})} onClick={() => run({ type: "pay", id: crypto.randomUUID(), offer_id: offer.id, outcome })}>Simulate payment</button>
-        </> : offer.status === "accepted" ? <p>Waiting for the buyer to pay.</p> : <p>This payment request has expired.</p>}
+        </> : offer.status === "accepted" ? <p>Waiting for the buyer to pay.</p> : <p>This payment request can no longer be paid.</p>}
       </section>}
     </>}
   </article>;

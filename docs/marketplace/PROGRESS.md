@@ -19,6 +19,15 @@ _Phases 0–2 implemented; Phase 3 includes P3a–P3d (listing detail, seller/re
 - Verification: `npm run check` passes (icons, ESLint, Next route types + TypeScript, 28 unit-test files / 188 tests, Storybook production build). Focused Playwright coverage passes on 375 px mobile and 1280 px desktop for the full offer → accept → payment-request → simulated-payment flow, messaging safety/blocking/persistence, Watchlist replacement, Recently viewed hydration and browser-storage failure recovery. Axe reports zero serious/critical violations on the inbox flow.
 - Renamed the customer-facing product to **WorldStore** and replaced the temporary Atlas bag mark with the supplied W mark. The same SVG now generates the favicon, Apple icon and manifest icons. Internal `data-brand="worldstreet"` selectors and `ws:*` browser-storage keys stay unchanged for design-token and saved-data compatibility.
 
+## Phase 5 handoff — 7 Oct
+
+- Seller payment requests now store an immutable snapshot of the accepted unit price, quantity, item subtotal, agreed delivery and final total. The client never supplies or recalculates a payable total.
+- A typed payment-request state machine covers start, success, decline, timeout, retry and expiry. Paid and expired requests are terminal; decline and timeout keep the same request retryable before the accepted-offer deadline.
+- Every attempt rechecks listing availability, records the configured 10-minute inventory-lock deadline and uses the existing idempotency receipt. A competing accepted deal cannot pay after the final unit has been consumed (EC-008).
+- The buyer review shows every cost before the pay action (R-043), preserves the request after failure and makes the demo/provider boundary explicit. Existing local Phase 4 request records migrate to the richer shape during hydration.
+- Production acceptance still requires authenticated buyer/seller identities, a durable transactional repository, provider-hosted payment fields, signed webhooks, KYC and an order/escrow ledger. The local result selector remains a test control and moves no money.
+- Plan and acceptance details: [`../plans/2026-10-07-phase-5-seller-payment-requests.md`](../plans/2026-10-07-phase-5-seller-payment-requests.md).
+
 ## Deviations from the docs and the design system
 
 | Date | Where | Deviation | Why |
