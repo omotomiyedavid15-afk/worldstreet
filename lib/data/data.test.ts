@@ -102,3 +102,33 @@ describe("listing URLs", () => {
     expect(parseListingParam("../etc")).toBeNull();
   });
 });
+
+describe("reviews", () => {
+  it("every listing's rating is computed from its own reviews (F13, PLAN F7)", async () => {
+    const { summariseReviews } = await import("@/lib/reviews");
+    for (const l of await repos.listings.list({ status: ["live", "reserved", "sold", "ended", "removed"] })) {
+      const own = await repos.reviews.forListing(l.id);
+      if (!own.length) {
+        expect(l.rating, l.id).toBeUndefined();
+        continue;
+      }
+      const s = summariseReviews(own);
+      expect(l.rating, l.id).toEqual({ average: s.average, count: s.count });
+    }
+  });
+
+  it("shows buyers masked, never by name, and only verified orders' sellers", async () => {
+    const all = await repos.reviews.forSeller("s01");
+    expect(all.length).toBeGreaterThan(0);
+    for (const r of all) {
+      expect(r.buyer, r.id).toMatch(/^[a-z]\*{3}[a-z]$/);
+      expect(r.seller_id).toBe("s01");
+    }
+  });
+
+  it("lists newest first", async () => {
+    const r = await repos.reviews.forListing("204507");
+    expect(r.length).toBeGreaterThan(1);
+    expect([...r].sort((a, b) => b.created_at.localeCompare(a.created_at))).toEqual(r);
+  });
+});

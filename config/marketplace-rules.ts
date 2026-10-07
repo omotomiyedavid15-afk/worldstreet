@@ -9,6 +9,9 @@
 const NAIRA = 100;
 
 export const rules = {
+  time: {
+    zone: "Africa/Lagos", // R-006: store UTC, display WAT
+  },
   money: {
     currency: "NGN", // R-002, EC-028: one currency, no mixed lists
     minorPerMajor: NAIRA,
@@ -175,6 +178,9 @@ export const rules = {
   listing: {
     specificsShown: 8, // spec §7 ItemSpecifics: collapsible after 8 rows
     descriptionLines: 12, // spec §7 DescriptionBlock: "Read more" after 12 lines
+    relatedRailMax: 12, // spec §7 SimilarItemsRail / SellerOtherItemsRail: cards per rail
+    reviewsShown: 5, // spec §7 ReviewsSection: then "Show more reviews" (eBay shows a handful)
+    reviewsStep: 10, // reviews added per "Show more"
   },
   moderation: {
     reportReviewHours: 24, // flows §632: normal-risk SLA (high risk is 1 h, internal)

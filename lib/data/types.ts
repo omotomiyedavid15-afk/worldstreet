@@ -81,6 +81,35 @@ export type SellerProfile = {
   show_watchers: boolean;
 };
 
+/** What a review talks about, for eBay-style topic chips (B3 step 7). */
+export type ReviewTopic = "as_described" | "quality" | "value" | "delivery" | "communication" | "packaging";
+
+/** The four detailed seller ratings (B11, eBay "Detailed seller ratings"). 1–5 each. */
+export type ReviewDimensions = { accuracy: number; delivery: number; communication: number; packaging: number };
+
+/**
+ * One buyer's review of one order item (flows Part G Review, B11). Only buyers with a
+ * completed order can write one (R-070), so every review is a verified purchase. The
+ * buyer is shown masked ("o***a"), never by name. Item scores and seller scores are
+ * summarised separately (R-073).
+ */
+export type Review = {
+  id: string;
+  listing_id: string;
+  seller_id: string;
+  /** Masked buyer name, e.g. "o***a" (B3 step 7). */
+  buyer: string;
+  /** The reviewer's own feedback count, shown in brackets as eBay does. */
+  buyer_feedback_count: number;
+  rating: 1 | 2 | 3 | 4 | 5;
+  dimensions: ReviewDimensions;
+  text: string;
+  topics: readonly ReviewTopic[];
+  created_at: ISODateTime;
+  /** The seller may reply once (B11). */
+  reply?: { text: string; created_at: ISODateTime };
+};
+
 export type ListingMedia = {
   url: string;
   alt: string;

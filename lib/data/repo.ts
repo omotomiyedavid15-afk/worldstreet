@@ -1,4 +1,4 @@
-import type { Category, CategoryId, Listing, ListingStatus, ListingWithSeller, SellerProfile } from "./types";
+import type { Category, CategoryId, Listing, ListingStatus, ListingWithSeller, Review, SellerProfile } from "./types";
 
 /*
  * Repository interfaces (PLAN §2.1). Server Components read through these; the
@@ -32,6 +32,13 @@ export interface CategoryRepo {
   list(): Promise<Category[]>;
 }
 
+export interface ReviewRepo {
+  /** Reviews of one listing, newest first (B3 step 7, "This item"). */
+  forListing(listingId: string): Promise<Review[]>;
+  /** Reviews across all of a seller's items, newest first ("All items from seller"). */
+  forSeller(sellerId: string): Promise<Review[]>;
+}
+
 export interface SearchRepo {
   /** Popular searches for the empty search box (B2 step 1). */
   trending(): Promise<string[]>;
@@ -41,6 +48,7 @@ export type Repos = {
   listings: ListingRepo;
   sellers: SellerRepo;
   categories: CategoryRepo;
+  reviews: ReviewRepo;
   search: SearchRepo;
 };
 

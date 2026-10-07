@@ -122,3 +122,36 @@ test("axe: no serious or critical issues on a listing", async ({ page }) => {
   const bad = violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   expect(bad.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
 });
+
+/* P3c: About this seller, ratings and reviews, and the two rails. */
+
+test("the item rating in the title matches the reviews, and seller scores are labelled apart (R-073, F13)", async ({ page }) => {
+  await page.goto(IPHONE);
+  const header = page.locator(".ws-listing__title").getByRole("img", { name: /^Item rating/ });
+  const label = (await header.getAttribute("aria-label"))!;
+  const [, avg, count] = label.match(/Item rating ([\d.]+) out of 5, (\d+) ratings/)!;
+  const reviews = page.getByRole("region", { name: "Ratings and reviews" });
+  await expect(reviews.getByRole("tab", { name: `This item (${count})` })).toHaveAttribute("aria-selected", "true");
+  await expect(reviews.getByRole("tabpanel").getByRole("img", { name: `Item rating ${avg} out of 5, ${count} ratings` })).toBeVisible();
+  await expect(reviews.getByText("Verified purchase").first()).toBeVisible();
+
+  // Keyboard: → moves to the seller tab, whose summary is a seller rating.
+  await reviews.getByRole("tab", { name: /This item/ }).focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(reviews.getByRole("tab", { name: /All items from/ })).toBeFocused();
+  await expect(reviews.getByRole("tabpanel").getByRole("img", { name: /^Seller rating/ })).toBeVisible();
+
+  const seller = page.getByRole("region", { name: "About this seller" });
+  await expect(seller.getByText(/% positive/)).toBeVisible();
+  await expect(seller.getByText("Accurate description")).toBeVisible();
+  await expect(seller.getByRole("link", { name: /Visit shop/ })).toHaveAttribute("href", /^\/seller\//);
+});
+
+test("Similar items and Seller's other items never repeat a listing or show this one (R-013)", async ({ page }) => {
+  await page.goto(IPHONE);
+  const hrefs = await page.locator("#rail-similar, #rail-seller-items").locator("xpath=ancestor::section[1]").locator("a[href^='/listing/']").evaluateAll((as) => as.map((a) => a.getAttribute("href")!));
+  expect(hrefs.length).toBeGreaterThan(0);
+  const unique = new Set(hrefs.map((h) => h.split("?")[0]));
+  expect(unique.size).toBe(hrefs.length);
+  expect([...unique]).not.toContain(IPHONE);
+});

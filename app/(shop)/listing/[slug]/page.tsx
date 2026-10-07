@@ -11,15 +11,21 @@ import { DeliveryPanel, ItemSpecifics, PaymentsPanel, ProtectionPanel, ReturnsPa
 import { ReportButton, ReportListingModal } from "@/features/listing-detail/ReportListing";
 import { reportListing } from "@/features/listing-detail/report-action";
 import { ShareButton, ShareSheet } from "@/features/listing-detail/ShareSheet";
+import { ReviewsSection } from "@/features/listing-detail/Reviews";
+import { SellerCard } from "@/features/listing-detail/SellerCard";
 import { StickyBuyBar } from "@/features/listing-detail/StickyBuyBar";
+import { getHidden } from "@/features/hidden/server";
+import { ProductRail } from "@/features/home/ProductRail";
 import { setLocation } from "@/features/location/actions";
 import { getAnchor } from "@/features/location/server";
 import { RecordView } from "@/features/recent/RecordView";
-import { listingPath, parseListingParam, repos } from "@/lib/data";
+import { listingPath, parseListingParam, repos, type ListingStatus } from "@/lib/data";
 import { deliveryFee, summariseDelivery } from "@/lib/delivery";
 import { timeAgo } from "@/lib/format";
 import { formatCurrency } from "@/lib/money";
 import { buyerTotal } from "@/lib/pricing";
+import { sellerOtherListings, similarListings } from "@/lib/related";
+import { dimensionAverages } from "@/lib/reviews";
 import { requestTime, siteOrigin } from "@/lib/site";
 
 /* SCR-004 Listing detail (flows B3, spec §7), eBay's layout: gallery left, the buy box
@@ -27,6 +33,8 @@ import { requestTime, siteOrigin } from "@/lib/site";
    Price, delivery to the buyer's area, returns and the escrow line sit above the fold on
    a 375×812 phone (§18 stage 3), and a sticky buy bar replaces the bottom nav there.
    Old or wrong slugs redirect to the canonical /listing/:id-:slug (R-011). */
+
+const EVERY_STATUS: ListingStatus[] = ["draft", "in_review", "live", "rejected", "paused", "reserved", "sold", "ended", "removed"];
 
 async function load(slug: string) {
   const parsed = parseListingParam(slug);
@@ -57,7 +65,19 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
   if (!found?.listing) notFound();
   const { listing, parsed } = found;
   if (parsed.slug !== listing.slug) permanentRedirect(listingPath(listing));
-  const { anchor } = await getAnchor();
+  const [{ anchor }, hidden, itemReviews, sellerReviews, visibleListings, sellerListings] = await Promise.all([
+    getAnchor(),
+    getHidden(),
+    repos.reviews.forListing(listing.id),
+    repos.reviews.forSeller(listing.seller_id),
+    repos.listings.list(),
+    repos.listings.list({ seller_id: listing.seller_id, status: EVERY_STATUS }),
+  ]);
+  const related = { listing, all: visibleListings, anchor, hidden };
+  const similar = similarListings(related);
+  const fromSeller = sellerOtherListings(related);
+  // Reviews on the seller tab name what was bought, including items no longer on sale.
+  const titles = Object.fromEntries(sellerListings.map((l) => [l.id, l.title]));
 
   const goods = listing.category.kind === "goods";
   const summary = summariseDelivery(listing.delivery, anchor.city === listing.location.city);
@@ -129,6 +149,11 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
             <DemandLine listing={listing} />
             <div className="ws-buybox__seller">
               <SellerMini seller={listing.seller} link avatar />
+              {/* SellerStrip (spec §7): eBay's "Seller's other items" and "Message". */}
+              <p className="ws-buybox__sellerlinks">
+                {fromSeller.length > 0 && <a href="#rail-seller-items">Seller&apos;s other items</a>}
+                <Link href={`/inbox?seller=${listing.seller.handle}&listing=${listing.id}`}>Message seller</Link>
+              </p>
             </div>
           </section>
         </div>
@@ -165,7 +190,33 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
         </section>
 
         <SafetyTipsCard listing={listing} />
+
+        <SellerCard seller={listing.seller} listingId={listing.id} dimensions={dimensionAverages(sellerReviews)} ratingCount={sellerReviews.length} />
+        <ReviewsSection itemReviews={itemReviews} sellerReviews={sellerReviews} shopName={listing.seller.shop_name} titles={titles} now={now} />
       </div>
+
+      {similar.length > 0 && (
+        <ProductRail
+          id="similar"
+          eyebrow={listing.category.name}
+          title="Similar items"
+          seeAll={{ href: catHref, srLabel: `${listing.category.name} listings` }}
+          listings={similar}
+          anchor={anchor}
+          now={now}
+        />
+      )}
+      {fromSeller.length > 0 && (
+        <ProductRail
+          id="seller-items"
+          eyebrow={listing.seller.shop_name}
+          title="Seller's other items"
+          seeAll={{ href: `/seller/${listing.seller.handle}`, label: "Visit shop", srLabel: `of ${listing.seller.shop_name}` }}
+          listings={fromSeller}
+          anchor={anchor}
+          now={now}
+        />
+      )}
 
       <ShareSheet {...share} />
       <ReportListingModal listingId={listing.id} title={listing.title} submit={reportListing} />

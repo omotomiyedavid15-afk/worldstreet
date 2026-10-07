@@ -7,3 +7,4 @@ export { Avatar, Badge, Card, EmptyState, IconTile, Skeleton, initials } from ".
 export { ToastViewport, toast, dismissToast, type ToastInput } from "./Toast";
 export { Menu, type MenuItem } from "./Menu";
 export { Tooltip } from "./Tooltip";
+export { Tabs, tabPanelProps, tabId, panelId, type TabItem } from "./Tabs";

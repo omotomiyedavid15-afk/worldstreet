@@ -1,8 +1,9 @@
 /* MOCK DATA ONLY. Not real people, shops or listings. Imported only by lib/data/index.ts.
    Social-proof numbers here are invented for layout testing (PLAN F7). */
 
-import type { Listing } from "@/lib/data/types";
-import { makeListing, type ListingSeed } from "../factories";
+import type { Listing, Review } from "@/lib/data/types";
+import { makeListing, makeReviews, withItemRating, type ListingSeed } from "../factories";
+import { sellers } from "./sellers";
 
 const seeds: ListingSeed[] = [
   // Phones & tablets
@@ -58,4 +59,7 @@ const seeds: ListingSeed[] = [
   { id: "204542", title: "Mini Flat to Let, Yaba", period: "year", category: "property", seller: "s10", place: "yaba", condition: "new", price: 1_800_000, delivery: "pickup", photos: 6, daysAgo: 3, returns: null, attributes: { Bedrooms: "1", Bathrooms: "1" } },
 ];
 
-export const listings: readonly Listing[] = seeds.map(makeListing);
+const joined = new Map(sellers.map((s) => [s.id, s.joined_at]));
+/** Generated from each seed's rating (see makeReviews); listing ratings come from these. */
+export const reviews: readonly Review[] = seeds.flatMap((s) => makeReviews(s, joined.get(s.seller)!));
+export const listings: readonly Listing[] = seeds.map((s) => withItemRating(makeListing(s), reviews));
