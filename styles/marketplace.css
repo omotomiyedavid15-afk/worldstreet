@@ -68,6 +68,32 @@
   }
 }
 
+/* Icon weights (owner's direction, 7 Oct). Atlas Icons in two weights, chosen by role:
+   linear (Atlas medium, 1.5px) for things you read: meta lines, panels, facts, menus,
+   footers, empty states; bold (Atlas bold, 2px) for things you act on or that show
+   state: icon buttons, solid buttons, the selected/pressed/current item, chips, alerts
+   and the logo. This replaces the DS's per-component widths (1.6–1.8px), which also
+   silently overrode any weight set on an icon. An icon's `weight` prop (inline) wins. */
+svg[data-atlas] {
+  stroke-width: 1.5px;
+}
+
+:is(
+  .cx-btn--icon,
+  .cx-btn:not(.cx-btn--ghost, .cx-btn--quiet, .cx-btn--danger),
+  [aria-pressed="true"],
+  [aria-current="page"],
+  [aria-selected="true"],
+  [aria-checked="true"],
+  .cx-chip,
+  .cx-alert,
+  .ws-photos__arrow,
+  .ws-hero__controls,
+  .ws-logo__tile
+) svg[data-atlas] {
+  stroke-width: 2px;
+}
+
 /* Touch targets (spec §1.4 rule 3, WCAG 2.5.8): small buttons stay 36px to the eye but
    get a 44px hit area. ::before is free on every variant except aurora. */
 .cx-btn--sm:not(.cx-btn--aurora) {
