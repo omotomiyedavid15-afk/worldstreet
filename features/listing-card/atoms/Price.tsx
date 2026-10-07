@@ -17,7 +17,7 @@ export function DiscountChip({ price_minor, was_minor }: { price_minor: Kobo; wa
 export type PriceBlockProps = {
   price_minor: Kobo;
   was_minor?: Kobo;
-  variant?: "card" | "detail" | "cart" | "sticky";
+  variant?: "card" | "detail" | "compact" | "sticky";
   /** Rent: "per year" follows the price, in every variant. */
   period?: "night" | "month" | "year";
   /** eBay's "or Best offer" under the price. */
@@ -56,7 +56,7 @@ export function PriceBlock({ price_minor, was_minor, variant = "card", period, b
           )}
         </p>
       )}
-      {bestOffer && variant !== "cart" && <p className="ws-price__note">or Best offer</p>}
+      {bestOffer && variant !== "compact" && <p className="ws-price__note">or Best offer</p>}
       {unitPrice && (
         <p className="ws-price__note">
           ({formatCurrency(unitPrice.amount_minor)}/{unitPrice.unit})

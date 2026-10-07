@@ -144,14 +144,14 @@ export const AboutThisItem: Story = {
 
 /* The fallback share sheet (where the phone has no share sheet of its own). */
 export const Share: Story = {
-  render: () => <ShareSheet url="https://worldstreet.example/listing/204507-sony" title={sony.title} text={`${sony.title}, ₦485,000 on WorldStreet`} />,
+  render: () => <ShareSheet url="https://worldstore.example/listing/204507-sony" title={sony.title} text={`${sony.title}, ₦485,000 on WorldStore`} />,
   play: async ({ canvasElement }) => {
     const doc = canvasElement.ownerDocument;
     (doc.getElementById(SHARE_ID) as HTMLDialogElement).showModal();
     const dialog = within(doc.body).getByRole("dialog", { name: "Share this listing" });
     const wa = within(dialog).getByRole("link", { name: /WhatsApp/ });
     await expect(wa.getAttribute("href")).toContain("https://wa.me/?text=");
-    await expect(decodeURIComponent(wa.getAttribute("href")!)).toContain("https://worldstreet.example/listing/204507-sony");
+    await expect(decodeURIComponent(wa.getAttribute("href")!)).toContain("https://worldstore.example/listing/204507-sony");
     await expect(within(dialog).getByRole("link", { name: /Telegram/ })).toHaveAttribute("target", "_blank");
     await expect(within(dialog).getByRole("button", { name: "Copy link" })).toBeInTheDocument();
     await userEvent.click(within(dialog).getByRole("button", { name: "Close" }));

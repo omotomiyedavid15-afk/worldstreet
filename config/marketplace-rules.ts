@@ -71,16 +71,16 @@ export const rules = {
   offers: {
     validityHours: 48, // §6.6
     payWindowHours: 24, // R-034, §6.6
+    quickPercent: [90, 85, 80] as const, // B6 quick offer amounts
+    refreshMs: 30_000, // refresh local mock deadlines while a page stays open
     floorPercent: 50, // B6 step 2: offers ≥ 50% of list price
     perListing: 3, // R-030 (expired offers still count, B6)
     maxOpen: 5, // R-030
   },
-  cart: {
-    maxItems: 50, // R-039
-    maxSellers: 10, // R-039
-  },
-  checkout: {
-    lockMinutes: 10, // R-041
+  // P2P (owner's direction, 7 Oct): no cart or checkout. B9's payment rules apply to the
+  // seller's payment request, sent in chat once a deal is agreed.
+  paymentRequest: {
+    lockMinutes: 10, // R-041: the item is held while the buyer pays the request
     bankTransferMinutes: 30, // B9, §6.6
     pollSeconds: 60, // B9
   },
@@ -173,6 +173,7 @@ export const rules = {
   messaging: {
     maxChars: 1_000, // B5 step 2
     maxPhotos: 3, // B5 step 2
+    photoMaxBytes: 1_000_000, // local demo attachments; production needs an upload service
     newThreadsPerDay: 20, // R-053 (L1 buyers)
   },
   listing: {

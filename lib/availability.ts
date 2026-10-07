@@ -3,7 +3,7 @@ import type { Listing } from "@/lib/data/types";
 /* What a listing page offers for each status (flows R-021, R-032, R-121; state machine
    §6.1). Sold, ended and paused listings keep their page, for links people shared and for
    search, but swap the buying actions for "No longer available" and similar items.
-   Reserved means another buyer's accepted offer or checkout holds it. Anything a buyer
+   Reserved means another buyer's accepted offer holds it while they pay. Anything a buyer
    was never meant to see, or that moderation took down, is "gone": not found. */
 
 export type Availability = "available" | "reserved" | "sold" | "ended" | "paused" | "gone";

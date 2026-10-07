@@ -6,7 +6,7 @@ describe("escrow copy (L14 test 8)", () => {
     for (const text of Object.values(ESCROW)) expect(text).not.toMatch(/every deal/i);
   });
 
-  it("doesn't claim escrow where there's no escrow checkout", () => {
+  it("doesn't claim escrow where there's no escrow", () => {
     expect(escrowLine({ kind: "vehicle" })).toBe(ESCROW.noEscrow);
     expect(escrowLine({ kind: "property" })).toBe(ESCROW.noEscrow);
     expect(escrowLine({ kind: "goods" })).toBe(ESCROW.claim);

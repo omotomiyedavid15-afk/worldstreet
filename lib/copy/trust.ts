@@ -19,7 +19,7 @@ export type HeroSlide = {
 export const HERO_SLIDES: readonly HeroSlide[] = [
   {
     id: "welcome",
-    eyebrow: "WorldStreet Marketplace",
+    eyebrow: "WorldStore Marketplace",
     title: "Buy and sell near you",
     body: ESCROW.held,
     cta: { label: "How escrow works", href: ESCROW.learnMoreHref },

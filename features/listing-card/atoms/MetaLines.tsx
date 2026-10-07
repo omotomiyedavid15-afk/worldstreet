@@ -146,7 +146,7 @@ type Signal = { text: string; urgent?: boolean };
  * private unless the seller shows them and there are more than the threshold (R-025).
  */
 export function socialSignals(
-  listing: Pick<Listing, "qty" | "sold_count" | "watchers" | "in_carts">,
+  listing: Pick<Listing, "qty" | "sold_count" | "watchers">,
   { showWatchers = false, max = 2 }: { showWatchers?: boolean; max?: number } = {},
 ): Signal[] {
   const signals: Signal[] = [];
@@ -155,11 +155,10 @@ export function socialSignals(
   else if (sold > 0 && listing.qty > 1 && listing.qty <= 3) signals.push({ text: "Almost gone", urgent: true });
   if (sold > 0) signals.push({ text: plural(sold, "sold", "sold") });
   if (showWatchers && (listing.watchers ?? 0) > rules.demand.watchersThreshold) signals.push({ text: plural(listing.watchers!, "watcher") });
-  if ((listing.in_carts ?? 0) > 0) signals.push({ text: `In ${plural(listing.in_carts!, "cart")}` });
   return signals.slice(0, max);
 }
 
-export function SocialProof({ listing, showWatchers }: { listing: Pick<Listing, "qty" | "sold_count" | "watchers" | "in_carts">; showWatchers?: boolean }) {
+export function SocialProof({ listing, showWatchers }: { listing: Pick<Listing, "qty" | "sold_count" | "watchers">; showWatchers?: boolean }) {
   const signals = socialSignals(listing, { showWatchers });
   if (signals.length === 0) return null;
   return (

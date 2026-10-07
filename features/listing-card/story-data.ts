@@ -81,7 +81,7 @@ export const storyListings: ListingWithSeller[] = [
     id: "204507", title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones", category: electronics, seller: gadgetHub,
     condition: "new", price_minor: toMinor(485_000), was_minor: toMinor(560_000), qty: 12, format: "buy_now", offers_enabled: false,
     location: ikeja, delivery: [opt("courier", 0, "nationwide")], created_at: ago(2), rating: { average: 4.9, count: 52 },
-    sold_count: 38, watchers: 31, in_carts: 6, photoCount: 6,
+    sold_count: 38, watchers: 31, photoCount: 6,
   }),
   listing({
     id: "204501", title: "iPhone 14 Pro 256GB Deep Purple", category: phones, seller: gadgetHub,

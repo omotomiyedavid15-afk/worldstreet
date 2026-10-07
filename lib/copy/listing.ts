@@ -41,32 +41,32 @@ export function returnsCopy(days: number | null) {
   };
 }
 
-/** flows B9: the checkout methods. Pay on delivery stays behind its flag (K5). */
+/** flows B9: ways to pay a seller's payment request (P2P: no checkout). Pay on delivery stays behind its flag (K5). */
 export const PAYMENT_METHODS = [
   { id: "card", label: "Card", detail: "Verve, Mastercard, Visa" },
   { id: "transfer", label: "Bank transfer", detail: "To a one-time account number" },
   { id: "ussd", label: "USSD", detail: "From any phone, no data needed" },
-  { id: "wallet", label: "WorldStreet wallet", detail: "Your balance" },
+  { id: "wallet", label: "WorldStore wallet", detail: "Your balance" },
 ] as const;
 
 /** flows B3 step 9 and the vehicle/property alternate: what to do, in order. */
 export function safetyTips(kind: Category["kind"]): readonly string[] {
-  const pay = "Pay only through WorldStreet checkout. Never pay a deposit to hold an item or a viewing.";
+  const pay = "Pay only the seller's payment request, through WorldStore. Never pay a deposit to hold an item or a viewing.";
   if (kind === "goods") {
     return [
       pay,
       "For meet-ups, choose a busy public place in daylight, and bring someone if you can.",
       "Check the item before you confirm delivery: confirming pays the seller.",
-      "Keep the chat on WorldStreet, so there's a record if something goes wrong.",
+      "Keep the chat on WorldStore, so there's a record if something goes wrong.",
     ];
   }
   return [
-    "There's no escrow checkout here: don't pay anything until you've inspected in person.",
+    "There's no escrow here: don't pay anything until you've inspected in person.",
     kind === "vehicle"
       ? "Inspect in daylight with a mechanic, and check the papers match the vehicle (chassis number, customs, registration)."
       : "View in person, meet the owner or their agent, and check the documents before you sign or pay.",
     "Meet in a busy public place, and bring someone with you.",
-    "Keep the chat on WorldStreet, so there's a record if something goes wrong.",
+    "Keep the chat on WorldStore, so there's a record if something goes wrong.",
   ];
 }
 
@@ -74,7 +74,7 @@ export function safetyTips(kind: Category["kind"]): readonly string[] {
 export const REPORT_REASONS = [
   { id: "prohibited", label: "Prohibited or illegal item" },
   { id: "counterfeit", label: "Fake or counterfeit" },
-  { id: "scam", label: "Looks like a scam", hint: "Asks for payment outside WorldStreet, a deposit, or personal details" },
+  { id: "scam", label: "Looks like a scam", hint: "Asks for payment outside WorldStore, a deposit, or personal details" },
   { id: "misleading", label: "Wrong price, photos or description" },
   { id: "wrong_category", label: "Wrong category" },
   { id: "offensive", label: "Offensive content" },

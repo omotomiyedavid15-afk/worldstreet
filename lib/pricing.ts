@@ -2,7 +2,7 @@ import { kobo, sumMinor, type Kobo } from "@/lib/money";
 
 /*
  * R-003 total cost: "Total to {city}" = item + delivery + fees − discounts. One function
- * so the card, detail, sticky bar and cart always agree (R-020).
+ * so the card, the listing page and the sticky bar always agree (R-020).
  */
 
 export type TotalInput = {

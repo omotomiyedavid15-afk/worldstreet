@@ -176,7 +176,7 @@ export function ProhibitedResults() {
     <div className="ws-prohibited">
       <WarningIcon />
       <p>
-        Some items can&apos;t be sold on WorldStreet. <Link href="/help/prohibited-items">See what isn&apos;t allowed</Link>.
+        Some items can&apos;t be sold on WorldStore. <Link href="/help/prohibited-items">See what isn&apos;t allowed</Link>.
       </p>
     </div>
   );

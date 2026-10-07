@@ -26,7 +26,7 @@ export type Category = {
   name: string;
   /** Escrow inspection window key in config (L4). */
   inspection: "fashion" | "home" | "electronics" | "phones" | "appliances" | "furniture" | "vehicles" | "property" | "default";
-  /** Vehicles and property: contact + "Book viewing", no checkout (PLAN risk 7). */
+  /** Vehicles and property: contact + "Book viewing", no escrow (PLAN risk 7). */
   kind: "goods" | "vehicle" | "property";
   /** Attribute keys worth a place on the card's subtitle line, most useful first. */
   card_facts?: readonly string[];
@@ -164,7 +164,6 @@ export type Listing = {
    */
   sold_count?: number;
   watchers?: number;
-  in_carts?: number;
 };
 
 /** A listing joined with what a card needs to render it. */

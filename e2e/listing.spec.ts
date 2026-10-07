@@ -49,19 +49,37 @@ test("the gallery steps with arrows and keys, and opens full screen", async ({ p
   await expect(lightbox).toBeHidden();
 });
 
-test("buttons go somewhere real (F5): Buy it now to checkout, offers when enabled", async ({ page }) => {
+test("P2P: Make offer is the main action and the watchlist replaces the cart; no checkout (owner's direction 7 Oct)", async ({ page }) => {
   await page.goto(IPHONE);
   const box = page.getByRole("region", { name: "Price and buying" });
-  await expect(box.getByRole("link", { name: "Buy it now" })).toHaveAttribute("href", "/checkout?listing=204501");
-  await expect(box.getByRole("link", { name: "Make offer" })).toHaveAttribute("href", "/offers?listing=204501");
+  const offer = box.getByRole("link", { name: "Make offer" });
+  await expect(offer).toHaveAttribute("href", "/offers?listing=204501");
+  await expect(offer).toHaveClass(/cx-btn(?!--)/); // the one solid button
+  await expect(box.getByRole("button", { name: "Add to watchlist" })).toBeVisible();
+  await expect(box.locator("#buybox-actions").getByRole("link", { name: "Message seller" })).toBeVisible();
+  for (const name of [/Buy it now/, /Add to cart/]) await expect(page.getByRole("link", { name })).toHaveCount(0);
+  await expect(page.locator('a[href^="/checkout"], a[href^="/cart"]')).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Watchlist" })).toHaveAttribute("href", "/saved");
 });
 
-test("vehicles have no checkout: Contact seller instead (PLAN risk 7)", async ({ page }) => {
+test("Add to watchlist becomes Watching and matches the heart on cards (B4)", async ({ page }) => {
+  await page.goto(IPHONE);
+  await page.evaluate(() => localStorage.setItem("ws:mock-session", JSON.stringify({ signedIn: true })));
+  await page.reload();
+  const box = page.getByRole("region", { name: "Price and buying" });
+  await box.getByRole("button", { name: "Add to watchlist" }).click();
+  await expect(box.getByRole("button", { name: "Watching" })).toBeVisible();
+  await expect(page.getByRole("status", { name: "Notifications" })).toContainText("Added to your watchlist");
+  await page.goto("/saved");
+  await expect(page.getByRole("list", { name: "Saved listings" }).getByRole("link", { name: /iPhone 14 Pro/ })).toBeVisible();
+});
+
+test("vehicles have no escrow: Contact seller instead (PLAN risk 7)", async ({ page }) => {
   await page.goto("/listing/204539-toyota-corolla-2014-le-automatic");
   const box = page.getByRole("region", { name: "Price and buying" });
   await expect(box.getByRole("link", { name: "Buy it now" })).toHaveCount(0);
   await expect(box.getByRole("link", { name: "Contact seller" })).toBeVisible();
-  await expect(box.getByText(/No escrow checkout/)).toBeVisible();
+  await expect(box.getByText(/No escrow for this category/)).toBeVisible();
 });
 
 test("delivery shows dates to the buyer's area and the buy box's total; Change picks another area (B3 step 3, R-020)", async ({ page }) => {

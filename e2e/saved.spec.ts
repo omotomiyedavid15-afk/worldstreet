@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 /* Phase 2: Saved (flows B4, SCR-006), saved searches and Recently viewed (B1). */
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("/cart");
+  await page.goto("/inbox");
   await page.evaluate(() => localStorage.setItem("ws:mock-session", JSON.stringify({ signedIn: true })));
 });
 
@@ -37,7 +37,17 @@ test("'Save this search' adds it to Saved › Searches", async ({ page }) => {
 });
 
 test("listings you open come back as Recently viewed on home, shown once (B1, R-013)", async ({ page }) => {
-  for (const id of ["204507", "204501", "204514", "204519"]) await page.goto(`/listing/${id}-x`, { waitUntil: "networkidle" });
+  const listings = [
+    ["204507", "sony-wh-1000xm5-wireless-noise-cancelling-headphones"],
+    ["204501", "iphone-14-pro-256gb-deep-purple"],
+    ["204514", "macbook-air-m2-13-8gb-256gb-midnight"],
+    ["204519", "hand-dyed-adire-kaftan-indigo-men-s-l"],
+  ] as const;
+  for (const [id, slug] of listings) {
+    await page.goto(`/listing/${id}-${slug}`);
+    // Wait for the actual hydration side effect, not a gap in network traffic.
+    await expect.poll(async () => page.evaluate(() => document.cookie)).toContain(id);
+  }
   await page.goto("/");
   const rail = page.getByRole("region", { name: "Recently viewed" });
   await expect(rail.getByRole("article")).toHaveCount(4);

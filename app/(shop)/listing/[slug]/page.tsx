@@ -94,7 +94,7 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
   const price = `${formatCurrency(listing.price_minor)}${listing.price_period ? ` per ${listing.price_period}` : ""}`;
   const catHref = `/search?cat=${listing.category.id}`;
   const path = listingPath(listing);
-  const share = { url: `${await siteOrigin()}${path}`, title: listing.title, text: `${listing.title}, ${price} on WorldStreet` };
+  const share = { url: `${await siteOrigin()}${path}`, title: listing.title, text: `${listing.title}, ${price} on WorldStore` };
   const now = requestTime();
   const listed = timeAgo(listing.created_at, now);
 
@@ -269,7 +269,7 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
             : state !== "available"
               ? { label: "See similar items", href: similar.length ? "#rail-similar" : catHref }
               : goods
-                ? { label: "Buy it now", href: `/checkout?listing=${listing.id}` }
+                ? { label: "Make offer", href: `/offers?listing=${listing.id}` }
                 : { label: "Contact seller", href: `/inbox?listing=${listing.id}` }
         }
       />

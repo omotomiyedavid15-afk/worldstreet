@@ -2,17 +2,19 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ChatDotsIcon, HandshakeAgreementDealIcon, MinusCircleIcon, PlusCircleIcon, ShoppingCartIcon } from "@/components/icons";
+import { ChatDotsIcon, HandshakeAgreementDealIcon, MinusCircleIcon, PlusCircleIcon } from "@/components/icons";
 import { buttonClass } from "@/components/ui";
-import { SaveButton } from "@/features/listing-card/atoms";
+import { WatchlistButton } from "@/features/listing-card/atoms/SaveButton";
 import type { Category } from "@/lib/data/types";
 import { formatCount } from "@/lib/format";
 
-/* QuantityStepper + ActionStack (spec §7): eBay's order, one solid button (Buy it now),
-   then Add to cart (ghost) and Make offer / Save (quiet). Vehicles and property have no
-   checkout (PLAN risk 7): Contact seller (and Book a viewing for property) instead.
-   Checkout, cart, offers and messages are placeholders until Phases 4–5, so each
-   button still lands somewhere that says what it will do (F5). */
+/* QuantityStepper + ActionStack (spec §7), for a P2P marketplace (owner's direction,
+   7 Oct): no cart, no checkout. Make offer is the one solid button; the offer opens a
+   chat with the seller, and once they agree the seller sends a payment request the
+   buyer pays into escrow. Add to watchlist takes the cart's place, then Message seller.
+   Vehicles and property have no escrow (PLAN risk 7): Contact seller (and Book a viewing
+   for property). Offers and messages are placeholders until Phase 4, so each button
+   still lands somewhere that says what it will do (F5). */
 
 type Props = {
   listingId: string;
@@ -24,7 +26,7 @@ type Props = {
   offers: boolean;
 };
 
-export function BuyActions({ listingId, title, price_minor, available, sold, kind, offers }: Props) {
+export function BuyActions({ listingId, price_minor, available, sold, kind, offers }: Props) {
   const [qty, setQty] = useState(1);
   const withQty = (path: string) => `${path}?listing=${listingId}${qty > 1 ? `&qty=${qty}` : ""}`;
 
@@ -46,7 +48,7 @@ export function BuyActions({ listingId, title, price_minor, available, sold, kin
             Make offer
           </Link>
         )}
-        <SaveRow listingId={listingId} title={title} price_minor={price_minor} />
+        <WatchlistButton listingId={listingId} price_minor={price_minor} />
       </div>
     );
   }
@@ -74,29 +76,15 @@ export function BuyActions({ listingId, title, price_minor, available, sold, kin
           </span>
         </div>
       )}
-      <Link href={withQty("/checkout")} className={buttonClass({ block: true, className: "ws-actions__buy" })}>
-        Buy it now
+      <Link href={withQty("/offers")} className={buttonClass({ block: true, className: "ws-actions__buy" })}>
+        <HandshakeAgreementDealIcon />
+        Make offer
       </Link>
-      <Link href={withQty("/cart")} className={buttonClass({ variant: "ghost", block: true })}>
-        <ShoppingCartIcon />
-        Add to cart
+      <WatchlistButton listingId={listingId} price_minor={price_minor} />
+      <Link href={`/inbox?listing=${listingId}`} className={buttonClass({ variant: "quiet", block: true })}>
+        <ChatDotsIcon />
+        Message seller
       </Link>
-      {offers && (
-        <Link href={withQty("/offers")} className={buttonClass({ variant: "quiet", block: true })}>
-          <HandshakeAgreementDealIcon />
-          Make offer
-        </Link>
-      )}
-      <SaveRow listingId={listingId} title={title} price_minor={price_minor} />
-    </div>
-  );
-}
-
-function SaveRow({ listingId, title, price_minor }: { listingId: string; title: string; price_minor: number }) {
-  return (
-    <div className="ws-actions__save">
-      <SaveButton listingId={listingId} title={title} price_minor={price_minor} />
-      <span aria-hidden="true">Save</span>
     </div>
   );
 }

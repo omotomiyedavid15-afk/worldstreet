@@ -4,6 +4,9 @@ import { expect, test } from "@playwright/test";
 
 test("skip links reach the main content, the search box and the footer", async ({ page }) => {
   await page.goto("/");
+  const logo = page.getByRole("banner").getByRole("link", { name: "WorldStore home" });
+  await expect(logo).toBeVisible();
+  await expect(logo.locator('img[src*="worldstore-mark.svg"]')).toBeVisible();
   await page.keyboard.press("Tab");
   await expect(page.getByRole("link", { name: "Skip to main content" })).toBeFocused();
   await page.keyboard.press("Tab");
@@ -71,7 +74,7 @@ test.describe("phones", () => {
   });
 
   test("the footer is an accordion with one section open at a time", async ({ page }) => {
-    await page.goto("/cart");
+    await page.goto("/inbox");
     const footer = page.getByRole("contentinfo");
     await footer.getByText("Buy", { exact: true }).click();
     await expect(footer.getByRole("link", { name: "All categories" })).toBeVisible();

@@ -8,7 +8,7 @@ const firstNumber = async (page: Page) => Number((await page.getByRole("heading"
 test("one h1, no trust strip, and the hero comes after Near you (F11; owner's direction 7 Oct)", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
-  await expect(page.getByRole("region", { name: "Buying on WorldStreet" })).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "Buying on WorldStore" })).toHaveCount(0);
   const near = page.getByRole("heading", { level: 2, name: "Near you", exact: true });
   const hero = page.getByRole("region", { name: "Highlights" });
   await expect(near).toHaveCount(1);
@@ -90,7 +90,7 @@ test("placeholder pages are real destinations, unknown pages are 404s (F5)", asy
   await Promise.all([page.waitForURL(/\/sell\/start$/, { timeout: 20_000 }), page.getByRole("main").getByRole("link", { name: "Start selling" }).click()]);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Start selling");
   await expect(page.getByText("Coming in Phase 7 of the build.")).toBeVisible();
-  for (const [url, title] of [["/cart", "Cart"], ["/inbox", "Inbox"], ["/help/escrow", "How escrow protects you"], ["/seller/gadgethub-ikeja", "Gadget Hub Ikeja"]]) {
+  for (const [url, title] of [["/offers", "Offers"], ["/inbox", "Inbox"], ["/help/escrow", "How escrow protects you"], ["/seller/gadgethub-ikeja", "Gadget Hub Ikeja"]]) {
     const res = await page.goto(url);
     expect(res?.status(), url).toBe(200);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
@@ -105,7 +105,7 @@ test("the app is installable: manifest and icons (F16)", async ({ page, request 
   await page.goto("/");
   const href = await page.locator('link[rel="manifest"]').getAttribute("href");
   const manifest = await (await request.get(href!)).json();
-  expect(manifest).toMatchObject({ name: "WorldStreet Marketplace", display: "standalone", start_url: "/" });
+  expect(manifest).toMatchObject({ name: "WorldStore Marketplace", display: "standalone", start_url: "/" });
   for (const icon of manifest.icons) expect((await request.get(icon.src)).status()).toBe(200);
 });
 
@@ -117,7 +117,7 @@ test("no sideways scroll on home at 320 and 360", async ({ page }) => {
   }
 });
 
-for (const url of ["/", "/?radius=all", "/cart", "/no-such-page"]) {
+for (const url of ["/", "/?radius=all", "/inbox", "/no-such-page"]) {
   test(`axe: no serious or critical issues on ${url}`, async ({ page }) => {
     await page.goto(url);
     const { violations } = await new AxeBuilder({ page }).analyze();

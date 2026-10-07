@@ -49,7 +49,6 @@ export type ListingSeed = {
   editedDaysAgo?: number;
   sold?: number;
   watchers?: number;
-  inCarts?: number;
 };
 
 /** Revisions a listing's own data implies (R-112): a struck-through price means the price
@@ -117,7 +116,6 @@ export function makeListing(seed: ListingSeed): Listing {
     created_at: new Date(MOCK_NOW - seed.daysAgo * 86_400_000).toISOString(),
     ...(seed.sold !== undefined && { sold_count: seed.sold }),
     ...(seed.watchers !== undefined && { watchers: seed.watchers }),
-    ...(seed.inCarts !== undefined && { in_carts: seed.inCarts }),
   };
 }
 

@@ -15,17 +15,17 @@ import { spring } from "@/lib/motion/tokens";
    the title keeps each card's button unique (spec §16.6). Guests sign in first, then
    the save they asked for happens (R-004). */
 
-function apply(listingId: string, save: boolean, price_minor?: number) {
+export function applySave(listingId: string, save: boolean, price_minor?: number) {
   if (!save) {
     unsaveListing(listingId);
-    toast({ message: "Removed from Saved", action: { label: "Undo", onClick: () => saveListing(listingId, price_minor) } });
+    toast({ message: "Removed from your watchlist", action: { label: "Undo", onClick: () => saveListing(listingId, price_minor) } });
     return;
   }
   const result = saveListing(listingId, price_minor);
   if (result === "full") {
-    toast({ tone: "warning", message: `Saved is full (${rules.saved.maxListings} listings). Remove one to save this.` });
+    toast({ tone: "warning", message: `Your watchlist is full (${rules.saved.maxListings} listings). Remove one to add this.` });
   } else if (result === "saved") {
-    toast({ message: "Added to Saved", action: { label: "View", href: "/saved" } });
+    toast({ message: "Added to your watchlist", action: { label: "View", href: "/saved" } });
   }
 }
 
@@ -44,7 +44,7 @@ export function SaveButton({ listingId, title, price_minor, className }: Props) 
       aria-pressed={saved}
       onClick={() => {
         const wanted = !saved; // decided now, so a resumed save after sign-in can't flip it back
-        requireAuth("save listings", () => apply(listingId, wanted, price_minor));
+        requireAuth("save listings", () => applySave(listingId, wanted, price_minor));
       }}
     >
       {/* Pop on save, settle on remove; a gold ring and sparks burst out when saved. */}
@@ -68,6 +68,27 @@ export function SaveButton({ listingId, title, price_minor, className }: Props) 
           </m.span>
         )}
       </AnimatePresence>
+    </button>
+  );
+}
+
+/** "Add to watchlist" in the buy box (P2P: it takes the cart's place, owner's direction
+ *  7 Oct; eBay's "Add to Watchlist" → "Watching"). The visible text changes with the
+ *  state, so this is not an aria-pressed toggle (WAI-ARIA APG): the label says it all,
+ *  and the toast confirms. Same store as the heart, so both stay in step. */
+export function WatchlistButton({ listingId, price_minor }: { listingId: string; price_minor?: number }) {
+  const saved = useIsSaved(listingId);
+  return (
+    <button
+      type="button"
+      className={buttonClass({ variant: "ghost", block: true, className: cx("ws-watch", saved && "ws-watch--on") })}
+      onClick={() => {
+        const wanted = !saved;
+        requireAuth("save listings", () => applySave(listingId, wanted, price_minor));
+      }}
+    >
+      <HeartIcon weight={saved ? "bold" : undefined} />
+      {saved ? "Watching" : "Add to watchlist"}
     </button>
   );
 }

@@ -44,7 +44,7 @@ export const MULTI_GROUPS: { key: Multi; label: string; options: { value: string
     key: "fmt",
     label: "Buying format",
     options: [
-      { value: "buy_now", label: "Buy it now" },
+      { value: "buy_now", label: "Fixed price" },
       { value: "offers", label: "Accepts offers" },
     ],
   },

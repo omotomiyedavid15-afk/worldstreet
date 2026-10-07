@@ -1,4 +1,4 @@
-# WorldStreet Marketplace — End-to-End UX Flow Specification
+# WorldStore Marketplace — End-to-End UX Flow Specification
 
 Modelled on eBay's buyer, seller and trust flows, adapted for Nigeria (NGN, escrow, domestic delivery, local pickup).
 Version 1.0 · 6 Oct 2026 · For: Greatness Omotomiye (design engineering)
@@ -9,7 +9,7 @@ Companion to `worldstreet-marketplace-ux-blueprint.md` (research + audit). This 
 
 ## 0. How to read this document
 
-**Provenance tags.** eBay behaviour that I saw live on ebay.com (6 Oct 2026) is tagged `[eBay-observed]`. eBay behaviour behind sign-in that I did not open is tagged `[eBay-inferred]`. Anything tagged `[WS]` is a WorldStreet decision (a deliberate change from eBay). Where a rule has a number (hours, days, limits), treat it as a **proposed default** to be confirmed by product, ops and legal. These numbers are not eBay's published figures.
+**Provenance tags.** eBay behaviour that I saw live on ebay.com (6 Oct 2026) is tagged `[eBay-observed]`. eBay behaviour behind sign-in that I did not open is tagged `[eBay-inferred]`. Anything tagged `[WS]` is a WorldStore decision (a deliberate change from eBay). Where a rule has a number (hours, days, limits), treat it as a **proposed default** to be confirmed by product, ops and legal. These numbers are not eBay's published figures.
 
 **IDs.**
 - Flows: `B` buyer, `S` seller, `A` admin/ops, `X` cross-cutting.
@@ -44,7 +44,7 @@ Companion to `worldstreet-marketplace-ux-blueprint.md` (research + audit). This 
 
 ## 2. Global rules (apply to every flow)
 
-**R-001 Location context.** On first visit, infer city from IP and show an inline bar (not a blocking modal) "Showing items near Lagos · Change". Store in `location` (city, lat/lng, radius). eBay blocks the page with a modal asking "Are you shipping to [postcode]?" `[eBay-observed]`; WorldStreet should not block.
+**R-001 Location context.** On first visit, infer city from IP and show an inline bar (not a blocking modal) "Showing items near Lagos · Change". Store in `location` (city, lat/lng, radius). eBay blocks the page with a modal asking "Are you shipping to [postcode]?" `[eBay-observed]`; WorldStore should not block.
 
 **R-002 Currency.** Every price is stored and sorted as integer **kobo** in NGN (`price_minor`). Display always `₦` via `formatCurrency()`. If a seller wants to quote a foreign amount, show `≈ ₦X` as primary and the original as secondary. No mixed-currency lists. (Fixes audit F3/F4.)
 
@@ -52,7 +52,7 @@ Companion to `worldstreet-marketplace-ux-blueprint.md` (research + audit). This 
 
 **R-004 Auth gating.** Guests can do read-only and cart actions. On any gated action (save, message, offer, checkout) show a bottom sheet / modal "Sign in to continue", preserve intent, and **resume the action after sign-in** (return to the same listing with the action completed or pre-filled).
 
-**R-005 Money stays on platform.** All payments go through WorldStreet checkout into escrow. Off-platform payment voids protection (mirrors eBay's Money Back Guarantee condition `[eBay-observed]`). Messaging scans for phone numbers/bank details and shows a warning (R-051). Protection applies only to payments captured by WorldStreet checkout. **Full escrow design: Part L.**
+**R-005 Money stays on platform.** All payments go through WorldStore checkout into escrow. Off-platform payment voids protection (mirrors eBay's Money Back Guarantee condition `[eBay-observed]`). Messaging scans for phone numbers/bank details and shows a warning (R-051). Protection applies only to payments captured by WorldStore checkout. **Full escrow design: Part L.**
 
 **R-006 Time.** Store UTC; display Africa/Lagos (WAT). Countdowns use server time offset to prevent client clock drift.
 
@@ -191,7 +191,7 @@ flowchart LR
    - **Quantity** stepper with "6 available · 1,350 sold" (real counts).
    - **Actions:** primary **Buy now**; secondary **Add to cart**; **Make offer** (if enabled); **Place bid** (auction); tertiary **Save / Watch**.
    - **Demand line:** "12 people are watching this" (real counts only).
-   - **Reassurance:** "Returns accepted · 7 days" or "No returns — sold as described" and "Protected by WorldStreet escrow".
+   - **Reassurance:** "Returns accepted · 7 days" or "No returns — sold as described" and "Protected by WorldStore escrow".
 3. **Delivery & returns block** `[eBay-observed]`
    - Delivery method list for the buyer's location: *Rider delivery* (cost, ETA range), *Pickup station* (cost, ETA), *Meet-up / local pickup* (free, with safety tips).
    - **Delivery estimate as a date range to the buyer's address area** ("Thu 8 – Sat 10 Oct to Lekki").
@@ -203,7 +203,7 @@ flowchart LR
 6. **Seller card** — joined date, response time, sold count, detailed ratings (Accurate description, Delivery speed, Communication, Packaging) `[eBay-observed]`, Visit shop, Save seller.
 7. **Reviews/feedback** — tabs "This item / All items from seller"; topic chips; each review: masked buyer name, verified purchase tag, date bucket, text, seller reply.
 8. **Similar items**, **Seller's other items**, **Recently viewed**.
-9. **Safety tips** (meet in public places, inspect before confirming, never pay outside WorldStreet).
+9. **Safety tips** (meet in public places, inspect before confirming, never pay outside WorldStore).
 
 **Sticky bottom bar (mobile):** price + primary CTA ("Buy now") + heart + overflow (Share, Report).
 
@@ -253,7 +253,7 @@ flowchart LR
 5. Offers made in-thread appear as **offer cards** with Accept/Counter/Decline (see B6).
 
 **Safety rules**
-- R-050 First message to a seller shows a banner: "Keep payment and chat on WorldStreet. We can only protect payments made here."
+- R-050 First message to a seller shows a banner: "Keep payment and chat on WorldStore. We can only protect payments made here."
 - R-051 Detect phone numbers, account numbers, external links, "pay me directly" patterns → inline warning on send; repeated attempts → flag for review.
 - R-052 Blocking and reporting available on every thread; blocked users cannot message again.
 - R-053 Rate limits: 20 new conversations/day per L1 buyer.
@@ -352,13 +352,13 @@ flowchart LR
 - Show seller handling time and the **estimated delivery window**.
 
 **Step 3 — Pay**
-- Methods: Card, Bank transfer (dynamic account number with countdown), USSD, WorldStreet wallet balance, (later) Pay on delivery for L2+ and low value only `[WS]`.
+- Methods: Card, Bank transfer (dynamic account number with countdown), USSD, WorldStore wallet balance, (later) Pay on delivery for L2+ and low value only `[WS]`.
 - **Total** with line items; coupons; fees (if any buyer fee) clearly named.
 - Escrow notice: "Your money is held until you confirm delivery. Learn more".
 - Terms link; **single confirm button** that names the amount: "Pay ₦84,500".
 
 **Main path**
-1. Review → Pay → payment provider step (3-D Secure / bank app / USSD prompt) → return to WorldStreet.
+1. Review → Pay → payment provider step (3-D Secure / bank app / USSD prompt) → return to WorldStore.
 2. On success → order(s) created per seller; escrow funds held; **confirmation page** `/orders/:id/confirmation`: order number, items, ETA, delivery address, "What happens next" (4 steps), "Message seller", "Track order".
 3. Emails/SMS/push receipts sent.
 
@@ -472,7 +472,7 @@ eBay's selling flow, from the public Selling page `[eBay-observed]`: AI-assisted
 2. **Profile:** shop name, handle (unique), avatar, short bio, area (city + neighbourhood), categories sold.
 3. **Phone & email OTP** (if not already L1).
 4. **Identity (L2):** ID type + number, selfie liveness, name match with payout account name. Show progress and why each item is needed. Allow **"Save and continue later"**.
-5. **Payout account:** bank + account number → name enquiry resolves account name; confirm. Or WorldStreet wallet only.
+5. **Payout account:** bank + account number → name enquiry resolves account name; confirm. Or WorldStore wallet only.
 6. **Seller agreement + policy quiz** (3 questions: prohibited items, off-platform payments, return obligations).
 7. **Done** → Seller Hub with a first-task checklist: "Create your first listing".
 
@@ -942,15 +942,15 @@ Auctions, promotions, alerts, personalisation, WhatsApp sharing, referrals, coup
 
 - Observed live on ebay.com, 6 Oct 2026: home, search results ("sony headphones"), two item pages, Selling landing page, Money Back Guarantee policy. Items marked `[eBay-observed]`.
 - eBay sign-in-gated flows and numeric rules were not opened; they are `[eBay-inferred]` or `[WS]` proposals.
-- Live audit of the WorldStreet sandbox, 6 Oct 2026: see `worldstreet-marketplace-ux-blueprint.md`, Section 3A.
+- Live audit of the WorldStore sandbox, 6 Oct 2026: see `worldstreet-marketplace-ux-blueprint.md`, Section 3A.
 
 ---
 
 # PART L — ESCROW SYSTEM (v2: replaces §6.5, R-062, R-150, R-151 and the escrow lines in B9/B10/S6)
 
-Escrow is WorldStreet's core promise (it is the first thing on your home page: "Escrow on every deal… We hold the money until you confirm the item arrived as described"). eBay's equivalent is the Money Back Guarantee plus payment holds, applied only to payments made on-platform `[eBay-observed]`. The v1 text in this spec was one state machine and three rules. This part makes it a complete system: money model, release logic, protection, UX, failure handling and controls.
+Escrow is WorldStore's core promise (it is the first thing on your home page: "Escrow on every deal… We hold the money until you confirm the item arrived as described"). eBay's equivalent is the Money Back Guarantee plus payment holds, applied only to payments made on-platform `[eBay-observed]`. The v1 text in this spec was one state machine and three rules. This part makes it a complete system: money model, release logic, protection, UX, failure handling and controls.
 
-> **Not legal advice.** Holding customer funds is a regulated activity in Nigeria. Confirm with counsel whether escrow runs through a licensed payment service provider / licensed escrow partner, how funds are safeguarded, and what consumer-protection and NDPA obligations apply **before** building. Everything below is a product design that assumes a licensed partner holds the money and WorldStreet instructs it.
+> **Not legal advice.** Holding customer funds is a regulated activity in Nigeria. Confirm with counsel whether escrow runs through a licensed payment service provider / licensed escrow partner, how funds are safeguarded, and what consumer-protection and NDPA obligations apply **before** building. Everything below is a product design that assumes a licensed partner holds the money and WorldStore instructs it.
 
 ## L1. Design principles
 
@@ -995,7 +995,7 @@ Escrow is WorldStreet's core promise (it is the first thing on your home page: "
 - R-202 Fees are calculated **at release**, on the final settled item value (so a partial refund reduces the fee base).
 - R-203 Delivery fees follow the delivery: if the seller delivers, they are part of the seller's proceeds; if a platform courier delivers, the courier cost is paid to the courier account and not shown as seller income.
 - R-204 Multi-seller checkout (R-045): one payment, one escrow entry **per order** (per seller), so a dispute with one seller never freezes another seller's money.
-- R-205 Wallet payments (buyer pays from WorldStreet balance) use the same escrow entry; balance is debited at payment, not at release.
+- R-205 Wallet payments (buyer pays from WorldStore balance) use the same escrow entry; balance is debited at payment, not at release.
 
 ## L3. Escrow state machine (replaces §6.5)
 
@@ -1179,7 +1179,7 @@ For vehicles (the sandbox lists a ₦38,500,000 Mustang), property (₦4,500,000
 - **Home trust strip** (exists) → links to "How escrow works" page.
 - **How escrow works** `/help/escrow`: a 4-step visual: *Pay → We hold it → You receive and check → We pay the seller*; plus "What if something goes wrong?" and a protection-window table (L7). Add a 20-second animation, short enough for mobile data.
 - **Listing detail:** one-line badge under the CTA: "Protected by escrow — your money is released to the seller only after you confirm."
-- **Checkout:** the pay button area shows a lock icon and the sentence "₦103,000 will be held by WorldStreet until you confirm delivery."
+- **Checkout:** the pay button area shows a lock icon and the sentence "₦103,000 will be held by WorldStore until you confirm delivery."
 
 ### L11.2 Buyer order page — escrow card (state-driven)
 
@@ -1276,7 +1276,7 @@ Routes: `/help/escrow`, `/orders/:id` (escrow card), `/vendor/payments`, `/vendo
 
 | Earlier item | Change |
 |---|---|
-| R-005 | Add: "Protection applies only to payments captured by WorldStreet checkout; off-platform payments are void of protection." |
+| R-005 | Add: "Protection applies only to payments captured by WorldStore checkout; off-platform payments are void of protection." |
 | R-062 | Replace fixed 3-day auto-confirm with category-based inspection windows (L4). Buyer can extend once by 24 h |
 | B9 step 3 | Add escrow sentence under pay button (L11.1); order creates one `EscrowEntry` per seller |
 | B10 | Replace escrow card with L11.2 states; add Money timeline |

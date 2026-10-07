@@ -16,7 +16,7 @@ const TOPICS: Record<string, string> = {
   safety: "Staying safe when you meet",
   "prohibited-items": "Prohibited and restricted items",
   "top-rated-sellers": "Top rated sellers",
-  about: "About WorldStreet",
+  about: "About WorldStore",
   privacy: "Privacy",
   terms: "Terms of use",
   cookies: "Cookies",

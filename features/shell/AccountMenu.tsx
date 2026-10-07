@@ -2,11 +2,10 @@
 
 import { AccountIcon, ArrowDownIcon } from "@/components/icons";
 import { Menu, type MenuItem } from "@/components/ui";
-import { signIn, signOut, useSession } from "@/features/auth/session";
+import { requestSignIn as signIn, signOut, useSession } from "@/features/auth/session";
 
 /* AccountMenu (spec §3.1, eBay "My eBay"): the places a buyer and seller come back to.
-   Desktop only; phones use the Account tab. The session is the mock one (Phase 4
-   brings real sign-in). */
+   Desktop only; phones use the Account tab. The sign-in sheet uses a device-local demo session until the auth adapter exists. */
 
 const PLACES: MenuItem[] = [
   { label: "Saved", href: "/saved" },
@@ -26,11 +25,11 @@ export function AccountMenu({ compact = false }: { compact?: boolean }) {
     <Menu label="Your account" trigger={<AccountIcon />} items={items} />
   ) : (
     <Menu
-      label="My WorldStreet"
+      label="My WorldStore"
       iconOnly={false}
       trigger={
         <>
-          My WorldStreet
+          My WorldStore
           <ArrowDownIcon />
         </>
       }

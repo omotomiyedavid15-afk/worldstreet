@@ -11,7 +11,6 @@ import { plural } from "@/lib/format";
 export function DemandLine({ listing }: { listing: ListingWithSeller }) {
   const parts: string[] = [];
   if (listing.seller.show_watchers && (listing.watchers ?? 0) > rules.demand.watchersThreshold) parts.push(`${plural(listing.watchers!, "person", "people")} watching`);
-  if ((listing.in_carts ?? 0) > 0) parts.push(`in ${plural(listing.in_carts!, "cart")}`);
   if ((listing.sold_count ?? 0) > 0) parts.push(`${plural(listing.sold_count!, "sold", "sold")}`);
   if (parts.length === 0) return null;
   return (

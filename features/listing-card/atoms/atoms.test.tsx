@@ -165,7 +165,7 @@ describe("LocationLine", () => {
 
 describe("socialSignals", () => {
   it("leads with scarcity, then sales, at most two", () => {
-    expect(socialSignals({ qty: 1, sold_count: 64, watchers: 22, in_carts: 4 }, { showWatchers: true })).toEqual([
+    expect(socialSignals({ qty: 1, sold_count: 64, watchers: 22 }, { showWatchers: true })).toEqual([
       { text: "Last one", urgent: true },
       { text: "64 sold" },
     ]);
@@ -175,7 +175,7 @@ describe("socialSignals", () => {
   it("keeps watchers private unless shown and over the threshold (R-025)", () => {
     expect(socialSignals({ qty: 5, watchers: 22 })).toEqual([]);
     expect(socialSignals({ qty: 5, watchers: 10 }, { showWatchers: true })).toEqual([]);
-    expect(socialSignals({ qty: 5, watchers: 11, in_carts: 1 }, { showWatchers: true })).toEqual([{ text: "11 watchers" }, { text: "In 1 cart" }]);
+    expect(socialSignals({ qty: 5, watchers: 11 }, { showWatchers: true })).toEqual([{ text: "11 watchers" }]);
   });
 
   it("says nothing without data, even for a single used item (PLAN F7)", () => {
@@ -234,7 +234,7 @@ describe("SaveButton", () => {
     expect(button).toHaveAttribute("aria-pressed", "false");
     await user.click(within(toasts).getByRole("button", { name: "Sign in" }));
     expect(button).toHaveAttribute("aria-pressed", "true");
-    expect(toasts).toHaveTextContent("Added to Saved");
+    expect(toasts).toHaveTextContent("Added to your watchlist");
     expect(within(toasts).getByRole("link", { name: "View" })).toHaveAttribute("href", "/saved");
   });
 
@@ -258,7 +258,7 @@ describe("SaveButton", () => {
     const { user, button, toasts } = setup();
     await user.click(button);
     expect(button).toHaveAttribute("aria-pressed", "false");
-    expect(toasts).toHaveTextContent("Saved is full (500 listings)");
+    expect(toasts).toHaveTextContent("Your watchlist is full (500 listings)");
     act(() => {
       for (let i = 0; i < 500; i++) unsaveListing(`filler${i}`);
     });

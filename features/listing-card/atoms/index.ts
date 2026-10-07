@@ -1,4 +1,4 @@
-/* Listing card atoms (spec §5.3). eBay anatomy and wording, WorldStreet DS styling. */
+/* Listing card atoms (spec §5.3). eBay anatomy and wording, WorldStore DS styling. */
 export { ConditionChip, FormatChip, conditionLabel } from "./Chips";
 export { KeyFacts } from "./Facts";
 export { DeliveryLine, LocationLine, SocialProof, socialSignals } from "./MetaLines";

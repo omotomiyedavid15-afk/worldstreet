@@ -34,7 +34,7 @@ export const Prices: Story = {
       <PriceBlock price_minor={toMinor(485_000)} was_minor={toMinor(560_000)} delivery_minor={toMinor(2_500)} showTotalTo="Lekki" />
       <PriceBlock price_minor={toMinor(845_000)} bestOffer />
       <PriceBlock variant="detail" price_minor={toMinor(485_000)} was_minor={toMinor(560_000)} bestOffer delivery_minor={toMinor(0)} showTotalTo="Lekki" />
-      <PriceBlock variant="cart" price_minor={toMinor(54_000)} was_minor={toMinor(62_000)} unitPrice={{ amount_minor: toMinor(5_400), unit: "piece" }} />
+      <PriceBlock variant="compact" price_minor={toMinor(54_000)} was_minor={toMinor(62_000)} unitPrice={{ amount_minor: toMinor(5_400), unit: "piece" }} />
       <PriceBlock variant="sticky" price_minor={toMinor(485_000)} was_minor={toMinor(560_000)} delivery_minor={toMinor(2_500)} showTotalTo="Lekki" />
       <PriceBlock price_minor={toMinor(1_250.5)} />
     </div>
@@ -101,8 +101,7 @@ export const MetaLines: Story = {
       <LocationLine place={wuse} distanceKm={528} postedAt={ago(0.02)} now={NOW} />
       <LocationLine place={ikeja} postedAt={ago(40)} now={NOW} />
       <SocialProof listing={{ qty: 1, sold_count: 64, watchers: 22 }} showWatchers />
-      <SocialProof listing={{ qty: 12, sold_count: 38, watchers: 31, in_carts: 6 }} showWatchers />
-      <SocialProof listing={{ qty: 20, in_carts: 4 }} />
+      <SocialProof listing={{ qty: 12, sold_count: 38, watchers: 31 }} showWatchers />
     </div>
   ),
 };
@@ -155,7 +154,7 @@ export const Save: Story = {
     expect(sony).toHaveAttribute("aria-pressed", "false");
     await userEvent.click(await body.findByRole("button", { name: "Sign in" }));
     await waitFor(() => expect(sony).toHaveAttribute("aria-pressed", "true"));
-    await waitFor(() => expect(body.getByRole("status", { name: "Notifications" })).toHaveTextContent("Added to Saved"));
+    await waitFor(() => expect(body.getByRole("status", { name: "Notifications" })).toHaveTextContent("Added to your watchlist"));
 
     // Signed in: Space toggles it back off.
     sony.focus();

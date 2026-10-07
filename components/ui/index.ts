@@ -1,4 +1,4 @@
-/* The marketplace's rebuild of the WorldStreet design system components
+/* The marketplace's rebuild of the WorldStore design system components
    (https://worldstreet-design-system.vercel.app/components). Same names and props as
    the DS code samples; markup and classes match its rendered examples. */
 export { Button, buttonClass, type ButtonProps } from "./Button";

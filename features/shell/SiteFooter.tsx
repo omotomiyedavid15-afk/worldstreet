@@ -6,7 +6,7 @@ import { Logo } from "./Logo";
 /* SiteFooter + LegalBar (spec §3.3): four columns on desktop, an accordion on phones
    with one section open at a time (<details name>, no script needed). Every link goes
    to a real page or a placeholder that says when it arrives (F5). Links to the other
-   WorldStreet products wait until their addresses are confirmed. */
+   WorldStore products wait until their addresses are confirmed. */
 
 const COLUMNS = [
   {
@@ -39,7 +39,7 @@ const COLUMNS = [
   {
     title: "About",
     links: [
-      { label: "About WorldStreet", href: "/help/about" },
+      { label: "About WorldStore", href: "/help/about" },
       { label: "Top rated sellers", href: "/help/top-rated-sellers" },
       { label: "Prohibited items", href: "/help/prohibited-items" },
     ],
@@ -80,7 +80,7 @@ export function SiteFooter() {
           </nav>
         </div>
         <div className="ws-footer__legal">
-          <p>© {new Date().getFullYear()} WorldStreet. Prices in naira (₦).</p>
+          <p>© {new Date().getFullYear()} WorldStore. Prices in naira (₦).</p>
           <ul>
             {LEGAL.map((l) => (
               <li key={l.href}>

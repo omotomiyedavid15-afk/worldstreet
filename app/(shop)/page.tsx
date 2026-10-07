@@ -56,7 +56,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
   return (
     <div className="ws-home">
       {/* F11: one h1. The hero's slides are h2s because they rotate. */}
-      <h1 className="cx-sr-only">WorldStreet Marketplace: buy and sell near you</h1>
+      <h1 className="cx-sr-only">WorldStore Marketplace: buy and sell near you</h1>
       <LocationBar anchor={anchor} inferred={inferred} radius={radius} returnTo={returnTo} action={setLocation} />
       <CategoryTiles tiles={tiles} radius={radius} />
       {/* B1: returning buyers see what they looked at first; other rails skip those (R-013). */}
