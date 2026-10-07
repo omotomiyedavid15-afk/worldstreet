@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { MotionProvider } from "@/components/motion/MotionProvider";
+import { SignInSheet } from "@/features/auth/SignInSheet";
+import { ScrollState } from "@/components/motion/ScrollState";
 import { ToastViewport } from "@/components/ui";
 import { connection } from "next/server";
 import { CATEGORY_ICONS } from "@/features/home/category-icons";
@@ -18,9 +20,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   // Absolute URLs for link previews (WhatsApp, X). Set SITE_URL in each environment.
   metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
-  title: { default: "WorldStreet Marketplace", template: "%s · WorldStreet Marketplace" },
+  title: { default: "WorldStore Marketplace", template: "%s · WorldStore Marketplace" },
   description: ESCROW.tagline,
-  openGraph: { siteName: "WorldStreet Marketplace", locale: "en_NG", type: "website" },
+  openGraph: { siteName: "WorldStore Marketplace", locale: "en_NG", type: "website" },
   twitter: { card: "summary_large_image" },
 };
 
@@ -65,6 +67,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <SiteFooter />
           <BottomNav />
           <ToastViewport />
+          <SignInSheet />
+          <ScrollState />
         </MotionProvider>
       </body>
     </html>

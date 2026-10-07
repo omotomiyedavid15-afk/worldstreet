@@ -13,7 +13,7 @@ export const Header: Story = {
   play: async ({ canvasElement }) => {
     const c = within(canvasElement);
     await expect(c.getByRole("combobox", { name: "Search for anything" })).toBeInTheDocument();
-    await expect(c.getByRole("link", { name: "WorldStreet home" })).toHaveAttribute("href", "/");
+    await expect(c.getByRole("link", { name: "WorldStore home" })).toHaveAttribute("href", "/");
   },
 };
 

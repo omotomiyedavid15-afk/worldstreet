@@ -1,4 +1,4 @@
-# WorldStreet Marketplace — Progress
+# WorldStore Marketplace — Progress
 
 Plan: [PLAN.md](PLAN.md). Each phase ends with a report below. Items are ticked in the master
 checklist (component spec, Part X) when they meet the spec row, have stories and a test, and
@@ -6,7 +6,18 @@ pass `npm run check`.
 
 ## Phase reports
 
-_Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placeholder routes, manifest, a11y pass: axe zero serious/critical on `/`, `/search`, placeholders and the 404 at 375, 360 and 1280); Sprint 0 check #5 passes (e2e/home.spec.ts). Phase 1 (header and search) done: shell, category navigation, live suggestions; e2e/shell.spec.ts and e2e/suggest.spec.ts. Phase 2 (results and filters) done: filters with counts, rail and sheet, chips, Price + delivery sort, grid/list, Saved, saved searches, Recently viewed, Did you mean, related searches; e2e/filters.spec.ts and e2e/saved.spec.ts. Phase 3 (listing detail) in progress: P3a layout, gallery, buy box and sticky bar, and P3b panels, share and report done (e2e/listing.spec.ts). Building in dark mode (your direction, 6 Oct). Sprint 0 checks #1–#4 pass end to end (e2e/search.spec.ts, 375 and 1280). Components mirror eBay, styled with the DS (your direction, 6 Oct)._
+_Phases 0–2 implemented; Phase 3 includes P3a–P3d (listing detail, seller/review rails, unavailable states, revision history and seller shop). P2P conversion and the Phase 4 local offers/messaging prototype are implemented in the Spokane workspace. See the handoff below for verification and production integration boundaries._
+
+## P2P handoff — 7 Oct
+
+- Imported the latest committed foundation (`599aaa1`) and the unfinished P2P diff from the main checkout without modifying that checkout.
+- Replaced Buy now/cart with Make offer, Watchlist and Message seller; removed cart/checkout routes and cart demand counts. Repaired the malformed listing test and updated the buy-box stories.
+- `/offers`, `/inbox` and `/inbox/:id` now provide a local negotiation flow: offers/counters/accept/decline/withdraw, deadline expiry, per-listing and account limits, sign-in sheet with resumed intent, pinned listing, messages, quick replies, persisted drafts, photo previews, safety warnings, seller blocking and demo reports.
+- Sellers can request the accepted item total plus agreed delivery. Buyers can simulate success, decline or timeout and retry within the deadline. All amounts are integer kobo; duplicate command keys cannot execute twice. Vehicles/property have no payment request.
+- The repository is an explicitly labelled **device-local demo** (`features/negotiation/model.ts` + `store.ts`), matching the existing mock session/data architecture. Perspective switching is for testing both sides, not real authentication. No messages, reports or payments leave the browser. Negotiations require a successful browser-storage write: blocked/full storage leaves the action unsent and the composer intact, with an error. Drafts retain the existing memory fallback.
+- Remaining integrations: real authentication and account isolation; server repository and atomic stock reservations across buyers; real-time delivery/read receipts and notifications; durable image uploads; moderation intake; provider-hosted payment UI/webhooks; order/escrow ledger and KYC checks. These must precede live trading. The old full-phase acceptance checklist is not marked complete by this prototype.
+- Verification: `npm run check` passes (icons, ESLint, Next route types + TypeScript, 28 unit-test files / 188 tests, Storybook production build). Focused Playwright coverage passes on 375 px mobile and 1280 px desktop for the full offer → accept → payment-request → simulated-payment flow, messaging safety/blocking/persistence, Watchlist replacement, Recently viewed hydration and browser-storage failure recovery. Axe reports zero serious/critical violations on the inbox flow.
+- Renamed the customer-facing product to **WorldStore** and replaced the temporary Atlas bag mark with the supplied W mark. The same SVG now generates the favicon, Apple icon and manifest icons. Internal `data-brand="worldstreet"` selectors and `ws:*` browser-storage keys stay unchanged for design-token and saved-data compatibility.
 
 ## Deviations from the docs and the design system
 
@@ -34,8 +45,14 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 | 6 Oct | About this item | Item specifics (two columns from 768px, past 8 rows under "Show all"), Condition with a definition popover listing every grade, the description as plain escaped paragraphs clamped at 12 lines with Read more, item number with Copy, and "Listed 2 days ago" | SellerNotes and RevisionHistory wait for listing data that has them (seller notes, edit history: Phase 7 seller tools); showing an empty history would be made up (PLAN F7). LocalPickupMap waits for a map provider |
 | 6 Oct | Share | Icon button on the gallery's corner (eBay); the phone's own share sheet where there is one, else our sheet: Copy link, WhatsApp, Telegram, X, Text message, with an absolute link. Also in the sticky bar's overflow | Atlas has no Telegram or X marks: Airplane (Telegram's paper plane) and Messages stand in, always with the name |
 | 6 Oct | Report | A dialog with seven reasons (prohibited, fake, scam, misleading, wrong category, offensive, other), optional details (500 characters, required for "Something else"), posting to a Server Action that validates everything; "We review reports within 24 hours. We don't tell the seller who reported." No anonymous-report limit or queue yet | Flows §632. Reports are accepted and dropped until the admin phase |
-| 6 Oct | Safety tips | Four tips; goods: pay on checkout only, meet in public, check before confirming, keep the chat on WorldStreet. Vehicles and property: no payment before inspecting, mechanic or document checks | Flows B3 step 9 and the vehicle/property alternate |
+| 6 Oct | Safety tips | Four tips; goods: pay on checkout only, meet in public, check before confirming, keep the chat on WorldStore. Vehicles and property: no payment before inspecting, mechanic or document checks | Flows B3 step 9 and the vehicle/property alternate |
 | 6 Oct | Story tests | Motion's lazily loaded features are preloaded by a Storybook loader | Under a full run they arrived after 1 s and held the hide → Undo exit, so "Hide And Undo" failed only in the full suite |
+| 7 Oct | Listing P3d | Sold, ended and out-of-stock listings keep their page with "No longer available" (UnavailableState: See similar items, Visit shop, Save when it may return); reserved ones say "Offer pending" with Message seller; removed/draft/in-review/rejected answer not found. Revision history (R-112) and seller notes on the listing. The shop page `/seller/:handle` (header; Items / Reviews / About; tab in `?tab=`). Three fixtures added: reserved, paused, removed | Flows R-021, R-032, R-121, R-112, spec §7 and §13. **Deviation:** the spec's 410 for removed listings isn't possible from a Next page; with streaming the status is 200 + robots noindex, which search engines also drop. **Deferred:** LocalPickupMap (needs a map provider: tiles are an external service, a licence and a privacy choice), VariationSelector and VideoPlayer (no variations or video in the data yet), R-024 live price-change notice (needs realtime) |
+| 7 Oct | Mock data (flagged) | Revision history now shows that most discounted mock listings dropped their price days after listing, so their struck-through "was" price breaks flows S2 step 4 (a higher price must have held ≥ 7 days). Nothing enforces that rule yet | The rule belongs to the listing wizard (Phase 7) plus a display guard. Adding the guard now removes most mock discounts and the Deals rail, so it waits for your call |
+| 7 Oct | Icons | Checked for Lucide: none in dependencies, imports, inline SVGs, CSS or app icons; all 80 icons and the app icon come from Atlas. Icon weight is now set by role (`styles/marketplace.css`): **linear** (Atlas medium, 1.5px) for things you read, **bold** (Atlas bold, 2px) for icon buttons, solid buttons, the selected/pressed/current item, chips, alerts and the logo; `weight` on an icon overrides it (`linear` accepted as a name) | Your direction, 7 Oct. Replaces the DS's per-component widths (1.6–1.8px), which also silently overrode any weight set on an icon. Foundations › Icons › Weights tests the rule |
+| 7 Oct | Listing P3c | About this seller (SellerCard + four detailed ratings), Ratings and reviews (This item / All items tabs, star spread, topic chips, Verified purchase, seller replies, Show more), Similar items and Seller's other items rails. DS Tabs rebuilt (`components/ui/Tabs.tsx`). "Save seller" waits for Saved › Sellers; review photos wait for uploads (Phase 7) | Spec §7, flows B3 steps 6–8, B11. Mock reviews are generated from each seed's rating and every listing's displayed rating is computed from its records (lib/reviews.ts), so card, page and list agree (F13, PLAN F7). Item and seller summaries are labelled apart (R-073). Similar skips the seller's own items so nothing shows twice (R-013) and collapses under 4 (R-014); the seller rail shows at any size. Time zone added to config (R-006) |
+| 7 Oct | Home layout | Trust strip removed from the home page (component, story, CSS and its copy); the hero carousel moved below Near you (or its nationwide fallback) | Your direction, 7 Oct. Departs from flows B1 step 3 ("trust strip above the fold") and the blueprint's "keep it"; escrow is still stated by the hero's first slide, the sell block and every listing page |
+| 7 Oct | Scroll performance | Hover effects (tilt, lift, photo zoom) stand down while the page scrolls (`components/motion/ScrollState`, `html[data-scrolling]`); `will-change` only on the hovered card; the 3D stage and the sell-block aurora pause mid-scroll; result reveals use IntersectionObserver instead of ScrollTrigger (plugin no longer loaded) | Measured in Chrome on the production build: cards entering `:hover` under a still pointer cost 378 ms of style work per scroll on /search (22 ms with the pointer off the grid). After: search layouts 68→27, frames over 33 ms 14→6, p95 33→16.8 ms; home slow frames 61→34, layouts 63→29. `scrollend` fires per wheel notch, so the state ends on a 180 ms quiet spell instead |
 | 6 Oct | Tooling | Local browser tests drive installed Chrome | Playwright has no Chromium build for macOS 13; CI uses bundled Chromium |
 | 6 Oct | Config | Low-price warning uses EC-027's "under 40% **of** the comparable median" (`priceWarnBelowPercentOfMedian`) | S2 step 4 says "< 40% below" the median (i.e. under 60% of it). The two disagree; EC-027 is the specific rule. **Confirm which you want** |
 | 6 Oct | Data | Entity fields keep Part G's snake_case (`price_minor`, `seller_id`, `created_at`) | Matches the docs and the eventual API, so nothing is renamed at the boundary |
@@ -91,14 +108,14 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 | 6 Oct | Testing | Playwright `android-360` project; no-sideways-scroll checks at 360 and 320 (caught a real 38–50px overflow, fixed with `minmax(0, 1fr)` on the page column). Lighthouse CI deferred: it adds a dependency, and there's no home page to budget yet (S0.10) | GSMA device mix; spec §16.7 |
 | 6 Oct | Card subtitle (decided C2) | Condition plus up to 3 category facts on one line under the title ("Pre-owned · 256GB · Battery 89%", "1 bed · 1 bath"), replacing the condition chip on cards; facts per category in `Category.card_facts`, worded in `lib/facts.ts`, skipping what the title says; narrow cards keep condition + 1 | eBay item tile; Baymard category attributes. Spec §5.1 items 2/3 change. ConditionChip stays for the listing page and filters |
 | 6 Oct | Card photos (decided C1) | Step through up to 4 photos on grid and list cards: hover arrows and dots on desktop, swipe on phones (Motion drag), spring slide, "2/6" counter; tap still opens the listing; only photo 1 loads up front | eBay/Etsy. Arrows are pointer-only (not in tab order): keyboard users get every photo in the listing gallery (blueprint X3 noted) |
-| 6 Oct | Home (S0.10) | Search and the location bar sit at the top until the Phase 1 header exists; the h1 is visually hidden ("WorldStreet Marketplace: buy and sell near you", F11) because hero slides rotate | B1 step 1 puts search first; a rotating headline can't be the page's h1 |
+| 6 Oct | Home (S0.10) | Search and the location bar sit at the top until the Phase 1 header exists; the h1 is visually hidden ("WorldStore Marketplace: buy and sell near you", F11) because hero slides rotate | B1 step 1 puts search first; a rotating headline can't be the page's h1 |
 | 6 Oct | HeroCarousel | 3 slides (PLAN C6), APG carousel: rotation control first, "2 / 3" counter, slides labelled "2 of 3", aria-live off while rotating; rotation holds while the pointer or focus is inside and stops for good once the buyer changes slide; never starts under reduced motion; Previous/Next on phones too; CTAs are ghost; every slide's copy sits invisibly in the same cell so the hero never changes height | Spec §4 says mobile is "swipe, counter", but WCAG 2.5.7 needs a single-pointer alternative to dragging. Ghost CTAs: Search is the view's one solid gold button (spec §1.1). The invisible copies keep rotation from shifting the page (CLS) |
 | 6 Oct | Home rails | Each listing goes to its most specific rail first (price drop → Deals, then nearest → Near you, then newest → Just listed), shown in B1 order; rails follow `?radius=`; with nothing nearby one "From sellers across Nigeria" rail replaces Near you; B1's "All listings" is a "Just listed" rail plus "Browse all N listings near Lagos" (N = the /search count) | R-013 dedupe without starving Deals; F6 never passes far items off as near; a long grid of full cards would make the phone page very long |
 | 6 Oct | Deals rail | "Deals near Lagos" with eyebrow "Price drops", no countdown | Listings have no deal end time, so "Deals ending soon" (B1) would be a false claim |
 | 6 Oct | CategoryTiles | Icon tiles (the category's Atlas glyph) with "5 nearby" or "2 nationwide"; the number is the one the tile's search shows, radius included; two scrolling rows on phones | Spec §4 asks for image tiles; Atlas is the only image source we use. R-016 |
 | 6 Oct | Trust copy | Strip and hero copy in `lib/copy/trust.ts`, escrow sentences in `escrow.ts`, numbers from config (₦20,000 tracking, 72-hour inspection, 7-day was-price); strip says "We hold your payment while you check the item, then pay the seller", not "until you confirm" | L11.4: the short claim mustn't hide that the inspection window can release the money; L14 test 8 |
 | 6 Oct | Placeholder routes (F5) | `/categories`, `/saved`, `/notifications`, `/inbox`, `/offers`, `/account`, `/cart`, `/checkout`, `/orders`, `/sell/start`, `/sell/new`, `/vendor`, `/seller/:handle`, `/help/*` say what they'll do and "Coming in Phase N of the build", noindex; unknown help topics, sellers and paths get a real 404 page | No dead links before the shell (Phase 1) points at them; a fake help page for any slug would hide broken links |
-| 6 Oct | App icon and manifest (F16) | The Atlas ShopBag glyph on the gold tile (`npm run app-icons`, rasterised with sharp, which Next installs); favicon, SVG icon, Apple icon, 192/512 and maskable icons; manifest dark, standalone, en-NG | Replaces the create-next-app favicon. Atlas is the only icon source (your rule), so the brand mark uses it too. **Swap in a real WorldStreet logo when there is one** |
+| 7 Oct | App icon, logo and manifest (F16) | The supplied WorldStore W mark is used in the header/footer and is the source for the favicon, SVG icon, Apple icon, 192/512 and maskable icons (`npm run app-icons`, rasterised with sharp); manifest dark, standalone, en-NG | Replaces the temporary Atlas ShopBag mark. The product name, metadata, sharing copy, safety copy and accessible names now say WorldStore |
 | 6 Oct | F17 (sticky chrome) | Bottom padding for the nav and the collapsing category rail move to Phase 1 | Neither the bottom nav nor the category rail exists yet; padding for a missing nav would be empty space |
 | 6 Oct | AppHeader (Phase 1) | One search box in the header at every width: phones put it on its own row under the menu, logo and cart (eBay mobile web) instead of a search icon; the header is sticky with a negative top so the utility row (desktop) or logo row (phones) scrolls away without a layout jump; utility links move into a native `<dialog>` drawer below 1200 | Spec §3.1 says a search icon opens an overlay on phones; a visible field is one tap shorter and the overlay comes from focusing it (P1c). Toggling heights on scroll would shift the page |
 | 6 Oct | Shell gaps | No ship-to chip in the utility row (the inline LocationBar does that job on the pages that use location); no cart count or mini-cart until the cart exists (Phase 5); no WalletBalanceChip or HelpBubble yet; links to Finance, Academy, Xstream and Vivid AI wait for their addresses; no CookieConsent while the site sets no non-essential cookies | F5: no badge or control without a working panel; a consent banner for cookies we don't set would mislead |
@@ -230,7 +247,7 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 - [x] GalleryLightbox
 - [ ] VideoPlayer
 - [x] ListingTitleBlock
-- [ ] SellerStrip
+- [x] SellerStrip
 - [x] BuyBox
 - [ ] VariationSelector
 - [x] QuantityStepper
@@ -244,22 +261,22 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 - [x] ProtectionPanel
 - [x] ConditionInfo
 - [x] ItemSpecifics
-- [ ] SellerNotes
+- [x] SellerNotes
 - [x] DescriptionBlock
-- [ ] RevisionHistory
+- [x] RevisionHistory
 - [x] ListingMeta
-- [ ] SellerCard
-- [ ] SellerRatingsBreakdown
-- [ ] ReviewsSection (+ filters, cards, photos)
+- [x] SellerCard
+- [x] SellerRatingsBreakdown
+- [x] ReviewsSection (+ filters, cards, photos)
 - [ ] QAThread
-- [ ] SimilarItemsRail
-- [ ] SellerOtherItemsRail
+- [x] SimilarItemsRail
+- [x] SellerOtherItemsRail
 - [ ] CategoryBestSellers
 - [x] ShareSheet
 - [x] ReportListingModal
 - [x] SafetyTipsCard
 - [ ] LocalPickupMap
-- [ ] UnavailableState
+- [x] UnavailableState
 - [ ] PriceHistorySparkline
 
 ## F. Offers & bids
@@ -357,8 +374,8 @@ _Phase 0 in progress on `phase/0-foundations`: S0.0–S0.10 done (home, placehol
 - [ ] LevelBadge
 - [ ] VerifiedBadge
 - [ ] NewSellerBadge
-- [ ] SellerPublicProfile + SellerProfileHeader
-- [ ] SellerStats
+- [x] SellerPublicProfile + SellerProfileHeader
+- [x] SellerStats
 - [x] SavedPage + SavedSearchRow
 - [ ] NotificationCentre
 - [ ] NotificationPreferences

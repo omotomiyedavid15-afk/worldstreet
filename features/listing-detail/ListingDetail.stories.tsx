@@ -44,8 +44,7 @@ export const Photos: Story = {
   },
 };
 
-/* eBay's order: quantity, Buy it now (the one solid button), Add to cart, Save. The
-   quantity rides along to checkout and stops at what's in stock. */
+/* P2P: quantity, Make offer, Watchlist, Message seller. */
 export const Goods: Story = {
   render: () => (
     <section className="ws-buybox" style={{ maxWidth: 380 }}>
@@ -55,13 +54,13 @@ export const Goods: Story = {
     </section>
   ),
   play: async ({ canvas }) => {
-    const buy = canvas.getByRole("link", { name: "Buy it now" });
-    await expect(buy).toHaveAttribute("href", `/checkout?listing=${sony.id}`);
+    const buy = canvas.getByRole("link", { name: "Make offer" });
+    await expect(buy).toHaveAttribute("href", `/offers?listing=${sony.id}`);
     await userEvent.click(canvas.getByRole("button", { name: "One more" }));
-    await expect(buy).toHaveAttribute("href", `/checkout?listing=${sony.id}&qty=2`);
+    await expect(buy).toHaveAttribute("href", `/offers?listing=${sony.id}&qty=2`);
     await expect(canvas.getByRole("button", { name: "One more" })).toBeDisabled();
-    await expect(canvas.getByRole("link", { name: "Add to cart" })).toHaveAttribute("href", `/cart?listing=${sony.id}&qty=2`);
-    await expect(canvas.queryByRole("link", { name: "Make offer" })).toBeNull();
+    await expect(canvas.getByRole("button", { name: "Add to watchlist" })).toBeInTheDocument();
+    await expect(canvas.queryByRole("link", { name: "Add to cart" })).toBeNull();
     // Real counts only, and watchers only where the seller allows it (R-025).
     await expect(canvas.getByText(/31 people watching/)).toBeInTheDocument();
     await expect(canvas.getByRole("link", { name: "How escrow works" })).toBeInTheDocument();
@@ -89,9 +88,9 @@ export const StickyBar: Story = {
   render: () => (
     <div>
       <div id="story-actions">
-        <a href="/checkout">Buy it now</a>
+        <a href="/offers">Make offer</a>
       </div>
-      <StickyBuyBar watch="story-actions" listingId={sony.id} title={sony.title} price="₦485,000" price_minor={sony.price_minor} total="Total to Lekki ₦489,500" action={{ label: "Buy it now", href: `/checkout?listing=${sony.id}` }} share={{ url: "https://worldstreet.example/listing/204507", title: sony.title, text: sony.title }} />
+      <StickyBuyBar watch="story-actions" listingId={sony.id} title={sony.title} price="₦485,000" price_minor={sony.price_minor} total="Total to Lekki ₦489,500" action={{ label: "Make offer", href: `/offers?listing=${sony.id}` }} share={{ url: "https://worldstore.example/listing/204507", title: sony.title, text: sony.title }} />
     </div>
   ),
   play: async ({ canvasElement }) => {

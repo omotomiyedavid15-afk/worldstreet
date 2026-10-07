@@ -3,13 +3,15 @@ import type { Category } from "@/lib/data/types";
 
 /*
  * Every escrow claim comes from here (PLAN F9, flows L11.4, L14 test 8), so no surface
- * promises more than escrow does. Escrow covers payments made through WorldStreet
- * checkout for delivered goods and meet-ups; vehicles and property have no escrow
- * checkout (PLAN risk 7), and off-platform payments aren't covered (R-005).
+ * promises more than escrow does. WorldStore is peer to peer, with no cart or checkout
+ * (owner's direction, 7 Oct): buyer and seller agree a deal in chat, the seller sends a
+ * payment request, and the buyer pays it into escrow. Escrow covers those payments for
+ * delivered goods and meet-ups; vehicles and property have no escrow (PLAN risk 7), and
+ * off-platform payments aren't covered (R-005).
  */
 
 /** True for every listing, so no blanket "every deal". */
-const HELD = "Pay through WorldStreet and your money is held until you get what you ordered.";
+const HELD = "Pay through WorldStore and your money is held until you get what you ordered.";
 
 export const ESCROW = {
   /** Site description. */
@@ -18,11 +20,9 @@ export const ESCROW = {
   held: HELD,
   /** Short claim next to a goods listing's price and delivery. */
   claim:
-    "Pay through WorldStreet checkout and we hold your money until you confirm the item arrived as described, or the inspection window ends without a problem report.",
-  /** For vehicles and property, which have no escrow checkout. */
-  noEscrow: "No escrow checkout for this category. Inspect in person before you pay, and never pay a deposit to hold a viewing.",
-  /** Short form for the home trust strip (L11.1), next to "How escrow works". */
-  stripTitle: "Escrow on every checkout",
+    "Agree a deal, then pay the seller's payment request through WorldStore: we hold your money until you confirm the item arrived as described, or the inspection window ends without a problem report.",
+  /** For vehicles and property, which have no escrow. */
+  noEscrow: "No escrow for this category. Inspect in person before you pay, and never pay a deposit to hold a viewing.",
   // Not "until you confirm": the inspection window can also end it (L11.4).
   strip: "We hold your payment while you check the item, then pay the seller.",
   /** A goods listing with no returns: what still protects the buyer (L7). */
@@ -33,15 +33,15 @@ export const ESCROW = {
   protectionTitle: "Shop with confidence",
   /** L7: protection doesn't end when the money is released. */
   afterRelease: `Something wrong after that? Report it within ${rules.protection.anyIssueDays} days of delivery; fakes and safety problems, within ${rules.protection.counterfeitSafetyDays} days.`,
-  /** R-005: only checkout is covered. */
-  offPlatform: "Paying the seller directly (transfer, cash before you see the item) isn't covered.",
+  /** R-005: only payment requests paid through WorldStore are covered. */
+  offPlatform: "Paying the seller directly (transfer, cash before you see the item) isn't covered. Only a payment request paid through WorldStore is.",
   /** Where the rules are explained. */
   learnMoreHref: "/help/escrow",
 } as const;
 
 /** The inspection window a category gets before the seller is paid (L4), as a sentence. */
 export function inspectionLine(hours: number, what: string) {
-  return `${what} bought through checkout get ${hours} hours to check before the seller is paid.`;
+  return `${what} paid for through WorldStore get ${hours} hours to check before the seller is paid.`;
 }
 
 export function escrowLine(category: Pick<Category, "kind">) {

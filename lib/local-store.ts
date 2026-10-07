@@ -11,7 +11,7 @@ export type LocalStore<T> = {
   readonly initial: T;
 };
 
-export function createLocalStore<T>(key: string, initial: T, parse: (raw: unknown) => T): LocalStore<T> {
+export function createLocalStore<T>(key: string, initial: T, parse: (raw: unknown) => T, options: { requirePersistence?: boolean } = {}): LocalStore<T> {
   let value = initial;
   let loaded = false;
   const listeners = new Set<() => void>();
@@ -40,13 +40,14 @@ export function createLocalStore<T>(key: string, initial: T, parse: (raw: unknow
       return value;
     },
     set(next) {
-      value = next;
-      loaded = true;
       try {
         window.localStorage.setItem(key, JSON.stringify(next));
       } catch {
-        // Keep the in-memory value; it just won't survive a reload.
+        if (options.requirePersistence) throw new Error("Could not save on this device. Browser storage may be full or blocked. Remove attachments or free space, then retry; your message has not been sent.");
+        // Optional persistence (saved items/drafts) can still work in memory.
       }
+      value = next;
+      loaded = true;
       emit();
     },
     subscribe(listener) {

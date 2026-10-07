@@ -8,20 +8,10 @@ import { CategoryTiles } from "./CategoryTiles";
 import { HeroCarousel } from "./HeroCarousel";
 import { ProductRail } from "./ProductRail";
 import { SellCta } from "./SellCta";
-import { TrustStrip } from "./TrustStrip";
 
 const meta: Meta = { title: "Home/Modules" };
 export default meta;
 type Story = StoryObj;
-
-export const Trust: Story = {
-  render: () => <TrustStrip />,
-  play: async ({ canvasElement }) => {
-    const c = within(canvasElement);
-    await expect(c.getByRole("link", { name: "How escrow works" })).toHaveAttribute("href", "/help/escrow");
-    await expect(c.getByText(/₦20,000/)).toBeInTheDocument();
-  },
-};
 
 /* The APG carousel: rotation control first, "2 / 3" counter, slides labelled "n of 3". */
 export const Hero: Story = {

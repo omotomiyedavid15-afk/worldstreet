@@ -1688,7 +1688,6 @@ a.ws-seller__name:hover {
   .ws-tilt > .ws-card {
     transform: rotateX(var(--ws-rx, 0deg)) rotateY(var(--ws-ry, 0deg)) translateY(0);
     transition: transform 500ms var(--cx-spring), box-shadow var(--cx-dur) var(--cx-ease);
-    will-change: transform;
     /* Smooths the tilted edges (no stair-stepping on the photo's top edge). */
     backface-visibility: hidden;
     outline: 1px solid transparent;
@@ -1697,6 +1696,9 @@ a.ws-seller__name:hover {
   .ws-tilt:hover > .ws-card.cx-card--interactive {
     transform: rotateX(var(--ws-rx, 0deg)) rotateY(var(--ws-ry, 0deg)) translateY(-4px);
     transition-duration: 160ms, var(--cx-dur);
+    /* Promoted only while hovered: a permanent will-change made every card in the grid
+       its own compositor layer, all the time. */
+    will-change: transform;
   }
 
   .ws-card__media img {
@@ -1779,3 +1781,11 @@ a.ws-seller__name:hover {
   font: 400 var(--cx-small)/1.4 var(--cx-font);
   text-align: center;
 }
+
+/* Mid-scroll (components/motion/ScrollState): cards and tiles passing under a still
+   pointer don't take hover, so no tilt, lift or photo zoom starts while the page moves.
+   Hover returns as soon as scrolling stops. */
+html[data-scrolling] :is(.ws-tilt, .ws-card, .ws-tile) {
+  pointer-events: none;
+}
+

@@ -1,4 +1,4 @@
-# WorldStreet Marketplace — UX Audit & eBay-Parity Blueprint
+# WorldStore Marketplace — UX Audit & eBay-Parity Blueprint
 
 Prepared 6 Oct 2026 · Author: Claude (Cowork) for Greatness Omotomiye
 
@@ -10,8 +10,8 @@ Prepared 6 Oct 2026 · Author: Claude (Cowork) for Greatness Omotomiye
 |---|---|
 | eBay homepage, search results, item page, selling landing page, Money Back Guarantee policy | **Observed live** (6 Oct 2026 session, shipping destination auto-detected as Nigeria) |
 | eBay sign-in-gated flows (cart, checkout, My eBay, Seller Hub, listing form, messages, disputes) | **Not observed.** Described from public eBay documentation patterns and general knowledge. Marked `[inferred]` |
-| WorldStreet sandbox (`worldstreet-sandbox-hvxp-jivq5ns22.vercel.app`) | **Audited live** after you opened access (Section 3A). Tested the home page at a ~780px and a ~1350px viewport, using clicks and DOM/computed-style checks. Single run, not a lab benchmark |
-| WorldStreet design/component intent | Taken from your own project notes (Phases 1–3, v5 tokens). Used only to map the roadmap, not to claim what is or isn't live |
+| WorldStore sandbox (`worldstreet-sandbox-hvxp-jivq5ns22.vercel.app`) | **Audited live** after you opened access (Section 3A). Tested the home page at a ~780px and a ~1350px viewport, using clicks and DOM/computed-style checks. Single run, not a lab benchmark |
+| WorldStore design/component intent | Taken from your own project notes (Phases 1–3, v5 tokens). Used only to map the roadmap, not to claim what is or isn't live |
 
 **Scope limit of the live audit:** the sandbox is a front-end prototype with one page. Search, listing detail, Create listing, notifications and the bottom-nav tabs do not lead anywhere yet, so I could not test the item page, checkout, seller wizard or messaging. Those remain scorecard items in Section 3B. Not tested: a true 375px phone width, real-device performance, screen reader.
 
@@ -115,7 +115,7 @@ Everything below is organised by these systems.
 
 ---
 
-## 3A. Live audit of the WorldStreet sandbox (observed 6 Oct 2026)
+## 3A. Live audit of the WorldStore sandbox (observed 6 Oct 2026)
 
 ### What is already strong (keep it)
 - **Trust is stated up front.** A three-part strip under the hero: "Escrow on every deal", "Delivery you can follow (with the rider's number)", "Paid into your wallet". This is stronger than eBay's home page, which buries protection. Keep it.
@@ -124,7 +124,7 @@ Everything below is organised by these systems.
 - **Responsive shell:** desktop header with location, category scope, search, Create listing, avatar; mobile switches to a floating bottom nav (Home, Search, Saved, Sell, Inbox, More/switch module). No horizontal scroll at the tested widths.
 - **Good micro-feedback:** the heart gives a toast "Added to Saved — Find it any time under Saved items."; sort and category filters update instantly with a result line ("4 listings in this filter") and a Clear action.
 - **Accessibility foundations present:** `lang="en"`, skip link, `main`/`nav`/`header`/`footer` landmarks, carousel marked up as a carousel, star ratings read as "rated 4.9 out of 5", search box labelled.
-- **Footer already maps the full eBay-style service surface:** Buyer protection, Open a dispute, Report a listing, Safety tips, Seller tools, Fees and payouts, Shipping labels, plus the WorldStreet cross-product links.
+- **Footer already maps the full eBay-style service surface:** Buyer protection, Open a dispute, Report a listing, Safety tips, Seller tools, Fees and payouts, Shipping labels, plus the WorldStore cross-product links.
 
 ### Findings (ranked)
 
@@ -140,7 +140,7 @@ Everything below is organised by these systems.
 | F8 | S2 | **Hero carousel auto-advances with no pause control** (slides changed between my screenshots). A floating unlabelled round button sits on the right edge. | 0 pause/play buttons found | WCAG 2.2.2 (Pause, Stop, Hide); also distracting | Add Pause/Play, stop autoplay on hover/focus, respect `prefers-reduced-motion`; label the floating button or remove it |
 | F9 | S2 | **Heart does not expose state.** `aria-label` is always "Save listing", no `aria-pressed`. | DOM | Screen reader users cannot tell if an item is saved | `aria-pressed` and label swap ("Remove from saved") |
 | F10 | S2 | **Touch targets too small.** 151 interactive elements measured under 44×44px at the tested width (the icon buttons and chips). | DOM | Mobile mis-taps; WCAG 2.5.8 minimum is 24px, but 44px is the practical target | Increase hit areas with padding, not visual size |
-| F11 | S3 | **No `<h1>` on the page.** Headings jump straight to `h2`. | 0 `h1` | Weak document outline for assistive tech and SEO | Visually-hidden `h1` ("WorldStreet Marketplace — buy and sell near you") |
+| F11 | S3 | **No `<h1>` on the page.** Headings jump straight to `h2`. | 0 `h1` | Weak document outline for assistive tech and SEO | Visually-hidden `h1` ("WorldStore Marketplace — buy and sell near you") |
 | F12 | S3 | **Missing alt text and unnamed controls:** 7 images without `alt`, 5 buttons without an accessible name. | DOM | Silent controls for screen readers | Add `alt=""` for decorative, descriptive alt for category and photo images; name every button |
 | F13 | S3 | **Social proof looks reused/fabricated.** "4.8 (1,203 reviews)" appears on two different listings (smartwatch and laptop), same seller; "4.6 (312)" on two items from one seller; "4.9 (247)" on two items from one seller; all three are seller-level scores shown as item reviews. | Card data | If seller totals are shown as item reviews, buyers will think reviews are fake. A sofa with "5.0 (1 review)" looks a lot more credible than a 1,203-review badge on a used laptop | Label clearly: "Seller 4.8 (1,203)" vs "This item 4.9 (12)". Never show a number the buyer can't trace |
 | F14 | S3 | **Same listing repeated** across Near you, Deals and All listings with identical cards; carousel has 15 slides with dot pagination that is too long for dots. | Page text | Page feels longer and more repetitive than the catalogue (16 items) really is | Replace dots with "3 of 15" counter; vary modules |
@@ -254,7 +254,7 @@ Use this once those screens exist. Method: Nielsen's 10 heuristics + Baymard-sty
 
 ---
 
-## 4. Target UX — the WorldStreet buy/sell system, built upward from eBay
+## 4. Target UX — the WorldStore buy/sell system, built upward from eBay
 
 ### 4.1 Design principles
 1. **Search first.** The header search box is the hero on every page.
@@ -352,7 +352,7 @@ Home
 - Section 2 Delivery per seller (cost + date range).
 - Section 3 Payment (card, bank transfer, USSD, wallet balance, pay-on-delivery only if you can underwrite the risk).
 - Pre-pay summary: items, delivery, fees, discounts, **total in local currency**.
-- Trust strip: "Protected by WorldStreet Guarantee".
+- Trust strip: "Protected by WorldStore Guarantee".
 
 **G. Report a problem (dispute)**
 - Step 1 choose reason, Step 2 evidence (photos, message), Step 3 desired outcome (refund / return / replacement), Step 4 timeline view with seller deadline and escalation button.
@@ -379,9 +379,9 @@ Home
 
 ---
 
-## 5. Gap analysis: eBay capability → WorldStreet component map
+## 5. Gap analysis: eBay capability → WorldStore component map
 
-| eBay capability | WorldStreet component (status per your notes) | Gap / next |
+| eBay capability | WorldStore component (status per your notes) | Gap / next |
 |---|---|---|
 | Result card | `ListingCard` ×5 (P1 done) | Add total-delivered line, format/time-left, seller trust row |
 | Featured carousel | `FeaturedListingCarousel` ×3 (P1 done) | Add pause control, reduced-motion, keyboard |
@@ -453,4 +453,4 @@ Targets are starting hypotheses, not eBay-published figures. Calibrate after you
 ## Sources
 
 - eBay homepage, search results ("sony headphones"), item pages, Selling landing page, and Money Back Guarantee policy, observed 6 Oct 2026 (ebay.com).
-- WorldStreet project notes (tokens, phases, components) from the user's own workspace.
+- WorldStore project notes (tokens, phases, components) from the user's own workspace.

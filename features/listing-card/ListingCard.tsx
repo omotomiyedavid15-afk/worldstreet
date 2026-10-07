@@ -24,7 +24,7 @@ import { Tilt } from "@/components/motion/Tilt";
    - grid: search and saved. The photo fills the card at 1:1.
    - list: eBay's list view. Photo left (200px, 112px on phones), details right.
    - rail: home rows, 220px wide (160px on phones), without the seller row.
-   - compact: a 72px thumbnail row for carts, similar items and messages.
+   - compact: a 72px thumbnail row for similar items and messages.
    Whenever the details column is narrower than 240px (phone grids, home rails, the
    phone list view) it trims itself to eBay's app density (see listing.css), so every
    variant shares one set of rules. */
@@ -82,7 +82,7 @@ export function ListingCard({ listing, variant = "grid", anchor, sizes, load = "
         </div>
         <div className="ws-card__body">
           {title}
-          <PriceBlock price_minor={listing.price_minor} was_minor={listing.was_minor} period={listing.price_period} variant="cart" className="ws-card__compact-price" />
+          <PriceBlock price_minor={listing.price_minor} was_minor={listing.was_minor} period={listing.price_period} variant="compact" className="ws-card__compact-price" />
           <KeyFacts listing={listing} />
         </div>
       </Card>,

@@ -51,7 +51,7 @@ test("on phones the search opens full screen and Cancel puts things back", async
   await box(page).click();
   const cancel = page.getByRole("button", { name: "Cancel" });
   await expect(cancel).toBeVisible();
-  const form = page.getByRole("search", { name: "Search WorldStreet" });
+  const form = page.getByRole("search", { name: "Search WorldStore" });
   const r = (await form.boundingBox())!;
   expect(Math.round(r.y)).toBe(0);
   await box(page).fill("phones x");

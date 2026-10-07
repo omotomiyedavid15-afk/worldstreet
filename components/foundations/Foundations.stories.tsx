@@ -3,7 +3,7 @@ import { useState } from "react";
 import { expect } from "storybook/test";
 import { composite, contrastRatio, parseRgb } from "@/lib/contrast";
 
-/* Foundations as the marketplace consumes them: DS tokens under the WorldStreet brand,
+/* Foundations as the marketplace consumes them: DS tokens under the WorldStore brand,
    plus the marketplace density layer. The Colors story is also the AA gate for tokens
    (PLAN S0.1): its play step measures every text token on every surface in both themes. */
 

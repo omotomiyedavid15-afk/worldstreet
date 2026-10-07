@@ -4,8 +4,8 @@ import { ESCROW } from "@/lib/copy/escrow";
 /* Web app manifest (audit F16): installable, dark like the site (built dark-first). */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "WorldStreet Marketplace",
-    short_name: "WorldStreet",
+    name: "WorldStore Marketplace",
+    short_name: "WorldStore",
     description: ESCROW.tagline,
     start_url: "/",
     scope: "/",

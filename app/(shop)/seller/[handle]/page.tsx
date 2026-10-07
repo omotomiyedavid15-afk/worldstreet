@@ -1,36 +1,106 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRightIcon, StoreIcon } from "@/components/icons";
-import { EmptyState, buttonClass } from "@/components/ui";
-import { repos } from "@/lib/data";
+import { StoreIcon } from "@/components/icons";
+import { EmptyState } from "@/components/ui";
+import { ListingCard } from "@/features/listing-card/ListingCard";
+import { ReviewList } from "@/features/listing-detail/Reviews";
+import { SellerRatingsBreakdown } from "@/features/listing-detail/SellerCard";
+import { getAnchor } from "@/features/location/server";
+import { ShopHeader } from "@/features/seller/ShopHeader";
+import { ShopTabs, type ShopTab } from "@/features/seller/ShopTabs";
+import { ESCROW } from "@/lib/copy/escrow";
+import { repos, type ListingStatus } from "@/lib/data";
+import { formatCount, plural } from "@/lib/format";
+import { first } from "@/lib/search/params";
+import { dimensionAverages } from "@/lib/reviews";
+import { requestTime } from "@/lib/site";
 
-/* SCR-005 placeholder: cards and the listing page link here (audit F5). The shop page
-   with its listings, feedback and "Usually replies within" arrives in Phase 3. */
+/* SCR-005 Seller shop (spec §13 SellerPublicProfile; flows B3 step 6): the header, then
+   Items, Reviews and About. Items are the shop's live listings; reviews are every review
+   of its items; About holds how it trades and the four detailed ratings. Seller pages
+   are public, so they're indexable. */
+
+const EVERY_STATUS: ListingStatus[] = ["draft", "in_review", "live", "rejected", "paused", "reserved", "sold", "ended", "removed"];
+const TABS: readonly ShopTab[] = ["items", "reviews", "about"];
 
 export async function generateMetadata({ params }: PageProps<"/seller/[handle]">): Promise<Metadata> {
   const seller = await repos.sellers.getByHandle((await params).handle);
-  return { title: seller?.shop_name ?? "Seller", robots: { index: false, follow: true } };
+  if (!seller) return { title: "Seller not found", robots: { index: false } };
+  const { positive_percent, count } = seller.feedback;
+  const description = [count > 0 ? `${positive_percent}% positive feedback (${formatCount(count)})` : null, `${seller.area.area}, ${seller.area.city}`]
+    .filter(Boolean)
+    .join(" · ");
+  return { title: seller.shop_name, description, alternates: { canonical: `/seller/${seller.handle}` } };
 }
 
-export default async function SellerPage({ params }: PageProps<"/seller/[handle]">) {
+export default async function SellerPage({ params, searchParams }: PageProps<"/seller/[handle]">) {
   const seller = await repos.sellers.getByHandle((await params).handle);
   if (!seller) notFound();
+  const tabParam = first((await searchParams).tab);
+  const initial = TABS.includes(tabParam as ShopTab) ? (tabParam as ShopTab) : "items";
+
+  const [{ anchor }, items, everything, reviews] = await Promise.all([
+    getAnchor(),
+    repos.listings.list({ seller_id: seller.id }),
+    repos.listings.list({ seller_id: seller.id, status: EVERY_STATUS }),
+    repos.reviews.forSeller(seller.id),
+  ]);
+  const listed = [...items].sort((a, b) => b.created_at.localeCompare(a.created_at));
+  const titles = Object.fromEntries(everything.map((l) => [l.id, l.title]));
+  const dimensions = dimensionAverages(reviews);
+  const now = requestTime();
+
+  const itemsPanel = listed.length ? (
+    <ul className="ws-card-grid" aria-label={`Items from ${seller.shop_name}`}>
+      {listed.map((l) => (
+        <li key={l.id}>
+          <ListingCard listing={l} anchor={anchor} headingLevel="h2" now={now} />
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <EmptyState icon={<StoreIcon />} title="Nothing for sale right now" headingLevel="h2">
+      {seller.shop_name} has no live listings. Check back later.
+    </EmptyState>
+  );
+
+  const aboutPanel = (
+    <div className="ws-shopabout">
+      <dl className="ws-sellercard__facts">
+        <div>
+          <dt>Located in</dt>
+          <dd>
+            {seller.area.area}, {seller.area.city}
+          </dd>
+        </div>
+        {seller.reply_hours !== undefined && (
+          <div>
+            <dt>Usually replies</dt>
+            <dd>{seller.reply_hours <= 1 ? "within an hour" : `within ${plural(seller.reply_hours, "hour")}`}</dd>
+          </div>
+        )}
+        <div>
+          <dt>Identity</dt>
+          <dd>{seller.verified ? "Verified ID" : "Not verified yet"}</dd>
+        </div>
+      </dl>
+      {dimensions && <SellerRatingsBreakdown dimensions={dimensions} count={reviews.length} headingLevel="h2" />}
+      <p className="cx-small">{ESCROW.strip}</p>
+    </div>
+  );
+
   return (
-    <div className="ws-coming">
-      <EmptyState
-        icon={<StoreIcon />}
-        title={seller.shop_name}
-        headingLevel="h1"
-        action={
-          <Link href={`/search?q=${encodeURIComponent(seller.shop_name)}`} className={buttonClass({ variant: "ghost", arrow: true })}>
-            Search for items
-            <ArrowRightIcon />
-          </Link>
-        }
-      >
-        {seller.area.area}, {seller.area.city}. The shop page with all its listings and feedback is coming in Phase 3 of the build.
-      </EmptyState>
+    <div className="ws-shop">
+      <ShopHeader seller={seller} itemCount={listed.length} />
+      <ShopTabs
+        initial={initial}
+        labels={{ items: `Items (${formatCount(listed.length)})`, reviews: `Reviews (${formatCount(reviews.length)})`, about: "About" }}
+        panels={{
+          items: itemsPanel,
+          reviews: <ReviewList reviews={reviews} scope="seller" shopName={seller.shop_name} titles={titles} now={now} headingLevel="h2" />,
+          about: aboutPanel,
+        }}
+      />
     </div>
   );
 }

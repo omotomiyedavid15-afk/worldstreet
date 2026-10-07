@@ -7,7 +7,10 @@ import { parseQuery } from "./query";
 import { parsePage, runSearch } from "./run";
 
 const lekki = findArea("lekki")!;
-const base = async () => ({ listings: await repos.listings.list(), anchor: lekki, sort: "best" as const, page: 1, filters: {} });
+// A fixed clock: best match rewards freshness, so two runs a few milliseconds apart could
+// swap near-tied listings and page 2 wouldn't start with page 1 (it flaked under load).
+const NOW = Date.parse("2026-10-06T09:00:00Z");
+const base = async () => ({ listings: await repos.listings.list(), anchor: lekki, sort: "best" as const, page: 1, filters: {}, now: NOW });
 
 describe("runSearch", () => {
   it("browses everything nearby for an empty query", async () => {

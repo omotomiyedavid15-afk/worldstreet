@@ -1,10 +1,11 @@
 import { BUYER_VISIBLE, type Repos } from "./repo";
-import type { Category, Listing, ListingWithSeller, SellerProfile } from "./types";
+import type { Category, Listing, ListingWithSeller, Review, SellerProfile } from "./types";
 
 export type Dataset = {
   categories: readonly Category[];
   sellers: readonly SellerProfile[];
   listings: readonly Listing[];
+  reviews?: readonly Review[];
   trending?: readonly string[];
 };
 
@@ -24,6 +25,13 @@ export function createMemoryRepos(data: Dataset): Repos {
     if (!category) throw new Error(`Listing ${listing.id}: unknown category ${listing.category_id}`);
     if (joined.has(listing.id)) throw new Error(`Duplicate listing id ${listing.id}`);
     joined.set(listing.id, { ...listing, seller, category });
+  }
+
+  const newestFirst = (a: Review, b: Review) => b.created_at.localeCompare(a.created_at);
+  const reviews = [...(data.reviews ?? [])].sort(newestFirst);
+  for (const r of reviews) {
+    if (!joined.has(r.listing_id)) throw new Error(`Review ${r.id}: unknown listing ${r.listing_id}`);
+    if (joined.get(r.listing_id)!.seller_id !== r.seller_id) throw new Error(`Review ${r.id}: seller doesn't match its listing`);
   }
 
   return {
@@ -61,6 +69,14 @@ export function createMemoryRepos(data: Dataset): Repos {
       },
       async list() {
         return [...data.categories];
+      },
+    },
+    reviews: {
+      async forListing(listingId) {
+        return reviews.filter((r) => r.listing_id === listingId);
+      },
+      async forSeller(sellerId) {
+        return reviews.filter((r) => r.seller_id === sellerId);
       },
     },
     search: {

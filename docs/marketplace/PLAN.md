@@ -1,4 +1,4 @@
-# WorldStreet Marketplace — Build Plan
+# WorldStore Marketplace — Build Plan
 
 Status: **approved 6 Oct 2026** (Q1–Q4 answered in §7) · Repo: `~/marketplace` → GitHub `omotomiyedavid15-afk/worldstreet`
 
@@ -10,7 +10,7 @@ Status: **approved 6 Oct 2026** (Q1–Q4 answered in §7) · Repo: `~/marketplac
 - **Motion is expressive (6 Oct).** Motion (motion.dev) for component and interaction motion, GSAP for scroll-driven and timeline motion, Three.js for the home hero and a listing 3D viewer. All of it eases with the DS curves (`lib/motion/tokens.ts`), loads after first paint or on demand, respects reduced motion, and never animates prices in lists.
 - **Card decisions (6 Oct, UI research C1/C2):** cards show condition and key facts as an eBay-style subtitle line instead of the condition chip, and buyers can step through up to four photos from a card.
 - **Build in dark mode.** Dark is the default theme and the one every component is designed and reviewed in; light keeps working through the DS tokens and stays AA, but it's checked, not designed first.
-- **Components mirror eBay** (anatomy, information order, behaviour and wording such as "Pre-owned", "or Best offer", "+₦2,500 delivery", "99.2% positive (1,284)", "64 sold"), **styled with the WorldStreet design system** (tokens, Manrope, DS chips, buttons and surfaces). Where eBay and an accessibility rule disagree, accessibility wins and the deviation is logged.
+- **Components mirror eBay** (anatomy, information order, behaviour and wording such as "Pre-owned", "or Best offer", "+₦2,500 delivery", "99.2% positive (1,284)", "64 sold"), **styled with the WorldStore design system** (tokens, Manrope, DS chips, buttons and surfaces). Where eBay and an accessibility rule disagree, accessibility wins and the deviation is logged.
 
 ---
 
@@ -29,7 +29,7 @@ Status: **approved 6 Oct 2026** (Q1–Q4 answered in §7) · Repo: `~/marketplac
 | Item | Finding |
 |---|---|
 | Source code | **Not available.** It's a deployed Next.js site; its React source (`@/components/ui`) is not public, not on disk, and not in your public GitHub repos. What *is* available: the compiled CSS (~106 KB, 301 `--cx-*` declarations, ~100 `.cx-` class families) and 53 code samples that document each component's props |
-| Brand mechanism | The base theme is **"Cryonix": ember `#d32800` (red-orange)**. WorldStreet gold only applies under **`data-brand="worldstreet"`**, which remaps `--cx-ember → --ws-gold #eab308` and stone surfaces. **Without that attribute the app renders red-orange.** |
+| Brand mechanism | The base theme is **"Cryonix": ember `#d32800` (red-orange)**. WorldStore gold only applies under **`data-brand="worldstreet"`**, which remaps `--cx-ember → --ws-gold #eab308` and stone surfaces. **Without that attribute the app renders red-orange.** |
 | Light theme | `[data-theme="light"]` under the brand: gold fill becomes `#efbe04` (not `#EAB308`), gold text is `--ws-gold-deep #a16207`, muted text `#78716c`, gain `#047857`, loss `#b91c1c`, warning `#b45309` |
 | Dark theme | Default (`<html data-theme="dark">`). Muted `#a8a29e`, gain `#10b981`, loss `#ef4444` |
 | Type | Manrope via `--font-manrope`. Scale H1 64, H2 52, H3 32, H4 22, Lead 20, Body-lg 18, Body 16, Small 14, **Caption 12**, Balance clamp(40–56) |
@@ -175,16 +175,20 @@ DS components are built **in the phase that first needs them**, not all 38 up fr
 *Accept:* "Filters with counts update live; URL state; scroll restore" (§18). Facet counts match visible results under the current radius (R-016). Never show items outside the radius (B2). EC-004 prohibited terms → neutral no-results.
 
 ### Phase 3 — Listing detail (spec stage 3, B3)
-`ListingPageLayout`, `ListingBreadcrumb`, `Gallery` + `GalleryLightbox` (keyboard, "n / total", srcset, blur placeholder), `ListingTitleBlock` (the page's only h1), `SellerStrip`, `BuyBox`, `VariationSelector` (R-022 scroll-to + announce), `QuantityStepper`, `ActionStack` (Buy now solid · Add to cart ghost · Offer/Save quiet), `StickyBuyBar` (M), `DemandLine` (C7), `ReassuranceLine`, `DeliveryPanel` (date range to the buyer's area, Total to {city}), `ReturnsPanel`, `PaymentsPanel`, `ProtectionPanel` (string table), `ConditionInfo`, `ItemSpecifics`, `DescriptionBlock` (sanitised, F4), `RevisionHistory`, `ListingMeta` (CopyField), `SellerCard` + `SellerRatingsBreakdown`, `ReviewsSection` (item vs seller separated, R-073), `SimilarItemsRail`, `SellerOtherItemsRail`, `ShareSheet`, `ReportListingModal`, `SafetyTipsCard`, `UnavailableState` (R-021) + 410 page, `/seller/:handle`.
-*Accept:* "Price/delivery/return/trust above the fold on 375×812" (§18). R-020: same total in buy box, sticky bar and cart. R-024: price-change notice.
+`ListingPageLayout`, `ListingBreadcrumb`, `Gallery` + `GalleryLightbox` (keyboard, "n / total", srcset, blur placeholder), `ListingTitleBlock` (the page's only h1), `SellerStrip`, `BuyBox`, `VariationSelector` (R-022 scroll-to + announce), `QuantityStepper`, `ActionStack` (Make offer solid · Add to watchlist ghost · Message seller quiet), `StickyBuyBar` (M), `DemandLine` (C7), `ReassuranceLine`, `DeliveryPanel` (date range to the buyer's area, Total to {city}), `ReturnsPanel`, `PaymentsPanel`, `ProtectionPanel` (string table), `ConditionInfo`, `ItemSpecifics`, `DescriptionBlock` (sanitised, F4), `RevisionHistory`, `ListingMeta` (CopyField), `SellerCard` + `SellerRatingsBreakdown`, `ReviewsSection` (item vs seller separated, R-073), `SimilarItemsRail`, `SellerOtherItemsRail`, `ShareSheet`, `ReportListingModal`, `SafetyTipsCard`, `UnavailableState` (R-021) + 410 page, `/seller/:handle`.
+*Accept:* "Price/delivery/return/trust above the fold on 375×812" (§18). R-020: same indicative total in buy box and sticky bar; the payment request states the final agreed delivery and total. R-024: price-change notice.
 
 ### Phase 4 — Offers and messaging (spec stage 4, flows Phase 5: B5, B6, S4)
+**P2P update, 7 Oct:** the listing’s Make offer action opens `/offers?listing=…`; Message seller opens `/inbox?listing=…`. Persisted local threads also open at `/inbox/:id`. The local adapter covers buyer/seller negotiation, sign-in intent resumption, chat drafts and attachments, safety warnings, blocking and demo reports. Accepted offers lead to seller payment requests in the same conversation. The demo perspective selector is a prototype control, not authorization. Server auth, cross-user delivery, notifications, moderation and atomic stock reservation remain integration work.
+
 `lib/machines/offer.ts` (§6.3), `OfferModal`/sheet (quick chips 90/85/80%, offers-left, binding copy, idempotency key), `OfferSummaryCard`, `OffersList` (`/offers`), `CounterOfferCard`, `OfferThreadItem`; `InboxLayout` (2-pane W / stack M), `ThreadList/Row`, `ThreadHeader`, `PinnedListingCard`, `MessageBubble`, `MessageInput` (1,000 chars, 3 photos), `QuickReplies`, `SafetyBanner` (R-050), `ContentWarning` (R-051, F6), `BlockReportMenu`; `SignInSheet` + `useAuthGate` (resume intent, R-004).
 *Accept:* "Offer state machine passes tests" (§18). Every arrow in §6.3 is tested; illegal transitions are rejected; limits R-030–R-032; expired offers still count.
 
-### Phase 5 — Cart and checkout (spec stage 5, flows Phase 6: B8, B9)
-Cart by seller (`CartPage`, `CartSellerGroup`, `CartLineItem`, `SaveForLaterList`, `CartPriceChangeBanner` R-038, `CouponField`, `OrderSummary`, `EmptyCart`, `MiniCart`), guest cart merge on sign-in. `CheckoutLayout`, `CheckoutSection`, `CheckoutSteps`, `AddressSelector`, `AddressForm` (+234, State/LGA list, landmark required), `DeliverySelector`, `PaymentMethodPicker`, `CardForm` (hosted-field placeholder, F5), `BankTransferPanel` (CopyField + countdown), `UssdPanel`, `WalletBalanceToggle`, `EscrowNotice`, `PayButton` ("Pay ₦103,000"), `InventoryLockTimer`, `PaymentStatusPoller`, `PaymentErrorPanel`, `OrderConfirmation`, `KycGateSheet`. `PaymentProvider` interface + `MockPaymentProvider` (success / decline / timeout / unknown).
-*Accept:* "Test payments including failure paths" (§18). R-040 re-check, R-042 error summary + focus, R-043 no costs added after the pay button, R-008 double submit makes one order, EC-008 "Just sold".
+### Phase 5 — Seller payment requests (P2P, supersedes cart/checkout)
+After a deal is accepted in chat, the seller sends a payment request with the agreed item price, quantity and delivery charge. The buyer reviews the full total and pays through WorldStore into escrow. There is no cart, Buy now action, or checkout route. Vehicles and property remain outside escrow.
+
+The Phase 4 local prototype includes explicit simulated success/decline/timeout paths, retry before the accepted-offer deadline, and duplicate-submission protection. Production work: authenticated server repository, atomic stock reservations and deadlines, hosted payment fields/provider integration, webhook idempotency, KYC gates, address/delivery snapshots and order/ledger creation. No real payment is claimed by the prototype.
+*Accept:* seller-only requests for accepted deals; buyer-only payment; fixed totals; no duplicate payment; expired/paid requests cannot be paid again; failures preserve the request for retry. Production acceptance additionally requires R-008, R-040–R-043 and EC-008 against the server/payment adapter.
 
 ### Phase 6 — Orders, escrow, reviews and disputes (spec stage 6, flows Phases 6–7: B10–B12)
 `lib/machines/{order,escrow,dispute}.ts` (§6.2, L3, §6.4), `lib/ledger` (accounts L2, postings, R-200/R-201 invariant), `OrdersPage`, `OrderRow`, `OrderDetail`, `OrderStatusTimeline` + `MoneyTimeline`, `EscrowStatusCard` (buyer L11.2 / seller L11.3 copy), `InspectionCountdown` (server offset), `ConfirmReleaseSheet` (R-212/R-243 sentence), `DeliveryCard` (PIN/QR), `ReceiptView`, `ReviewForm` (overall + 4 dimensions), `ReportProblemWizard` (4 steps), `EvidenceUploader`, `DisputeTimeline`, `RefundTracker`, `ReturnInstructionsCard`, `OrderIssueBanner`, `/help/escrow`.

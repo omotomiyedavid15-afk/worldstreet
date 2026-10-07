@@ -26,7 +26,7 @@ export type Category = {
   name: string;
   /** Escrow inspection window key in config (L4). */
   inspection: "fashion" | "home" | "electronics" | "phones" | "appliances" | "furniture" | "vehicles" | "property" | "default";
-  /** Vehicles and property: contact + "Book viewing", no checkout (PLAN risk 7). */
+  /** Vehicles and property: contact + "Book viewing", no escrow (PLAN risk 7). */
   kind: "goods" | "vehicle" | "property";
   /** Attribute keys worth a place on the card's subtitle line, most useful first. */
   card_facts?: readonly string[];
@@ -81,6 +81,40 @@ export type SellerProfile = {
   show_watchers: boolean;
 };
 
+/** What a review talks about, for eBay-style topic chips (B3 step 7). */
+export type ReviewTopic = "as_described" | "quality" | "value" | "delivery" | "communication" | "packaging";
+
+/** The four detailed seller ratings (B11, eBay "Detailed seller ratings"). 1–5 each. */
+export type ReviewDimensions = { accuracy: number; delivery: number; communication: number; packaging: number };
+
+/**
+ * One buyer's review of one order item (flows Part G Review, B11). Only buyers with a
+ * completed order can write one (R-070), so every review is a verified purchase. The
+ * buyer is shown masked ("o***a"), never by name. Item scores and seller scores are
+ * summarised separately (R-073).
+ */
+export type Review = {
+  id: string;
+  listing_id: string;
+  seller_id: string;
+  /** Masked buyer name, e.g. "o***a" (B3 step 7). */
+  buyer: string;
+  /** The reviewer's own feedback count, shown in brackets as eBay does. */
+  buyer_feedback_count: number;
+  rating: 1 | 2 | 3 | 4 | 5;
+  dimensions: ReviewDimensions;
+  text: string;
+  topics: readonly ReviewTopic[];
+  created_at: ISODateTime;
+  /** The seller may reply once (B11). */
+  reply?: { text: string; created_at: ISODateTime };
+};
+
+/** One logged edit to a live listing (R-112), shown in "View history" (B3 step 5). */
+export type ListingRevision =
+  | { at: ISODateTime; change: "price"; from_minor: Kobo; to_minor: Kobo }
+  | { at: ISODateTime; change: "description" | "photos" | "quantity" };
+
 export type ListingMedia = {
   url: string;
   alt: string;
@@ -114,6 +148,10 @@ export type Listing = {
   delivery: readonly DeliveryOption[];
   /** Days, or null for no returns (S2 step 6). */
   return_days: 3 | 7 | 14 | null;
+  /** The seller's own words on condition, flaws and what's included (spec §7 SellerNotes). */
+  seller_notes?: string;
+  /** Edits since listing, oldest first (R-112). */
+  revisions?: readonly ListingRevision[];
   media: readonly ListingMedia[];
   attributes: readonly ListingAttribute[];
   status: ListingStatus;
@@ -126,7 +164,6 @@ export type Listing = {
    */
   sold_count?: number;
   watchers?: number;
-  in_carts?: number;
 };
 
 /** A listing joined with what a card needs to render it. */

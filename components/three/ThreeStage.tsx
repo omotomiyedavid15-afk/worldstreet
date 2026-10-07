@@ -5,6 +5,7 @@ import { rules } from "@/config/marketplace-rules";
 import { judge3D, reportDevice } from "@/lib/three/capability";
 import { cx } from "@/lib/cx";
 import type { Scene, SceneFactory } from "./types";
+import { SCROLLING_EVENT, isScrolling } from "@/components/motion/ScrollState";
 
 /*
  * ThreeStage: a 3D scene that costs nothing until it's worth it.
@@ -66,7 +67,8 @@ export function ThreeStage({ load, fallback, draggable = false, pointerScope = "
       last = now;
       scene.frame(now / 1000, delta);
     };
-    const run = () => renderer?.setAnimationLoop(visible && !document.hidden ? loop : null);
+    // Off-screen, in a background tab or mid-scroll (the scroll gets the frame budget).
+    const run = () => renderer?.setAnimationLoop(visible && !document.hidden && !isScrolling() ? loop : null);
 
     const stop = () => {
       if (disposed) return;
@@ -125,6 +127,8 @@ export function ThreeStage({ load, fallback, draggable = false, pointerScope = "
       canvas.addEventListener("webglcontextlost", onLost);
       document.addEventListener("visibilitychange", run);
       cleanups.push(() => document.removeEventListener("visibilitychange", run));
+      window.addEventListener(SCROLLING_EVENT, run);
+      cleanups.push(() => window.removeEventListener(SCROLLING_EVENT, run));
 
       const area = pointerScope === "parent" && el.parentElement ? el.parentElement : el;
       const onMove = (e: PointerEvent) => {

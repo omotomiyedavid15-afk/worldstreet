@@ -247,7 +247,7 @@ export function GlobalSearchBox({ defaultValue = "", trending, keep = {}, sugges
       ref={formRef}
       action="/search"
       role="search"
-      aria-label="Search WorldStreet"
+      aria-label="Search WorldStore"
       className={cx("ws-search", overlay && "ws-search--overlay")}
       onSubmit={() => {
         if (suggestions) addRecentSearch(value);

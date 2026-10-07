@@ -9,6 +9,9 @@
 const NAIRA = 100;
 
 export const rules = {
+  time: {
+    zone: "Africa/Lagos", // R-006: store UTC, display WAT
+  },
   money: {
     currency: "NGN", // R-002, EC-028: one currency, no mixed lists
     minorPerMajor: NAIRA,
@@ -68,16 +71,16 @@ export const rules = {
   offers: {
     validityHours: 48, // §6.6
     payWindowHours: 24, // R-034, §6.6
+    quickPercent: [90, 85, 80] as const, // B6 quick offer amounts
+    refreshMs: 30_000, // refresh local mock deadlines while a page stays open
     floorPercent: 50, // B6 step 2: offers ≥ 50% of list price
     perListing: 3, // R-030 (expired offers still count, B6)
     maxOpen: 5, // R-030
   },
-  cart: {
-    maxItems: 50, // R-039
-    maxSellers: 10, // R-039
-  },
-  checkout: {
-    lockMinutes: 10, // R-041
+  // P2P (owner's direction, 7 Oct): no cart or checkout. B9's payment rules apply to the
+  // seller's payment request, sent in chat once a deal is agreed.
+  paymentRequest: {
+    lockMinutes: 10, // R-041: the item is held while the buyer pays the request
     bankTransferMinutes: 30, // B9, §6.6
     pollSeconds: 60, // B9
   },
@@ -170,11 +173,15 @@ export const rules = {
   messaging: {
     maxChars: 1_000, // B5 step 2
     maxPhotos: 3, // B5 step 2
+    photoMaxBytes: 1_000_000, // local demo attachments; production needs an upload service
     newThreadsPerDay: 20, // R-053 (L1 buyers)
   },
   listing: {
     specificsShown: 8, // spec §7 ItemSpecifics: collapsible after 8 rows
     descriptionLines: 12, // spec §7 DescriptionBlock: "Read more" after 12 lines
+    relatedRailMax: 12, // spec §7 SimilarItemsRail / SellerOtherItemsRail: cards per rail
+    reviewsShown: 5, // spec §7 ReviewsSection: then "Show more reviews" (eBay shows a handful)
+    reviewsStep: 10, // reviews added per "Show more"
   },
   moderation: {
     reportReviewHours: 24, // flows §632: normal-risk SLA (high risk is 1 h, internal)

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BellIcon, ChatDotsIcon, HandshakeAgreementDealIcon, HeartIcon, HomeIcon, InfoCircleIcon, PackageIcon, PlusCircleIcon, ShoppingCartIcon, StoreIcon, TagIcon } from "@/components/icons";
+import { BellIcon, ChatDotsIcon, HandshakeAgreementDealIcon, HeartIcon, HomeIcon, InfoCircleIcon, PackageIcon, PlusCircleIcon, StoreIcon, TagIcon } from "@/components/icons";
 import { buttonClass } from "@/components/ui";
 import { AccountMenu, Greeting } from "./AccountMenu";
 import { HeaderFrame } from "./HeaderFrame";
@@ -11,9 +11,9 @@ import { NotificationBell } from "./NotificationBell";
 /*
  * AppHeader (spec §3.1, eBay's two-row header):
  * - ≥ 1200: a utility row (greeting, Deals, Help & Contact · Sell, Saved, My
- *   WorldStreet, bell) over the main row (logo, Shop by category, search, cart).
- * - 768–1199: one row (menu, logo, search, bell, cart).
- * - Phones: menu, logo and cart, with the search on its own row underneath.
+ *   WorldStore, bell) over the main row (logo, Shop by category, search, watchlist).
+ * - 768–1199: one row (menu, logo, search, bell, watchlist).
+ * - Phones: menu, logo and watchlist, with the search on its own row underneath.
  * It's sticky with a negative top, so on scroll the utility row (desktop) or the logo
  * row (phones) slides away and the search stays: the "shrink" without a layout jump.
  * Utility links move into the menu drawer below 1200.
@@ -76,8 +76,9 @@ export function AppHeader({ trending, scopes, categories, categoryLinks }: Props
           <span className="ws-header__bell">
             <NotificationBell />
           </span>
-          <Link href="/cart" className={buttonClass({ variant: "quiet", size: "sm", icon: true })} aria-label="Cart">
-            <ShoppingCartIcon />
+          {/* P2P: no cart (owner's direction, 7 Oct). The watchlist takes its place. */}
+          <Link href="/saved" className={buttonClass({ variant: "quiet", size: "sm", icon: true })} aria-label="Watchlist">
+            <HeartIcon />
           </Link>
         </div>
       </div>

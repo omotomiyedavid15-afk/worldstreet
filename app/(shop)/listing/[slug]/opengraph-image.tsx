@@ -8,7 +8,7 @@ import { formatCurrency } from "@/lib/money";
    and the area, on the brand's dark stone. Photos join once listings have raster
    photos (the mocks are SVG, which previews don't show). */
 
-export const alt = "Listing on WorldStreet Marketplace";
+export const alt = "Listing on WorldStore Marketplace";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -23,7 +23,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: 72, background: "#0c0a09", color: "#f5f5f4" }}>
-        <div style={{ display: "flex", fontSize: 28, color: "#eab308", letterSpacing: 1 }}>WorldStreet Marketplace</div>
+        <div style={{ display: "flex", fontSize: 28, color: "#eab308", letterSpacing: 1 }}>WorldStore Marketplace</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           <div style={{ display: "flex", fontSize: 64, lineHeight: 1.15, maxHeight: 220, overflow: "hidden" }}>{listing?.title ?? "Listing not found"}</div>
           {listing && <div style={{ display: "flex", fontSize: 72, fontWeight: 700, color: "#eab308" }}>{price}</div>}

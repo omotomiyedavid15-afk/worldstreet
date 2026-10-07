@@ -1,6 +1,6 @@
-# WorldStreet Marketplace — Component Spec to Mirror eBay (Web + Mobile)
+# WorldStore Marketplace — Component Spec to Mirror eBay (Web + Mobile)
 
-Built against the live WorldStreet Design System (`worldstreet-design-system.vercel.app`, read 6 Oct 2026) and the eBay pages reviewed earlier (home, search results, item page, selling page, Money Back Guarantee policy).
+Built against the live WorldStore Design System (`worldstreet-design-system.vercel.app`, read 6 Oct 2026) and the eBay pages reviewed earlier (home, search results, item page, selling page, Money Back Guarantee policy).
 Companions: `worldstreet-marketplace-ux-blueprint.md` (audit + research) and `worldstreet-ux-flows.md` (flows, states, escrow).
 
 ---
@@ -13,7 +13,7 @@ Companions: `worldstreet-marketplace-ux-blueprint.md` (audit + research) and `wo
 4. **Section 16** lists the global rules for responsive layout, density, motion, accessibility and performance.
 5. **Section 17** lists missing icons and tokens. **Section 18** gives build order and acceptance criteria. **Section 19** is the master checklist.
 
-**Provenance tags:** `[eBay-observed]` = seen live on ebay.com. `[eBay-inferred]` = behind sign-in or from general knowledge. `[WS]` = WorldStreet decision. `[DS]` = taken from the design system site. `[Sandbox]` = observed on the marketplace sandbox.
+**Provenance tags:** `[eBay-observed]` = seen live on ebay.com. `[eBay-inferred]` = behind sign-in or from general knowledge. `[WS]` = WorldStore decision. `[DS]` = taken from the design system site. `[Sandbox]` = observed on the marketplace sandbox.
 
 **Count:** 38 existing DS components reused · ~265 new components or variants specified (the Part X checklist has 266 items) · 40 shared hooks/utilities.
 
@@ -168,7 +168,7 @@ The DS is calm and spacious (24px card padding, aurora light, large headings). e
 |---|---|---|---|---|
 | `HeroCarousel` | Promotional hero with coupon text and pause control `[eBay-observed]` | Max 4 slides; **pause button, counter "2 / 4"**, no autoplay under reduced motion; one solid CTA per slide | 16:5 aspect, arrows | 4:3 aspect, swipe, dots replaced by counter |
 | `PromoCouponCard` | "Save 20% on your wish list · Ends 10/11 · Max $500 off · 2x use" `[eBay-observed]` | Title, terms line, "Get the coupon" | Inside hero or rail | Stacked |
-| `TrustStrip` | eBay: "Shopping made easy: reliability, secure deliveries, hassle-free returns" `[eBay-observed]` | WorldStreet: Escrow / Trackable delivery / Wallet payout. Use Stats-band style; copy sourced from one string table (see escrow spec L11.4) | 3 columns | Swipeable or stacked list (3 rows) |
+| `TrustStrip` | eBay: "Shopping made easy: reliability, secure deliveries, hassle-free returns" `[eBay-observed]` | WorldStore: Escrow / Trackable delivery / Wallet payout. Use Stats-band style; copy sourced from one string table (see escrow spec L11.4) | 3 columns | Swipeable or stacked list (3 rows) |
 | `CategoryTiles` | "Whatever you're into" tiles `[eBay-observed]` | Image tile + title + count; Spotlight optional | 6 across | 2×3 grid or horizontal scroll |
 | `ProductRail` (generic) | "Today's Deals", "Trending on eBay" tabs, "Quality pre-owned picks" `[eBay-observed]` | Horizontal list of `ListingCard variant="rail"`; header with eyebrow + See all; arrows; Reveal once | 5–6 visible, arrow controls | 2.3 cards visible, swipe, peek |
 | `DealsRail` | Today's Deals with was/now price and "free shipping" label `[eBay-observed]` | Rail with `PriceBlock showSavings` and countdown for timed deals | same | same |
@@ -421,7 +421,7 @@ The DS is calm and spacious (24px card padding, aurora light, large headings). e
 | `QuickReplies` | Suggested chips ("Is this still available?") | yes | yes |
 | `OfferMessageCard` | Embedded offer with actions | yes | yes |
 | `OrderEventMessage` | System messages (dispatched, delivered) | yes | yes |
-| `SafetyBanner` | "Keep payment and chat on WorldStreet" | yes | yes |
+| `SafetyBanner` | "Keep payment and chat on WorldStore" | yes | yes |
 | `ContentWarning` | Inline warning on phone/bank patterns | yes | yes |
 | `AttachmentPreview` | Image viewer | yes | yes |
 | `BlockReportMenu` | Block, report | Menu | Sheet |
@@ -752,7 +752,7 @@ Use this as the tracking list. `W` = web, `M` = mobile.
 
 These are interaction rules seen on eBay that components alone do not capture.
 
-| # | eBay pattern | How WorldStreet mirrors it | Source |
+| # | eBay pattern | How WorldStore mirrors it | Source |
 |---|---|---|---|
 | 1 | Search is the dominant control; category scope inside the search bar | Wide search with scope select + camera | `[eBay-observed]` |
 | 2 | Every result card answers "what, condition, total cost, who, trust" | `ListingCard` order in 5.1 | `[eBay-observed]` |
@@ -779,7 +779,7 @@ These are interaction rules seen on eBay that components alone do not capture.
 | 23 | Seller Hub tabs and performance standards | Seller shell + dashboard | `[eBay-inferred]` |
 | 24 | Persistent help access | `HelpBubble` | `[eBay-observed]` |
 
-### Where WorldStreet should deliberately be better than eBay
+### Where WorldStore should deliberately be better than eBay
 1. **One "Total to {city}"** price instead of tiny delivery text.
 2. **Local-first:** radius filter, distance on cards, pickup/meet-up options, rider details.
 3. **Escrow as the headline, not a footnote.**
@@ -791,7 +791,7 @@ These are interaction rules seen on eBay that components alone do not capture.
 ---
 
 ## Sources and confidence
-- WorldStreet design system (`/`, `/foundations`, `/components`, `/patterns`, `/icons`, `/motion`), read 6 Oct 2026. Not read: `/aurora` and the Cryonix switcher.
+- WorldStore design system (`/`, `/foundations`, `/components`, `/patterns`, `/icons`, `/motion`), read 6 Oct 2026. Not read: `/aurora` and the Cryonix switcher.
 - eBay: homepage, search results, two item pages, selling page, Money Back Guarantee policy, 6 Oct 2026. Sign-in-gated screens are inferred.
-- WorldStreet marketplace sandbox, audited 6 Oct 2026.
+- WorldStore marketplace sandbox, audited 6 Oct 2026.
 - Counts (~265 components, 40 hooks) are a tally of rows in this document, not an industry number.

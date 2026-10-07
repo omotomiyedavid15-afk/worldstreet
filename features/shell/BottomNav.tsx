@@ -9,7 +9,7 @@ import { cx } from "@/lib/cx";
 /* BottomNav (spec §3.2): five tabs on phones, Home · Search · Sell · Inbox · Account,
    Sell raised in the centre. It slides away while scrolling down and comes back on the
    way up; pages keep bottom padding equal to its height (audit F17), safe areas
-   included. Saved and Cart live in the header and the Account tab. */
+   included. The watchlist lives in the header and the Account tab (no cart: P2P). */
 
 type Tab = { href: string; label: string; icon: ComponentType; match: (path: string) => boolean; sell?: boolean };
 

@@ -11,15 +11,24 @@ import { DeliveryPanel, ItemSpecifics, PaymentsPanel, ProtectionPanel, ReturnsPa
 import { ReportButton, ReportListingModal } from "@/features/listing-detail/ReportListing";
 import { reportListing } from "@/features/listing-detail/report-action";
 import { ShareButton, ShareSheet } from "@/features/listing-detail/ShareSheet";
+import { ReviewsSection } from "@/features/listing-detail/Reviews";
+import { RevisionHistory, SellerNotes } from "@/features/listing-detail/RevisionHistory";
+import { SellerCard } from "@/features/listing-detail/SellerCard";
 import { StickyBuyBar } from "@/features/listing-detail/StickyBuyBar";
+import { UnavailableState } from "@/features/listing-detail/Unavailable";
+import { getHidden } from "@/features/hidden/server";
+import { ProductRail } from "@/features/home/ProductRail";
 import { setLocation } from "@/features/location/actions";
 import { getAnchor } from "@/features/location/server";
 import { RecordView } from "@/features/recent/RecordView";
-import { listingPath, parseListingParam, repos } from "@/lib/data";
+import { listingPath, parseListingParam, repos, type ListingStatus } from "@/lib/data";
 import { deliveryFee, summariseDelivery } from "@/lib/delivery";
 import { timeAgo } from "@/lib/format";
 import { formatCurrency } from "@/lib/money";
+import { availability } from "@/lib/availability";
 import { buyerTotal } from "@/lib/pricing";
+import { sellerOtherListings, similarListings } from "@/lib/related";
+import { dimensionAverages } from "@/lib/reviews";
 import { requestTime, siteOrigin } from "@/lib/site";
 
 /* SCR-004 Listing detail (flows B3, spec §7), eBay's layout: gallery left, the buy box
@@ -27,6 +36,8 @@ import { requestTime, siteOrigin } from "@/lib/site";
    Price, delivery to the buyer's area, returns and the escrow line sit above the fold on
    a 375×812 phone (§18 stage 3), and a sticky buy bar replaces the bottom nav there.
    Old or wrong slugs redirect to the canonical /listing/:id-:slug (R-011). */
+
+const EVERY_STATUS: ListingStatus[] = ["draft", "in_review", "live", "rejected", "paused", "reserved", "sold", "ended", "removed"];
 
 async function load(slug: string) {
   const parsed = parseListingParam(slug);
@@ -37,7 +48,7 @@ async function load(slug: string) {
    price, condition and area. Never a phone number or an address. */
 export async function generateMetadata({ params }: PageProps<"/listing/[slug]">): Promise<Metadata> {
   const listing = (await load((await params).slug))?.listing;
-  if (!listing) return { title: "Listing not found", robots: { index: false } };
+  if (!listing || availability(listing) === "gone") return { title: "Listing not found", robots: { index: false } };
   const price = `${formatCurrency(listing.price_minor)}${listing.price_period ? ` per ${listing.price_period}` : ""}`;
   const description = [price, listing.category.kind === "property" ? null : conditionLabel(listing.condition), `${listing.location.area}, ${listing.location.city}`]
     .filter(Boolean)
@@ -56,8 +67,24 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
   const found = await load((await params).slug);
   if (!found?.listing) notFound();
   const { listing, parsed } = found;
+  // Removed, draft, in-review and rejected listings were never public, or no longer are.
+  const state = availability(listing);
+  if (state === "gone") notFound();
   if (parsed.slug !== listing.slug) permanentRedirect(listingPath(listing));
-  const { anchor } = await getAnchor();
+  const [{ anchor }, hidden, itemReviews, sellerReviews, visibleListings, sellerListings] = await Promise.all([
+    getAnchor(),
+    getHidden(),
+    repos.reviews.forListing(listing.id),
+    repos.reviews.forSeller(listing.seller_id),
+    repos.listings.list(),
+    repos.listings.list({ seller_id: listing.seller_id, status: EVERY_STATUS }),
+  ]);
+  const related = { listing, all: visibleListings, anchor, hidden };
+  const similar = similarListings(related);
+  const fromSeller = sellerOtherListings(related);
+  // Reviews on the seller tab name what was bought, including items no longer on sale.
+  const titles = Object.fromEntries(sellerListings.map((l) => [l.id, l.title]));
+  const messageHref = `/inbox?seller=${listing.seller.handle}&listing=${listing.id}`;
 
   const goods = listing.category.kind === "goods";
   const summary = summariseDelivery(listing.delivery, anchor.city === listing.location.city);
@@ -67,7 +94,7 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
   const price = `${formatCurrency(listing.price_minor)}${listing.price_period ? ` per ${listing.price_period}` : ""}`;
   const catHref = `/search?cat=${listing.category.id}`;
   const path = listingPath(listing);
-  const share = { url: `${await siteOrigin()}${path}`, title: listing.title, text: `${listing.title}, ${price} on WorldStreet` };
+  const share = { url: `${await siteOrigin()}${path}`, title: listing.title, text: `${listing.title}, ${price} on WorldStore` };
   const now = requestTime();
   const listed = timeAgo(listing.created_at, now);
 
@@ -106,6 +133,7 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
           </header>
 
           <section className="ws-buybox" aria-label="Price and buying">
+            {(state === "sold" || state === "ended") && <p className="ws-pricenote">{state === "sold" ? "Sold for" : "Last price"}</p>}
             <PriceBlock
               variant="detail"
               price_minor={listing.price_minor}
@@ -113,22 +141,43 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
               period={listing.price_period}
               bestOffer={listing.offers_enabled}
             />
-            {goods && <DeliveryLine options={listing.delivery} price_minor={listing.price_minor} listingCity={listing.location.city} buyer={anchor} />}
-            <ReassuranceLine listing={listing} />
-            <div id="buybox-actions">
-              <BuyActions
-                listingId={listing.id}
-                title={listing.title}
-                price_minor={listing.price_minor}
-                available={listing.qty}
-                sold={listing.sold_count}
-                kind={listing.category.kind}
-                offers={listing.offers_enabled}
-              />
-            </div>
-            <DemandLine listing={listing} />
+            {state === "available" ? (
+              <>
+                {goods && <DeliveryLine options={listing.delivery} price_minor={listing.price_minor} listingCity={listing.location.city} buyer={anchor} />}
+                <ReassuranceLine listing={listing} />
+                <div id="buybox-actions">
+                  <BuyActions
+                    listingId={listing.id}
+                    title={listing.title}
+                    price_minor={listing.price_minor}
+                    available={listing.qty}
+                    sold={listing.sold_count}
+                    kind={listing.category.kind}
+                    offers={listing.offers_enabled}
+                  />
+                </div>
+                <DemandLine listing={listing} />
+              </>
+            ) : (
+              <div id="buybox-actions">
+                <UnavailableState
+                  availability={state}
+                  listingId={listing.id}
+                  title={listing.title}
+                  price_minor={listing.price_minor}
+                  similarHref={similar.length ? "#rail-similar" : catHref}
+                  shopHref={`/seller/${listing.seller.handle}`}
+                  messageHref={messageHref}
+                />
+              </div>
+            )}
             <div className="ws-buybox__seller">
               <SellerMini seller={listing.seller} link avatar />
+              {/* SellerStrip (spec §7): eBay's "Seller's other items" and "Message". */}
+              <p className="ws-buybox__sellerlinks">
+                {fromSeller.length > 0 && <a href="#rail-seller-items">Seller&apos;s other items</a>}
+                <Link href={messageHref}>Message seller</Link>
+              </p>
             </div>
           </section>
         </div>
@@ -147,6 +196,7 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
             About this item
           </h2>
           <ItemSpecifics listing={listing} />
+          {listing.seller_notes && <SellerNotes notes={listing.seller_notes} shopName={listing.seller.shop_name} />}
           <DescriptionBlock text={listing.description} />
           <dl className="ws-itemmeta">
             <div>
@@ -155,6 +205,15 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
                 <CopyField label="item number" value={listing.id} />
               </dd>
             </div>
+            {listing.revisions && listing.revisions.length > 0 && (
+              <div>
+                <dt>Last updated</dt>
+                <dd>
+                  <time dateTime={listing.revisions.at(-1)!.at}>{timeAgo(listing.revisions.at(-1)!.at, now).long.replace(/^./, (c) => c.toUpperCase())}</time>{" "}
+                  <RevisionHistory revisions={listing.revisions} listedAt={listing.created_at} />
+                </dd>
+              </div>
+            )}
             <div>
               <dt>Listed</dt>
               <dd>
@@ -165,7 +224,33 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
         </section>
 
         <SafetyTipsCard listing={listing} />
+
+        <SellerCard seller={listing.seller} listingId={listing.id} dimensions={dimensionAverages(sellerReviews)} ratingCount={sellerReviews.length} />
+        <ReviewsSection itemReviews={itemReviews} sellerReviews={sellerReviews} shopName={listing.seller.shop_name} titles={titles} now={now} />
       </div>
+
+      {similar.length > 0 && (
+        <ProductRail
+          id="similar"
+          eyebrow={listing.category.name}
+          title="Similar items"
+          seeAll={{ href: catHref, srLabel: `${listing.category.name} listings` }}
+          listings={similar}
+          anchor={anchor}
+          now={now}
+        />
+      )}
+      {fromSeller.length > 0 && (
+        <ProductRail
+          id="seller-items"
+          eyebrow={listing.seller.shop_name}
+          title="Seller's other items"
+          seeAll={{ href: `/seller/${listing.seller.handle}`, label: "Visit shop", srLabel: `of ${listing.seller.shop_name}` }}
+          listings={fromSeller}
+          anchor={anchor}
+          now={now}
+        />
+      )}
 
       <ShareSheet {...share} />
       <ReportListingModal listingId={listing.id} title={listing.title} submit={reportListing} />
@@ -178,7 +263,15 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
         price_minor={listing.price_minor}
         total={total}
         share={share}
-        action={goods ? { label: "Buy it now", href: `/checkout?listing=${listing.id}` } : { label: "Contact seller", href: `/inbox?listing=${listing.id}` }}
+        action={
+          state === "reserved"
+            ? { label: "Message seller", href: messageHref }
+            : state !== "available"
+              ? { label: "See similar items", href: similar.length ? "#rail-similar" : catHref }
+              : goods
+                ? { label: "Make offer", href: `/offers?listing=${listing.id}` }
+                : { label: "Contact seller", href: `/inbox?listing=${listing.id}` }
+        }
       />
     </article>
   );

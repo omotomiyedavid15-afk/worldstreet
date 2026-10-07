@@ -49,19 +49,37 @@ test("the gallery steps with arrows and keys, and opens full screen", async ({ p
   await expect(lightbox).toBeHidden();
 });
 
-test("buttons go somewhere real (F5): Buy it now to checkout, offers when enabled", async ({ page }) => {
+test("P2P: Make offer is the main action and the watchlist replaces the cart; no checkout (owner's direction 7 Oct)", async ({ page }) => {
   await page.goto(IPHONE);
   const box = page.getByRole("region", { name: "Price and buying" });
-  await expect(box.getByRole("link", { name: "Buy it now" })).toHaveAttribute("href", "/checkout?listing=204501");
-  await expect(box.getByRole("link", { name: "Make offer" })).toHaveAttribute("href", "/offers?listing=204501");
+  const offer = box.getByRole("link", { name: "Make offer" });
+  await expect(offer).toHaveAttribute("href", "/offers?listing=204501");
+  await expect(offer).toHaveClass(/cx-btn(?!--)/); // the one solid button
+  await expect(box.getByRole("button", { name: "Add to watchlist" })).toBeVisible();
+  await expect(box.locator("#buybox-actions").getByRole("link", { name: "Message seller" })).toBeVisible();
+  for (const name of [/Buy it now/, /Add to cart/]) await expect(page.getByRole("link", { name })).toHaveCount(0);
+  await expect(page.locator('a[href^="/checkout"], a[href^="/cart"]')).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Watchlist" })).toHaveAttribute("href", "/saved");
 });
 
-test("vehicles have no checkout: Contact seller instead (PLAN risk 7)", async ({ page }) => {
+test("Add to watchlist becomes Watching and matches the heart on cards (B4)", async ({ page }) => {
+  await page.goto(IPHONE);
+  await page.evaluate(() => localStorage.setItem("ws:mock-session", JSON.stringify({ signedIn: true })));
+  await page.reload();
+  const box = page.getByRole("region", { name: "Price and buying" });
+  await box.getByRole("button", { name: "Add to watchlist" }).click();
+  await expect(box.getByRole("button", { name: "Watching" })).toBeVisible();
+  await expect(page.getByRole("status", { name: "Notifications" })).toContainText("Added to your watchlist");
+  await page.goto("/saved");
+  await expect(page.getByRole("list", { name: "Saved listings" }).getByRole("link", { name: /iPhone 14 Pro/ })).toBeVisible();
+});
+
+test("vehicles have no escrow: Contact seller instead (PLAN risk 7)", async ({ page }) => {
   await page.goto("/listing/204539-toyota-corolla-2014-le-automatic");
   const box = page.getByRole("region", { name: "Price and buying" });
   await expect(box.getByRole("link", { name: "Buy it now" })).toHaveCount(0);
   await expect(box.getByRole("link", { name: "Contact seller" })).toBeVisible();
-  await expect(box.getByText(/No escrow checkout/)).toBeVisible();
+  await expect(box.getByText(/No escrow for this category/)).toBeVisible();
 });
 
 test("delivery shows dates to the buyer's area and the buy box's total; Change picks another area (B3 step 3, R-020)", async ({ page }) => {
@@ -121,4 +139,84 @@ test("axe: no serious or critical issues on a listing", async ({ page }) => {
   const { violations } = await new AxeBuilder({ page }).analyze();
   const bad = violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   expect(bad.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`)).toEqual([]);
+});
+
+/* P3c: About this seller, ratings and reviews, and the two rails. */
+
+test("the item rating in the title matches the reviews, and seller scores are labelled apart (R-073, F13)", async ({ page }) => {
+  await page.goto(IPHONE);
+  const header = page.locator(".ws-listing__title").getByRole("img", { name: /^Item rating/ });
+  const label = (await header.getAttribute("aria-label"))!;
+  const [, avg, count] = label.match(/Item rating ([\d.]+) out of 5, (\d+) ratings/)!;
+  const reviews = page.getByRole("region", { name: "Ratings and reviews" });
+  await expect(reviews.getByRole("tab", { name: `This item (${count})` })).toHaveAttribute("aria-selected", "true");
+  await expect(reviews.getByRole("tabpanel").getByRole("img", { name: `Item rating ${avg} out of 5, ${count} ratings` })).toBeVisible();
+  await expect(reviews.getByText("Verified purchase").first()).toBeVisible();
+
+  // Keyboard: → moves to the seller tab, whose summary is a seller rating.
+  await reviews.getByRole("tab", { name: /This item/ }).focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(reviews.getByRole("tab", { name: /All items from/ })).toBeFocused();
+  await expect(reviews.getByRole("tabpanel").getByRole("img", { name: /^Seller rating/ })).toBeVisible();
+
+  const seller = page.getByRole("region", { name: "About this seller" });
+  await expect(seller.getByText(/% positive/)).toBeVisible();
+  await expect(seller.getByText("Accurate description")).toBeVisible();
+  await expect(seller.getByRole("link", { name: /Visit shop/ })).toHaveAttribute("href", /^\/seller\//);
+});
+
+test("Similar items and Seller's other items never repeat a listing or show this one (R-013)", async ({ page }) => {
+  await page.goto(IPHONE);
+  const hrefs = await page.locator("#rail-similar, #rail-seller-items").locator("xpath=ancestor::section[1]").locator("a[href^='/listing/']").evaluateAll((as) => as.map((a) => a.getAttribute("href")!));
+  expect(hrefs.length).toBeGreaterThan(0);
+  const unique = new Set(hrefs.map((h) => h.split("?")[0]));
+  expect(unique.size).toBe(hrefs.length);
+  expect([...unique]).not.toContain(IPHONE);
+});
+
+/* P3d: listings that can't be bought, revision history, the shop page. */
+
+test("a sold listing keeps its page but can't be bought (R-021)", async ({ page }) => {
+  await page.goto("/listing/204518-lenovo-thinkpad-x1-carbon-gen-9");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Lenovo ThinkPad X1 Carbon Gen 9");
+  await expect(page.getByText("This item has sold")).toBeVisible();
+  await expect(page.getByText("Sold for", { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Buy it now" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "See similar items" }).first()).toBeVisible();
+});
+
+test("a reserved listing says Offer pending and offers no checkout (R-032)", async ({ page }) => {
+  await page.goto("/listing/204543-nintendo-switch-oled-white");
+  await expect(page.getByText("Offer pending")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Buy it now" })).toHaveCount(0);
+});
+
+test("a removed listing answers not found, with a way on and noindex", async ({ page }) => {
+  await page.goto("/listing/204545-designer-handbag-removed-listing");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("This listing isn't available");
+  await expect(page.getByRole("link", { name: /Search for something similar/ })).toHaveAttribute("href", "/search");
+  await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute("content", /noindex/);
+});
+
+test("View history lists the price change behind a struck-through price (R-112)", async ({ page }) => {
+  await page.goto(IPHONE);
+  await page.getByRole("button", { name: /View history/ }).click();
+  const dialog = page.getByRole("dialog", { name: "Revision history" });
+  await expect(dialog.getByText("Price lowered from ₦920,000 to ₦845,000")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+});
+
+test("the shop page: header, a card per live item, and tabs kept in the URL (SCR-005, R-011)", async ({ page }) => {
+  await page.goto("/seller/gadgethub-ikeja");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Gadget Hub Ikeja");
+  const tab = page.getByRole("tab", { name: /^Items \((\d+)\)$/ });
+  const n = Number((await tab.textContent())!.match(/\d+/)![0]);
+  await expect(page.getByRole("list", { name: "Items from Gadget Hub Ikeja" }).getByRole("listitem")).toHaveCount(n);
+  await page.getByRole("tab", { name: /Reviews/ }).click();
+  await expect(page).toHaveURL(/\?tab=reviews$/);
+  await page.reload();
+  await expect(page.getByRole("tab", { name: /Reviews/ })).toHaveAttribute("aria-selected", "true");
+  const { violations } = await new AxeBuilder({ page }).analyze();
+  expect(violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => v.id)).toEqual([]);
 });

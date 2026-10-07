@@ -5,8 +5,8 @@ import { createLocalStore } from "@/lib/local-store";
 /*
  * MOCK SESSION. A stand-in for real auth so gated actions can follow R-004 now: a guest
  * who taps a gated action is asked to sign in, and the action they tapped runs once
- * they have. Phase 4 swaps the toast prompt for SignInSheet + useAuthGate; callers of
- * requireAuth() don't change.
+ * they have. SignInSheet asks for a demo session; callers of requireAuth() keep their intent.
+ * The toast fallback lets isolated component stories exercise the same contract.
  */
 
 const session = createLocalStore("ws:mock-session", { signedIn: false }, (raw) => ({
@@ -14,6 +14,14 @@ const session = createLocalStore("ws:mock-session", { signedIn: false }, (raw) =
 }));
 
 let pending: (() => void) | null = null;
+let prompt: string | null = null;
+const listeners = new Set<() => void>();
+export function useAuthPrompt() {
+  return useSyncExternalStore((listener) => { listeners.add(listener); return () => { listeners.delete(listener); }; }, () => prompt, () => null);
+}
+function setPrompt(value: string | null) { prompt = value; listeners.forEach((listener) => listener()); }
+export function requestSignIn() { setPrompt("continue"); }
+export function cancelSignIn() { pending = null; setPrompt(null); }
 
 export function useSession() {
   return useSyncExternalStore(session.subscribe, session.get, () => session.initial);
@@ -26,10 +34,12 @@ export function requireAuth(reason: string, action: () => void) {
     return;
   }
   pending = action;
-  toast({ message: `Sign in to ${reason}`, action: { label: "Sign in", onClick: signIn } });
+  setPrompt(reason);
+  if (!document.getElementById("sign-in-sheet")) toast({ message: `Sign in to ${reason}`, action: { label: "Sign in", onClick: signIn } });
 }
 
 export function signIn() {
+  setPrompt(null);
   session.set({ signedIn: true });
   const resume = pending;
   pending = null;
@@ -37,6 +47,6 @@ export function signIn() {
 }
 
 export function signOut() {
-  pending = null;
+  cancelSignIn();
   session.set({ signedIn: false });
 }

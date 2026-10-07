@@ -32,19 +32,38 @@ export const Gallery: Story = {
   },
 };
 
+/* Two weights by role (styles/marketplace.css): linear for reading, bold for acting
+   and for state. The play step checks the rule, not just the picture. */
 export const Weights: Story = {
   render: () => {
-    const { HeartIcon } = icons;
+    const { HeartIcon, ShareIcon, DeliveryTruckIcon, LocationIcon } = icons;
     return (
-      <div style={{ display: "flex", gap: "var(--cx-s-6)", alignItems: "center" }}>
-        <HeartIcon weight="thin" size={32} />
-        <HeartIcon weight="medium" size={32} />
-        <HeartIcon weight="bold" size={32} />
-        <HeartIcon size={32} label="Saved" style={{ color: "var(--cx-ember-text)" }} />
+      <div style={{ display: "grid", gap: "var(--cx-s-5)" }}>
+        <p className="cx-small" style={{ display: "flex", gap: "var(--cx-s-3)", alignItems: "center" }}>
+          <DeliveryTruckIcon size={20} /> Free delivery in 2–4 days · <LocationIcon size={20} /> Lekki
+        </p>
+        <div style={{ display: "flex", gap: "var(--cx-s-3)", alignItems: "center" }}>
+          <button type="button" className="cx-btn cx-btn--ghost cx-btn--icon" aria-label="Share listing">
+            <ShareIcon />
+          </button>
+          <button type="button" className="cx-btn cx-btn--ghost cx-btn--icon" aria-pressed="true" aria-label="Saved">
+            <HeartIcon />
+          </button>
+          <button type="button" className="cx-btn cx-btn--ghost" aria-label="Save listing">
+            <HeartIcon /> Save
+          </button>
+          <HeartIcon weight="thin" size={32} label="Thin, set explicitly" />
+        </div>
       </div>
     );
   },
-  play: async ({ canvas }) => {
-    expect(canvas.getByRole("img", { name: "Saved" })).toBeInTheDocument();
+  play: async ({ canvasElement, canvas }) => {
+    const width = (el: Element) => getComputedStyle(el).strokeWidth;
+    const svg = (sel: string) => canvasElement.querySelector(`${sel} svg`)!;
+    expect(width(svg("p"))).toBe("1.5px"); // linear: a meta line
+    expect(width(svg(".cx-btn--icon:not([aria-pressed])"))).toBe("2px"); // bold: an icon button
+    expect(width(svg("[aria-pressed=true]"))).toBe("2px"); // bold: state
+    expect(width(svg(".cx-btn--ghost:not(.cx-btn--icon)"))).toBe("1.5px"); // linear: a text button
+    expect(width(canvas.getByRole("img", { name: "Thin, set explicitly" }))).toBe("1px"); // the prop wins
   },
 };

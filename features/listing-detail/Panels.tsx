@@ -160,7 +160,7 @@ export function ProtectionPanel({ listing, report }: { listing: ListingWithSelle
         {listing.seller.verified && (
           <li>
             <UserCheckIcon />
-            <span>{listing.seller.shop_name} has verified their ID with WorldStreet.</span>
+            <span>{listing.seller.shop_name} has verified their ID with WorldStore.</span>
           </li>
         )}
         <li>

@@ -1,7 +1,10 @@
-import { ComingSoon, comingMetadata } from "@/features/placeholder/ComingSoon";
-
-export const metadata = comingMetadata("offers");
-
-export default function Page() {
-  return <ComingSoon id="offers" />;
+import type { Metadata } from "next";
+import { NegotiationHub } from "@/features/negotiation/NegotiationHub";
+import { dealListings } from "@/features/negotiation/data";
+import { first } from "@/lib/search/params";
+export const metadata: Metadata = { title: "Offers", robots: { index: false, follow: false } };
+export default async function OffersPage({ searchParams }: PageProps<"/offers">) {
+  const query = await searchParams;
+  const qty = Number(first(query.qty) ?? 1);
+  return <NegotiationHub mode="offers" listings={await dealListings()} selected={first(query.listing)} qty={Number.isSafeInteger(qty) && qty > 0 ? qty : 1} />;
 }

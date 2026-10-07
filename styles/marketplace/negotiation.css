@@ -1,0 +1,52 @@
+.ws-deal-page { max-width: 1120px; margin-inline: auto; padding-block: 24px 48px; }
+.ws-deal-stack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.ws-deal-page h1 { font-size: var(--cx-h2); font-weight: 700; letter-spacing: -.03em; }
+.ws-deal-page h2 { font-size: var(--cx-h4, 20px); font-weight: 650; }
+.ws-deal-page h3 { font-weight: 650; }
+.ws-deal-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.ws-deal-eyebrow { color: var(--cx-text-muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+.ws-deal-muted { color: var(--cx-text-muted); font-size: 13px; }
+.ws-deal-demo { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; border-block: 1px solid var(--cx-hairline); padding-block: 16px; color: var(--cx-text-2); font-size: 13px; }
+.ws-deal-demo p { max-width: 620px; }
+.ws-deal-demo label { display: flex; align-items: center; gap: 8px; }
+.ws-deal-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 32px; align-items: start; }
+.ws-deal-sidebar { padding-block: 16px; }
+.ws-deal-sidebar h2 { margin-bottom: 16px; }
+.ws-deal-sidebar ul { list-style: none; padding: 0; }
+.ws-deal-sidebar li + li { border-top: 1px solid var(--cx-hairline); }
+.ws-deal-sidebar a { display: flex; flex-direction: column; gap: 6px; padding: 16px 12px; border-radius: var(--cx-r-md); }
+.ws-deal-sidebar a[aria-current] { background: var(--cx-surface-2); box-shadow: inset 3px 0 var(--cx-ember); }
+.ws-deal-sidebar span, .ws-deal-sidebar small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ws-deal-sidebar small { color: var(--cx-text-muted); }
+.ws-deal-panel { padding: 24px; border: 1px solid var(--cx-hairline); border-radius: var(--cx-r-card); background: var(--cx-surface); }
+.ws-deal-pinned { border-bottom: 1px solid var(--cx-hairline); padding: 16px 0 24px; }
+.ws-deal-pinned a:hover { text-decoration: underline; }
+.ws-deal-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.ws-deal-page .ws-field { display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+.ws-deal-page input:not([type=checkbox]), .ws-deal-page textarea, .ws-deal-page select, .ws-deal-demo select { width: 100%; min-height: 44px; padding: 10px 12px; color: var(--cx-text); background: var(--cx-surface-2); border: 1px solid var(--cx-hairline); border-radius: var(--cx-r-md); font: inherit; }
+.ws-deal-page textarea { resize: vertical; }
+.ws-deal-page input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--cx-ember); }
+.ws-deal-warning { padding: 16px; border: 1px solid var(--cx-warning); border-radius: var(--cx-r-md); }
+.ws-deal-warning label { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+.ws-deal-notice { padding-inline-start: 12px; border-inline-start: 2px solid var(--cx-ember); color: var(--cx-text-2); font-size: 14px; }
+.ws-deal-status { padding: 4px 10px; border: 1px solid var(--cx-hairline); border-radius: var(--cx-r-pill); font-size: 13px; text-transform: capitalize; }
+.ws-deal-request { border-top: 1px solid var(--cx-hairline); padding-top: 16px; }
+.ws-deal-request dl { display: grid; gap: 8px; }
+.ws-deal-request dl > div { display: flex; justify-content: space-between; gap: 16px; }
+.ws-deal-request dl > div:last-child { font-weight: 700; padding-top: 8px; border-top: 1px solid var(--cx-hairline); }
+.ws-deal-messages { display: flex; flex-direction: column; gap: 12px; max-height: 440px; overflow-y: auto; overflow-wrap: anywhere; }
+.ws-deal-message { align-self: flex-start; max-width: 92%; padding: 12px 16px; border-radius: var(--cx-r-md); background: var(--cx-surface-2); white-space: pre-wrap; }
+.ws-deal-message[data-own=true] { align-self: flex-end; border: 1px solid var(--cx-hairline); }
+.ws-deal-message p + p { margin-top: 6px; }
+.ws-deal-photos { display: flex; gap: 8px; flex-wrap: wrap; }
+.ws-deal-photos img { border-radius: var(--cx-r-md); object-fit: cover; }
+.ws-deal-photos > div { display: flex; flex-direction: column; }
+.ws-deal-empty { padding-block: 64px; display: grid; gap: 16px; justify-items: start; }
+.ws-deal-back { display: none; }
+@media (max-width: 767px) {
+  .ws-deal-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .ws-deal-layout[data-selected=true] .ws-deal-sidebar { display: none; }
+  .ws-deal-back { display: block; color: var(--cx-text-2); padding-block: 12px; }
+  .ws-deal-panel { padding: 16px; }
+  .ws-deal-demo { font-size: 12px; }
+}

@@ -200,19 +200,15 @@
 }
 
 .ws-logo__tile {
-  display: grid;
-  place-items: center;
+  display: block;
   width: 32px;
   height: 32px;
-  border-radius: 9px;
-  background: var(--cx-ember);
-  color: var(--cx-on-primary);
 }
 
-.ws-logo__tile svg {
-  width: 20px;
-  height: 20px;
-  stroke-width: 1.9px;
+.ws-logo__tile img {
+  display: block;
+  width: 32px;
+  height: 32px;
 }
 
 .ws-logo__name {

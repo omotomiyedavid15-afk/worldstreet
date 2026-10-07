@@ -9,7 +9,6 @@ import { HeroCarousel } from "@/features/home/HeroCarousel";
 import { getRecentlyViewed } from "@/features/recent/server";
 import { ProductRail } from "@/features/home/ProductRail";
 import { SellCta } from "@/features/home/SellCta";
-import { TrustStrip } from "@/features/home/TrustStrip";
 import { setLocation } from "@/features/location/actions";
 import { LocationBar } from "@/features/location/LocationBar";
 import { getAnchor } from "@/features/location/server";
@@ -20,9 +19,9 @@ import { categoryTiles, homeRails, nearbyCount } from "@/lib/home";
 import { first } from "@/lib/search/params";
 import { parseRadius, radiusParam } from "@/lib/search/radius";
 
-/* SCR-001 Home (flows B1, spec §4), Sprint 0's minimal version: location first (search
-   is in the header), the trust strip above the fold, the hero, categories with honest counts,
-   then rails in B1 order with every listing shown once (R-013) and short rails left
+/* SCR-001 Home (flows B1, spec §4): location first (search is in the header),
+   categories with honest counts, Recently viewed and Near you, then the hero (moved
+   below Near you and the trust strip removed, owner's direction 7 Oct), then rails in B1 order with every listing shown once (R-013) and short rails left
    out (R-014). The radius is in the URL (R-011), as on /search. Header, category
    rail, Recently viewed and Because you saved arrive with Phases 1 and 2. */
 
@@ -57,10 +56,8 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
   return (
     <div className="ws-home">
       {/* F11: one h1. The hero's slides are h2s because they rotate. */}
-      <h1 className="cx-sr-only">WorldStreet Marketplace: buy and sell near you</h1>
+      <h1 className="cx-sr-only">WorldStore Marketplace: buy and sell near you</h1>
       <LocationBar anchor={anchor} inferred={inferred} radius={radius} returnTo={returnTo} action={setLocation} />
-      <TrustStrip />
-      <HeroCarousel slides={HERO_SLIDES} />
       <CategoryTiles tiles={tiles} radius={radius} />
       {/* B1: returning buyers see what they looked at first; other rails skip those (R-013). */}
       {rails.recent && (
@@ -94,6 +91,8 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
           anchor={anchor}
         />
       )}
+      {/* The hero sits after the first rail (owner's direction, 7 Oct): listings first. */}
+      <HeroCarousel slides={HERO_SLIDES} />
       {rails.deals && (
         <ProductRail
           id="deals"

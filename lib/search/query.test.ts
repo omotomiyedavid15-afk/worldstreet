@@ -19,7 +19,7 @@ describe("parseQuery", () => {
 
   it("spots a listing id or link (EC-002)", () => {
     expect(parseQuery("204507")).toMatchObject({ kind: "listing-id", id: "204507" });
-    expect(parseQuery("https://worldstreet.ng/listing/204507-sony-wh")).toMatchObject({ kind: "listing-id", id: "204507" });
+    expect(parseQuery("https://worldstore.ng/listing/204507-sony-wh")).toMatchObject({ kind: "listing-id", id: "204507" });
     expect(parseQuery("2045071").kind).toBe("text");
   });
 
