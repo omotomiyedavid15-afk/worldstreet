@@ -21,8 +21,6 @@ export const ESCROW = {
     "Pay through WorldStreet checkout and we hold your money until you confirm the item arrived as described, or the inspection window ends without a problem report.",
   /** For vehicles and property, which have no escrow checkout. */
   noEscrow: "No escrow checkout for this category. Inspect in person before you pay, and never pay a deposit to hold a viewing.",
-  /** Short form for the home trust strip (L11.1), next to "How escrow works". */
-  stripTitle: "Escrow on every checkout",
   // Not "until you confirm": the inspection window can also end it (L11.4).
   strip: "We hold your payment while you check the item, then pay the seller.",
   /** A goods listing with no returns: what still protects the buyer (L7). */

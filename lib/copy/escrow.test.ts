@@ -13,10 +13,9 @@ describe("escrow copy (L14 test 8)", () => {
   });
 });
 
-describe("home trust copy", () => {
+describe("home hero copy", () => {
   it("states the real numbers from config", async () => {
-    const { TRUST, HERO_SLIDES } = await import("./trust");
-    expect(TRUST.map((t) => t.body).join(" ")).toContain("₦20,000");
+    const { HERO_SLIDES } = await import("./trust");
     expect(HERO_SLIDES.length).toBeLessThanOrEqual(3);
     expect(HERO_SLIDES.find((s) => s.id === "inspect")!.body).toContain("72 hours");
     // The short escrow line mustn't hide that the inspection window can release the money (L11.4).

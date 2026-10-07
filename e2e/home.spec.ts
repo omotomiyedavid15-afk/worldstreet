@@ -5,13 +5,15 @@ import { expect, test, type Page } from "@playwright/test";
 
 const firstNumber = async (page: Page) => Number((await page.getByRole("heading", { level: 1 }).textContent())!.match(/\d[\d,]*/)![0].replace(/,/g, ""));
 
-test("one h1, and the trust strip and hero are above the fold (F11, B1 step 3)", async ({ page }) => {
+test("one h1, no trust strip, and the hero comes after Near you (F11; owner's direction 7 Oct)", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
-  const trust = page.getByRole("region", { name: "Buying on WorldStreet" });
-  await expect(trust).toBeInViewport();
-  await expect(trust.getByRole("link", { name: "How escrow works" })).toHaveAttribute("href", "/help/escrow");
-  await expect(page.getByRole("region", { name: "Highlights" })).toBeInViewport({ ratio: 0.2 });
+  await expect(page.getByRole("region", { name: "Buying on WorldStreet" })).toHaveCount(0);
+  const near = page.getByRole("heading", { level: 2, name: "Near you", exact: true });
+  const hero = page.getByRole("region", { name: "Highlights" });
+  await expect(near).toHaveCount(1);
+  const heroFollowsNear = await near.evaluate((h, heroEl) => !!(h.compareDocumentPosition(heroEl!) & Node.DOCUMENT_POSITION_FOLLOWING), await hero.elementHandle());
+  expect(heroFollowsNear).toBe(true);
 });
 
 test("the hero carousel has a pause button, a counter and labelled slides (F8, F14, R-015)", async ({ page }) => {

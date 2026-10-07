@@ -1,22 +1,11 @@
 import { rules } from "@/config/marketplace-rules";
-import { formatCurrency, kobo } from "@/lib/money";
 import { ESCROW, inspectionLine } from "./escrow";
 
 /*
- * Home trust strip and hero copy (flows B1 step 3, L11.1). Escrow sentences come from
+ * Home hero copy (L11.1). Escrow sentences come from
  * escrow.ts (L14 test 8); the numbers come from config, so the copy can't drift from
  * the rules it describes.
  */
-
-export const TRUST = [
-  { id: "escrow", title: ESCROW.stripTitle, body: ESCROW.strip, link: { label: "How escrow works", href: ESCROW.learnMoreHref } },
-  {
-    id: "tracking",
-    title: "Tracked delivery",
-    body: `Deliveries over ${formatCurrency(kobo(rules.tracking.requiredAboveMinor))} come with tracking.`, // R-141
-  },
-  { id: "payout", title: "Wallet payouts", body: ESCROW.payout },
-] as const;
 
 export type HeroSlide = {
   id: string;
