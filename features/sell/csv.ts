@@ -52,6 +52,16 @@ export const TEMPLATE = toCsv([
   ["Linen shirt, white, size M", "fashion", "new", 18000, 3, "Brand new 100% linen shirt, never worn, tags still on.", "Size=M; Colour=White", "pickup_station", "", "no"],
 ]);
 
+/** Starts a browser download and keeps the object URL alive until the click is consumed. */
+export function downloadCsv(name: string, text: string) {
+  const url = URL.createObjectURL(new Blob(["\uFEFF", text], { type: "text/csv;charset=utf-8" }));
+  const anchor = Object.assign(document.createElement("a"), { href: url, download: name });
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1_000);
+}
+
 export type RowReport = { row: number; title: string; errors: string[]; draft_id: string | null };
 
 const byName = (value: string) => value.trim().toLowerCase();

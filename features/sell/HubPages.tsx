@@ -6,7 +6,7 @@ import { CheckCircleIcon, DeliveryTruckIcon, DotsVerticalIcon, PackageIcon, Stor
 import { buttonClass, Menu, tabPanelProps, Tabs, toast } from "@/components/ui";
 import { rules } from "@/config/marketplace-rules";
 import { formatCurrency, kobo, toMinor } from "@/lib/money";
-import { COLUMNS, exportCsv, importCsv, TEMPLATE, type RowReport } from "./csv";
+import { COLUMNS, downloadCsv, exportCsv, importCsv, TEMPLATE, type RowReport } from "./csv";
 import { analytics, promote, promotionFee, stopPromotion, bulkPrice, cancelOrder, CANCEL_REASONS, confirmOrder, COURIERS, DEMO_OTP, dispatchOrder, editListing, endListing, ledgerRows, performance, reconcilePayouts, relist, sellSimilar, simulateBuyerConfirm, simulateDelivery, simulatePurchase, wallet, withdraw, type SellerOrder } from "./hub";
 import { DELIVERY_METHODS, type SellerAccount, type SellerListing } from "./model";
 import { updateSeller, useHydrated, useSeller } from "./store";
@@ -76,7 +76,7 @@ function Listings({ account }: { account: SellerAccount }) {
   return <div className="ws-hub">
     <header className="ws-flow__head"><div><p className="ws-sell-eyebrow">Seller Hub</p><h1>Listings</h1></div><div className="ws-flow__actions">
       {rules.flags.bulkImport && <><Link className={buttonClass({ variant: "ghost", size: "sm" })} href="/vendor/import">Import CSV</Link>
-        <button type="button" className={buttonClass({ variant: "ghost", size: "sm" })} disabled={!account.listings.length} onClick={() => download("worldstore-listings.csv", exportCsv(account.listings))}>Export CSV</button></>}
+        <button type="button" className={buttonClass({ variant: "ghost", size: "sm" })} disabled={!account.listings.length} onClick={() => downloadCsv("worldstore-listings.csv", exportCsv(account.listings))}>Export CSV</button></>}
       <Link className={buttonClass({})} href="/sell/new">Create listing</Link></div></header>
     {alert}
     <Tabs aria-label="Listing status" idBase="listings" items={LISTING_TABS.map((t) => ({ ...t, label: `${t.label} (${account.listings.filter((l) => inListingTab(l, t.value)).length})` }))} value={tab} onChange={(v) => { setTab(v); setSelected([]); }} />
@@ -312,14 +312,6 @@ function Performance({ account }: { account: SellerAccount }) {
   </div>;
 }
 
-/** A file the browser saves, e.g. the CSV export. */
-function download(name: string, text: string) {
-  const url = URL.createObjectURL(new Blob(["\uFEFF", text], { type: "text/csv;charset=utf-8" }));
-  const a = Object.assign(document.createElement("a"), { href: url, download: name });
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 0);
-}
-
 function PromoteDialog({ account, ids, close }: { account: SellerAccount; ids: string[]; close: () => void }) {
   const { minRatePercent: min, maxRatePercent: max, suggestedRatePercent } = rules.promotions;
   const [rate, setRate] = useState(String(account.listings.find((l) => l.id === ids[0])?.promotion?.rate_percent ?? suggestedRatePercent));
@@ -360,7 +352,7 @@ function Import() {
   return <>
     <header className="ws-flow__head"><div><p className="ws-sell-eyebrow">Seller Hub · Listings</p><h1>Import listings</h1><p>Add up to {rules.bulkImport.maxRows} items from a spreadsheet. Each valid row becomes a draft; add photos, then publish.</p></div></header>
     <ol className="ws-import-steps">
-      <li><strong>Download the template</strong><span>Columns: {COLUMNS.join(", ")}. Specifics are Key=Value pairs separated by “;”.</span><button type="button" className={buttonClass({ variant: "ghost", size: "sm" })} onClick={() => download("worldstore-import-template.csv", TEMPLATE)}>Download template</button></li>
+      <li><strong>Download the template</strong><span>Columns: {COLUMNS.join(", ")}. Specifics are Key=Value pairs separated by “;”.</span><button type="button" className={buttonClass({ variant: "ghost", size: "sm" })} onClick={() => downloadCsv("worldstore-import-template.csv", TEMPLATE)}>Download template</button></li>
       <li><strong>Fill it in and save as CSV</strong><span>One item per row. Prices in whole naira.</span></li>
       <li><strong>Upload</strong><label className="ws-dropzone ws-import-drop"><span>{name || "Choose a CSV file"}</span><input type="file" accept=".csv,text/csv" className="cx-sr-only" onChange={(e) => { void load(e.target.files?.[0]); e.target.value = ""; }} /></label></li>
     </ol>
@@ -389,22 +381,24 @@ function Analytics({ account }: { account: SellerAccount }) {
     ["Sales", money(a.gross_minor), `${a.orders} order${a.orders === 1 ? "" : "s"}${a.cancelled ? `, ${a.cancelled} cancelled` : ""}`],
     ["Earned", money(a.earned_minor), "Released to you after fees"],
     ["Average order", a.orders ? money(a.average_minor) : "—", "Item plus delivery"],
-    ["Fees", money(a.fees_minor + a.ad_fees_minor), `${money(a.ad_fees_minor)} of it on promotions${a.promoted_orders ? ` (${a.promoted_orders} promoted sale${a.promoted_orders === 1 ? "" : "s"})` : ""}`],
+    ["Fees", money(a.fees_minor + a.ad_fees_minor), a.ad_fees_minor ? `${money(a.ad_fees_minor)} on promotions${a.promoted_orders ? ` (${a.promoted_orders} promoted sale${a.promoted_orders === 1 ? "" : "s"})` : ""}` : "No promotion fees"],
   ];
   const shown = hover === null ? null : a.daily[hover];
   return <div className="ws-hub">
     <header className="ws-flow__head"><div><p className="ws-sell-eyebrow">Seller Hub · last {a.days} days</p><h1>Analytics</h1></div></header>
     <ul className="ws-balances ws-admin-tiles">{tiles.map(([label, value, sub]) => <li key={label} className="ws-balance"><span>{label}</span><strong>{value}</strong><small>{sub}</small></li>)}</ul>
     <section className="ws-sell-card" aria-labelledby="daily"><h2 id="daily">Daily sales</h2>
-      <p className="ws-chart__readout" aria-live="polite">{shown ? `${dayLabel.format(Date.parse(shown.day))}: ${money(shown.gross_minor)} · ${shown.orders} order${shown.orders === 1 ? "" : "s"}` : `Peak day ${a.gross_minor ? money(max) : "—"}. Hover or focus a bar for the day.`}</p>
-      <div className="ws-chart" role="group" aria-label={`Daily sales, last ${a.days} days`} onMouseLeave={() => setHover(null)}>
-        {a.daily.map((d, i) => <button key={d.day} type="button" className="ws-chart__bar" aria-label={`${dayLabel.format(Date.parse(d.day))}: ${money(d.gross_minor)}, ${d.orders} order${d.orders === 1 ? "" : "s"}`} onMouseEnter={() => setHover(i)} onFocus={() => setHover(i)} onBlur={() => setHover(null)}>
-          <span style={{ blockSize: `${d.gross_minor / max * 100}%` }} data-empty={!d.gross_minor || undefined} />
-        </button>)}
-      </div>
-      <div className="ws-chart__axis" aria-hidden="true"><span>{dayLabel.format(Date.parse(a.daily[0].day))}</span><span>Today</span></div>
-      <details className="ws-chart__table"><summary>Show as a table</summary><table className="ws-table ws-table--ledger"><thead><tr><th scope="col">Day</th><th scope="col">Orders</th><th scope="col">Sales</th></tr></thead>
-        <tbody>{a.daily.filter((d) => d.orders).map((d) => <tr key={d.day}><td data-label="Day">{dayLabel.format(Date.parse(d.day))}</td><td data-label="Orders" className="ws-num">{d.orders}</td><td data-label="Sales" className="ws-num">{money(d.gross_minor)}</td></tr>)}</tbody></table></details>
+      {a.gross_minor ? <>
+        <p className="ws-chart__readout" aria-live="polite">{shown ? `${dayLabel.format(Date.parse(shown.day))}: ${money(shown.gross_minor)} · ${shown.orders} order${shown.orders === 1 ? "" : "s"}` : `Peak day ${money(max)}. Tap, hover or focus a bar for the day.`}</p>
+        <div className="ws-chart" role="group" aria-label={`Daily sales, last ${a.days} days`} onMouseLeave={() => setHover(null)}>
+          {a.daily.map((d, i) => <button key={d.day} type="button" className="ws-chart__bar" aria-label={`${dayLabel.format(Date.parse(d.day))}: ${money(d.gross_minor)}, ${d.orders} order${d.orders === 1 ? "" : "s"}`} onMouseEnter={() => setHover(i)} onFocus={() => setHover(i)} onBlur={() => setHover(null)}>
+            <span style={{ blockSize: `${d.gross_minor / max * 100}%` }} data-empty={!d.gross_minor || undefined} />
+          </button>)}
+        </div>
+        <div className="ws-chart__axis" aria-hidden="true"><span>{dayLabel.format(Date.parse(a.daily[0].day))}</span><span>Today</span></div>
+        <details className="ws-chart__table"><summary>Show as a table</summary><table className="ws-table ws-table--ledger"><thead><tr><th scope="col">Day</th><th scope="col">Orders</th><th scope="col">Sales</th></tr></thead>
+          <tbody>{a.daily.filter((d) => d.orders).map((d) => <tr key={d.day}><td data-label="Day">{dayLabel.format(Date.parse(d.day))}</td><td data-label="Orders" className="ws-num">{d.orders}</td><td data-label="Sales" className="ws-num">{money(d.gross_minor)}</td></tr>)}</tbody></table></details>
+      </> : <p className="ws-chart-empty">No sales in this period yet.</p>}
     </section>
     <section className="ws-sell-card" aria-labelledby="top"><h2 id="top">Top listings</h2>
       {a.top.length ? <ol className="ws-hub-rows">{a.top.map((t) => <li key={t.title} className="ws-hub-rows--text"><span className="ws-hub-rows__main"><strong>{t.title}</strong><small>{t.units} sold{t.promoted ? " · promoted" : ""}</small></span><span className="ws-num">{money(t.gross_minor)}</span></li>)}</ol> : <p className="ws-form-field__hint">No sales in the last {a.days} days.</p>}

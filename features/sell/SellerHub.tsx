@@ -25,9 +25,17 @@ const NAV = [
 /** SellerShell (Phase 7): the Seller Hub's sidebar on desktop, a scrolling tab row on phones. */
 export function SellerShell({ children }: { children: ReactNode }) {
   const path = usePathname();
+  const activeLink = useRef<HTMLAnchorElement>(null);
+  useEffect(() => {
+    activeLink.current?.scrollIntoView({ block: "nearest", inline: "center" });
+  }, [path]);
   return <div className="ws-seller-shell">
     <nav aria-label="Seller Hub" className="ws-seller-nav"><p className="ws-sell-eyebrow">Seller Hub</p><ul>{NAV.map(({ href, label, icon: Icon }) =>
-      <li key={href}><Link href={href} aria-current={path === href ? "page" : undefined}><Icon />{label}</Link></li>)}</ul></nav>
+      {
+        const navPath = href.split("?")[0];
+        const current = path === navPath || (path === "/vendor/import" && navPath === "/vendor/listings");
+        return <li key={href}><Link ref={current ? activeLink : undefined} href={href} aria-current={current ? "page" : undefined}><Icon />{label}</Link></li>;
+      })}</ul></nav>
     <div className="ws-seller-main">{children}</div>
   </div>;
 }

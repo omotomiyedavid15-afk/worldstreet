@@ -1,12 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { assertLedgerInvariant, balances } from "@/lib/ledger";
-import { exportCsv, importCsv, parseCsv, TEMPLATE } from "./csv";
+import { downloadCsv, exportCsv, importCsv, parseCsv, TEMPLATE } from "./csv";
 import { analytics, cancelOrder, confirmOrder, dispatchOrder, endListing, promote, simulateBuyerConfirm, simulateDelivery, simulatePurchase, stopPromotion } from "./hub";
 import { agree, initialAccount, newDraft, parseAccount, publish, QUIZ, resolveKyc, saveProfile, savePayout, submitKyc, type SellerAccount } from "./model";
 
 const NOW = Date.parse("2026-10-08T09:00:00Z");
 const H = 3_600_000;
 const photo = { url: "data:image/jpeg;base64,AAAA", width: 1200, height: 900, bytes: 100 };
+afterEach(() => vi.restoreAllMocks());
 function shop(): SellerAccount {
   let a = saveProfile(initialAccount, { shop_name: "Ada Gadgets", handle: "ada_gadgets", bio: "", area_id: "ikeja", categories: ["phones"] }, []);
   a = resolveKyc(submitKyc(a, { id_type: "nin", id_number: "12345678901", legal_name: "Ada Okafor", selfie: true }, NOW), "approved");
@@ -68,6 +69,24 @@ describe("CSV import and export (R-122)", () => {
     const rows = parseCsv(exportCsv(a.listings));
     expect(rows[0]).toEqual(["id", "status", "title", "category", "condition", "price", "quantity", "description", "specifics", "delivery", "returns", "offers"]);
     expect(rows[1].slice(0, 7)).toEqual(["L1", "live", "'=HYPERLINK(\"x\")", "phones", "like_new", "400000", "3"]);
+  });
+  it("attaches the download anchor and keeps its object URL alive for the browser", () => {
+    vi.useFakeTimers();
+    const createObjectURL = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:csv");
+    const revokeObjectURL = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (this: HTMLAnchorElement) {
+      expect(this.isConnected).toBe(true);
+      expect(this.download).toBe("listings.csv");
+    });
+
+    downloadCsv("listings.csv", "title\r\nPhone\r\n");
+
+    expect(createObjectURL).toHaveBeenCalledOnce();
+    expect(click).toHaveBeenCalledOnce();
+    expect(revokeObjectURL).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1_000);
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:csv");
+    vi.useRealTimers();
   });
 });
 

@@ -58,7 +58,7 @@ test("a promoted sale pays the ad fee at release and shows in analytics", async 
   await page.goto("/vendor/analytics");
   await expect(page.getByRole("heading", { level: 1, name: "Analytics" })).toBeVisible();
   await expect(page.locator(".ws-balance").filter({ hasText: "Sales" })).toContainText("₦422,500");
-  await expect(page.locator(".ws-balance").filter({ hasText: /^Fees/ })).toContainText("₦21,000 of it on promotions (1 promoted sale)");
+  await expect(page.locator(".ws-balance").filter({ hasText: /^Fees/ })).toContainText("₦21,000 on promotions (1 promoted sale)");
   await page.getByRole("button", { name: /: ₦422,500, 1 order/ }).focus();
   await expect(page.locator(".ws-chart__readout")).toContainText("₦422,500 · 1 order");
   await expect(page.getByRole("list").filter({ hasText: "1 sold · promoted" })).toBeVisible();
@@ -85,6 +85,16 @@ test("CSV import creates drafts and reports bad rows by number; export downloads
   const text = await readFile((await download.path())!, "utf8");
   expect(text).toContain("id,status,title,category");
   expect(text).toContain("L1,live,iPhone 13 128GB Midnight,phones,like_new,420000,2");
+});
+
+test("seller growth routes keep the active navigation visible and use a compact zero-sales state", async ({ page }) => {
+  await open(page, "/vendor/import");
+  await expect(page.getByRole("link", { name: "Listings" })).toHaveAttribute("aria-current", "page");
+  await page.goto("/vendor/analytics");
+  await expect(page.getByRole("link", { name: "Analytics" })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("link", { name: "Analytics" })).toBeInViewport();
+  await expect(page.getByText("No sales in this period yet.")).toBeVisible();
+  await expect(page.getByRole("group", { name: /Daily sales/ })).toHaveCount(0);
 });
 
 test("axe: import and analytics have no serious or critical violations", async ({ page }) => {

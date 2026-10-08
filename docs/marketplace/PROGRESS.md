@@ -82,6 +82,14 @@ _Phases 0–2 implemented; Phase 3 includes P3a–P3d (listing detail, seller/re
 - Next, 9b: promotions, CSV bulk import (R-122) and seller analytics. Waiting: Q&A (needs real seller accounts to answer) and auctions (revisited with payment requests). Removed by the owner (8 Oct): coupons, referrals, TrackingMap.
 - Verification: 6 unit tests (price-drop once, back in stock, new matches, malformed alerts, sparkline series and window) and 3 Playwright scenarios on all three viewports (compare from search to table and clear, alert notice exactly once across reloads, sparkline on the listing).
 
+## Phase 9b handoff — 8 Oct (growth: seller tools)
+
+- Seller listing promotions charge a configurable 2–15% ad fee only when a promoted item sells; the fee is posted at escrow release and appears in payouts and 30-day analytics.
+- CSV import turns valid spreadsheet rows into drafts and reports invalid rows with their row numbers. Template and listing exports now attach their browser download before clicking and keep the object URL alive long enough for the browser to consume it.
+- Seller analytics shows sales, earnings, average order value, fees, daily sales and top listings. A seller with no sales gets a compact zero-data state instead of an empty interactive chart.
+- Seller Hub navigation now treats Import as part of Listings and scrolls the active section into view in the phone tab row.
+- Verification: 8 focused unit tests; the CSV import/export flow; responsive navigation and zero-state checks; and axe checks on Import and Analytics at 375 px and 1280 px. The full repository `npm run check` passes; Storybook retains its existing Vite module-directive and large-chunk warnings.
+
 ## Deviations from the docs and the design system
 
 | Date | Where | Deviation | Why |

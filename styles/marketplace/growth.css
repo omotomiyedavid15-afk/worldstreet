@@ -58,3 +58,4 @@
 .ws-chart__axis { display: flex; justify-content: space-between; color: var(--cx-text-muted); font-size: var(--cx-caption); }
 .ws-chart__table summary { color: var(--cx-text-2); font-size: var(--cx-small); cursor: pointer; }
 .ws-chart__table table { margin-top: var(--cx-s-2); }
+.ws-chart-empty { display: grid; place-items: center; min-height: 112px; color: var(--cx-text-2); text-align: center; }
