@@ -41,10 +41,16 @@ export function post(ledger: Ledger, input: PostingInput): Ledger {
 export function captureToEscrow(ledger: Ledger, key: string, at: number) {
   return post(ledger, { idempotency_key: key, debit_account: "provider_clearing", credit_account: "escrow_held", amount_minor: ledger.captured_minor, reason_code: "payment_captured", actor: "system", created_at: at });
 }
+/** Fees taken at release (S2 step 7, R-152): final value on the item, payment on item + delivery. */
+export function sellerFees(itemMinor: number, deliveryMinor: number) {
+  const final_value_minor = Math.floor(itemMinor * rules.fees.finalValuePercent / 100);
+  const payment_minor = Math.floor((itemMinor + deliveryMinor) * rules.fees.paymentPercent / 100);
+  return { final_value_minor, payment_minor, total_minor: final_value_minor + payment_minor };
+}
 export function releaseToSeller(ledger: Ledger, itemMinor: number, deliveryMinor: number, key: string, at: number) {
   const gross = itemMinor + deliveryMinor;
   if (!validMoney(gross) || gross > balances(ledger).escrow_held) throw new Error("Release exceeds held escrow.");
-  const fee = Math.floor(itemMinor * rules.fees.finalValuePercent / 100) + Math.floor(gross * rules.fees.paymentPercent / 100);
+  const fee = sellerFees(itemMinor, deliveryMinor).total_minor;
   let next = fee > 0 ? post(ledger, { idempotency_key: `${key}:fee`, debit_account: "escrow_held", credit_account: "platform_revenue", amount_minor: fee, reason_code: "fees_earned", actor: "system", created_at: at }) : ledger;
   next = post(next, { idempotency_key: `${key}:seller`, debit_account: "escrow_held", credit_account: "seller_pending", amount_minor: gross - fee, reason_code: "escrow_released", actor: "system", created_at: at });
   return next;
