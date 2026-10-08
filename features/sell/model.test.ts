@@ -10,7 +10,7 @@ const photo = { url: "data:image/jpeg;base64,AAAA", width: 1200, height: 900, by
 function verified(): SellerAccount {
   let a = saveProfile(initialAccount, profile, []);
   a = resolveKyc(submitKyc(a, kycInput, NOW), "approved");
-  a = savePayout(a, { kind: "bank", bank: "GTBank", account_last4: "6789", account_name: nameEnquiry("0123456789", "Ada Okafor") });
+  a = savePayout(a, { kind: "bank", bank: "GTBank", account_last4: "6789", account_name: nameEnquiry("0123456789", "Ada Okafor") }, NOW);
   return agree(a, QUIZ.map((q) => q.answer), NOW);
 }
 function complete(id = "d1") {
@@ -43,9 +43,9 @@ describe("S1 onboarding", () => {
   it("requires the payout account name to match the ID name", () => {
     const a = submitKyc(initialAccount, kycInput, NOW);
     expect(() => nameEnquiry("12345", "Ada Okafor")).toThrow(/10-digit/);
-    expect(() => savePayout(a, { kind: "bank", bank: "GTBank", account_last4: "0000", account_name: nameEnquiry("9990000000", "Ada Okafor") })).toThrow(/must match your ID name/);
-    expect(savePayout(a, { kind: "bank", bank: "GTBank", account_last4: "6789", account_name: "OKAFOR ADA" }).payout).toBeTruthy();
-    expect(savePayout(initialAccount, { kind: "wallet" }).payout).toEqual({ kind: "wallet" });
+    expect(() => savePayout(a, { kind: "bank", bank: "GTBank", account_last4: "0000", account_name: nameEnquiry("9990000000", "Ada Okafor") }, NOW)).toThrow(/must match your ID name/);
+    expect(savePayout(a, { kind: "bank", bank: "GTBank", account_last4: "6789", account_name: "OKAFOR ADA" }, NOW).payout).toBeTruthy();
+    expect(savePayout(initialAccount, { kind: "wallet" }, NOW).payout).toEqual({ kind: "wallet" });
   });
   it("needs every quiz answer right", () => {
     expect(() => agree(initialAccount, [1, 0, 1], NOW)).toThrow(/Question 2/);

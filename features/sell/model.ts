@@ -4,6 +4,7 @@ import type { Category, CategoryId, Condition, DeliveryMethod, DeliveryOption, L
 import { slugify } from "@/lib/format";
 import { sellerFees } from "@/lib/ledger";
 import { kobo, toMinor } from "@/lib/money";
+import { validOrder, validWithdrawal, type SellerOrder, type Withdrawal } from "./hub";
 
 /*
  * Seller onboarding and listing creation (flows S1, S2), as a device-local demo like
@@ -51,8 +52,12 @@ export type ListingFields = {
   return_payer: "buyer" | "seller";
 };
 export type Draft = ListingFields & { id: string; created_at: number; updated_at: number; step: number; max_step: number };
-export type SellerListing = ListingFields & { id: string; created_at: number; published_at: number; status: "live" | "in_review"; review_reason: string };
-export type SellerAccount = { profile: Profile | null; kyc: Kyc; payout: Payout | null; agreed_at: number | null; drafts: Draft[]; listings: SellerListing[] };
+/** "paused" = out of stock (R-121), "ended" = ended by the seller (R-120). */
+export type ListingState = "live" | "in_review" | "paused" | "ended";
+/** One logged edit to a live listing (R-112). */
+export type Revision = { at: number; field: "price" | "qty"; from: number; to: number };
+export type SellerListing = ListingFields & { id: string; created_at: number; published_at: number; updated_at: number; status: ListingState; review_reason: string; revisions: Revision[] };
+export type SellerAccount = { profile: Profile | null; kyc: Kyc; payout: Payout | null; agreed_at: number | null; drafts: Draft[]; listings: SellerListing[]; orders: SellerOrder[]; withdrawals: Withdrawal[]; withdraw_hold_until: number | null };
 
 export const initialAccount: SellerAccount = {
   profile: null,
@@ -61,6 +66,9 @@ export const initialAccount: SellerAccount = {
   agreed_at: null,
   drafts: [],
   listings: [],
+  orders: [],
+  withdrawals: [],
+  withdraw_hold_until: null,
 };
 
 export const STEPS = ["Photos", "Details", "Title", "Price", "Delivery", "Returns", "Review"] as const;
@@ -152,13 +160,15 @@ export const namesMatch = (a: string, b: string) => {
   return words(a) !== "" && words(a) === words(b);
 };
 
-export function savePayout(account: SellerAccount, payout: Payout): SellerAccount {
+export function savePayout(account: SellerAccount, payout: Payout, now: number): SellerAccount {
   if (payout.kind === "bank") {
     if (!BANKS.includes(payout.bank as (typeof BANKS)[number])) fail("Choose your bank.");
     if (!account.kyc.legal_name) fail("Verify your identity before adding a bank account.");
     if (!namesMatch(payout.account_name, account.kyc.legal_name)) fail(`Account name must match your ID name. This account belongs to ${payout.account_name}.`);
   }
-  return { ...account, payout };
+  // R-270: changing an existing bank account holds withdrawals for 24 hours.
+  const changed = account.payout?.kind === "bank" && (payout.kind !== "bank" || payout.account_last4 !== account.payout.account_last4 || payout.bank !== account.payout.bank);
+  return { ...account, payout, withdraw_hold_until: changed ? now + DAY : account.withdraw_hold_until };
 }
 
 export function agree(account: SellerAccount, answers: readonly number[], now: number): SellerAccount {
@@ -255,7 +265,7 @@ export function publish(account: SellerAccount, draftId: string, guidance: Parti
   if (blocked.length) fail(blocked[0].message);
   const flagged = AUTHENTICATE.exec(`${draft.title} ${draft.description}`);
   const fields: ListingFields = { photos: draft.photos, category_id: draft.category_id, specifics: draft.specifics, condition: draft.condition, flaws: draft.flaws, serial: draft.serial, title: draft.title.trim(), description: draft.description.trim(), price_minor: draft.price_minor, qty: draft.qty, offers_enabled: draft.offers_enabled, auto_accept_minor: draft.offers_enabled ? draft.auto_accept_minor : null, auto_decline_minor: draft.offers_enabled ? draft.auto_decline_minor : null, delivery: draft.delivery, package: draft.package, return_days: draft.return_days, return_payer: draft.return_payer };
-  const listing: SellerListing = { ...fields, id: draft.id, created_at: draft.created_at, published_at: now, status: flagged ? "in_review" : "live", review_reason: flagged ? `${flagged[0]} items get an authenticity check before going live, usually within 24 hours.` : "" };
+  const listing: SellerListing = { ...fields, id: draft.id, created_at: draft.created_at, published_at: now, updated_at: now, revisions: [], status: flagged ? "in_review" : "live", review_reason: flagged ? `${flagged[0]} items get an authenticity check before going live, usually within 24 hours.` : "" };
   return { ...account, drafts: account.drafts.filter((item) => item.id !== draftId), listings: [listing, ...account.listings] };
 }
 
@@ -306,7 +316,12 @@ export function parseAccount(raw: unknown): SellerAccount {
   const okKyc = ["not_started", "in_review", "approved", "rejected", "needs_more_info"].includes(kyc.status as string) && (kyc.id_type === null || kyc.id_type as string in ID_TYPES) && isText(kyc.id_last4, 4) && isText(kyc.legal_name, 120) && isText(kyc.reason, 400) && Array.isArray(kyc.submissions) && kyc.submissions.every(isTime);
   const okPayout = payout === null || (isRecord(payout) && (payout.kind === "wallet" || (payout.kind === "bank" && isText(payout.bank, 40) && isText(payout.account_last4, 4) && isText(payout.account_name, 120))));
   const okDrafts = raw.drafts.every((d) => isRecord(d) && isText(d.id, 40) && isTime(d.created_at) && isTime(d.updated_at) && Number.isSafeInteger(d.step) && Number.isSafeInteger(d.max_step) && validFields(d));
-  const okListings = raw.listings.every((l) => isRecord(l) && isText(l.id, 40) && isTime(l.created_at) && isTime(l.published_at) && (l.status === "live" || l.status === "in_review") && isText(l.review_reason, 400) && validFields(l));
-  if (!okProfile || !okKyc || !okPayout || !okDrafts || !okListings || !(raw.agreed_at === null || isTime(raw.agreed_at))) throw new Error("Invalid seller account");
+  // Accounts saved before Phase 7b lack these fields; they start empty.
+  for (const l of raw.listings) if (isRecord(l)) { l.updated_at ??= l.published_at; l.revisions ??= []; }
+  raw.orders ??= []; raw.withdrawals ??= []; raw.withdraw_hold_until ??= null;
+  const okListings = raw.listings.every((l) => isRecord(l) && isText(l.id, 40) && isTime(l.created_at) && isTime(l.published_at) && isTime(l.updated_at) && ["live", "in_review", "paused", "ended"].includes(l.status as string) && isText(l.review_reason, 400) && validFields(l)
+    && Array.isArray(l.revisions) && l.revisions.every((r) => isRecord(r) && isTime(r.at) && (r.field === "price" || r.field === "qty") && Number.isSafeInteger(r.from) && Number.isSafeInteger(r.to)));
+  const okOrders = Array.isArray(raw.orders) && raw.orders.every(validOrder) && Array.isArray(raw.withdrawals) && raw.withdrawals.every(validWithdrawal) && (raw.withdraw_hold_until === null || isTime(raw.withdraw_hold_until));
+  if (!okProfile || !okKyc || !okPayout || !okDrafts || !okListings || !okOrders || !(raw.agreed_at === null || isTime(raw.agreed_at))) throw new Error("Invalid seller account");
   return raw as SellerAccount;
 }

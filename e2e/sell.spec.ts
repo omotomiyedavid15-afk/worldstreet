@@ -152,6 +152,7 @@ test("prohibited terms block publishing and luxury brands go to review (R-110, R
 });
 
 test("axe: the listing wizard and onboarding have no serious or critical violations", async ({ page }) => {
+  test.setTimeout(90_000); // axe takes a few seconds per page
   await start(page);
   await page.goto("/sell/new");
   await expect(page.getByRole("heading", { level: 1, name: "Add photos" })).toBeVisible();

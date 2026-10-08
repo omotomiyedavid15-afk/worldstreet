@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
-import { CheckCircleIcon, GridIcon, PencilEditIcon, PlusCircleIcon, StoreIcon, TrashIcon } from "@/components/icons";
+import { ArrowUpGraphIncreaseIcon, CheckCircleIcon, GridIcon, HandshakeAgreementDealIcon, PackageIcon, PencilEditIcon, PlusCircleIcon, StoreIcon, TagIcon, TrashIcon, WalletIcon } from "@/components/icons";
 import { buttonClass } from "@/components/ui";
 import { requireAuth, useSession } from "@/features/auth/session";
 import { formatCurrency, kobo } from "@/lib/money";
@@ -11,6 +11,11 @@ import { updateSeller, useHydrated, useSeller } from "./store";
 
 const NAV = [
   { href: "/vendor", label: "Overview", icon: GridIcon },
+  { href: "/vendor/listings", label: "Listings", icon: TagIcon },
+  { href: "/vendor/orders", label: "Orders", icon: PackageIcon },
+  { href: "/offers?as=seller", label: "Offers", icon: HandshakeAgreementDealIcon },
+  { href: "/vendor/payouts", label: "Payouts", icon: WalletIcon },
+  { href: "/vendor/performance", label: "Performance", icon: ArrowUpGraphIncreaseIcon },
   { href: "/sell/new", label: "Create listing", icon: PlusCircleIcon },
   { href: "/sell/start", label: "Shop setup", icon: StoreIcon },
 ];
@@ -54,7 +59,7 @@ export function SellerHub() {
         <span className="ws-hub-status" data-status={l.status}>{l.status === "live" ? "Live" : "In review"}</span>
       </li>)}</ul> : <p className="ws-form-field__hint">Nothing published yet. Your first listing takes about 4 minutes.</p>}
     </section>
-    <p className="ws-sell-demo">Demo workspace · Your shop, drafts and listings stay on this device. Orders, offers, payouts and performance for sellers arrive in the next build.</p>
+    <p className="ws-sell-demo">Demo workspace · Your shop, drafts and listings stay on this device. Buyers, couriers and payments are simulated.</p>
   </div>;
 }
 

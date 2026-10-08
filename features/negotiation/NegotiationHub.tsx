@@ -28,10 +28,10 @@ const OFFER_LABEL: Record<string, string> = { pending: "Offer pending", countere
 /* Inbox and Offers share one three-pane layout (ref: desktop chat apps): conversations,
    the thread, and the deal beside it. Below 1200px the deal panel opens as a sheet from
    the thread header on Inbox, and sits above the thread on Offers, where it's the point. */
-export function NegotiationHub({ listings, selected, mode, qty = 1 }: { listings: DealListing[]; selected?: string; mode: "offers" | "inbox"; qty?: number }) {
+export function NegotiationHub({ listings, selected, mode, qty = 1, initialRole = "buyer" }: { listings: DealListing[]; selected?: string; mode: "offers" | "inbox"; qty?: number; initialRole?: Role }) {
   const state = useNegotiations();
   const { signedIn } = useSession();
-  const [role, setRole] = useState<Role>("buyer");
+  const [role, setRole] = useState<Role>(initialRole);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "offers">("all");

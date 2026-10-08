@@ -138,8 +138,8 @@ function PayoutStep({ account, run, onBack }: { account: SellerAccount; run: Run
   const [number, setNumber] = useState("");
   const [resolved, setResolved] = useState("");
   const { attempt, node, setError } = useError();
-  if (account.kyc.status !== "approved") return <div className="ws-flow__body"><p className="ws-sell-tip"><WarningIcon />Add a bank account after your identity is verified, so we can check the account name matches.</p><div className="ws-flow__actions"><button type="button" className={buttonClass({ variant: "ghost" })} onClick={onBack}>Back to identity</button><button type="button" className={buttonClass({ variant: "quiet" })} onClick={() => run((a) => savePayout(a, { kind: "wallet" }), () => 4)}>Use WorldStore wallet only</button></div></div>;
-  return <form className="ws-flow__body" noValidate onSubmit={(e) => { e.preventDefault(); attempt(() => resolved ? run((a) => savePayout(a, { kind: "bank", bank, account_last4: number.slice(-4), account_name: resolved }), () => 4) : setResolved(nameEnquiry(number, account.kyc.legal_name))); }}>
+  if (account.kyc.status !== "approved") return <div className="ws-flow__body"><p className="ws-sell-tip"><WarningIcon />Add a bank account after your identity is verified, so we can check the account name matches.</p><div className="ws-flow__actions"><button type="button" className={buttonClass({ variant: "ghost" })} onClick={onBack}>Back to identity</button><button type="button" className={buttonClass({ variant: "quiet" })} onClick={() => run((a) => savePayout(a, { kind: "wallet" }, Date.now()), () => 4)}>Use WorldStore wallet only</button></div></div>;
+  return <form className="ws-flow__body" noValidate onSubmit={(e) => { e.preventDefault(); attempt(() => resolved ? run((a) => savePayout(a, { kind: "bank", bank, account_last4: number.slice(-4), account_name: resolved }, Date.now()), () => 4) : setResolved(nameEnquiry(number, account.kyc.legal_name))); }}>
     {node}
     <p className="ws-sell-lede">Where we send your earnings. The account must be in your name: <strong>{account.kyc.legal_name}</strong>.</p>
     <div className="ws-form-grid">
@@ -148,7 +148,7 @@ function PayoutStep({ account, run, onBack }: { account: SellerAccount; run: Run
     </div>
     {resolved && <p className="ws-sell-tip" data-tone="ok" role="status"><CheckCircleIcon />Account name: <strong>{resolved}</strong></p>}
     <div className="ws-flow__actions"><button type="submit" className={buttonClass({ arrow: !!resolved })} disabled={!bank && !resolved}>{resolved ? "Use this account" : "Verify account"}</button>
-      <button type="button" className={buttonClass({ variant: "quiet" })} onClick={() => run((a) => savePayout(a, { kind: "wallet" }), () => 4)}>Keep earnings in my WorldStore wallet</button></div>
+      <button type="button" className={buttonClass({ variant: "quiet" })} onClick={() => run((a) => savePayout(a, { kind: "wallet" }, Date.now()), () => 4)}>Keep earnings in my WorldStore wallet</button></div>
   </form>;
 }
 
