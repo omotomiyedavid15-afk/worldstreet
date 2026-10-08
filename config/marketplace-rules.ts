@@ -204,7 +204,20 @@ export const rules = {
   flags: {
     autoDecideDisputes: false, // PLAN F1
     payOnDelivery: false, // K5
-    auctions: false, // Phase 9
+    auctions: false, // Phase 9 (B7): not built; P2P deals run on offers
+    // Phase 9 growth features ship behind flags; these three are low-risk buyer tools.
+    compare: true, // spec §270 CompareTray
+    priceHistory: true, // spec §320 PriceHistorySparkline
+    alerts: true, // B4 step 4
+  },
+  compare: {
+    max: 4, // spec: sticky tray of up to 4 items
+  },
+  alerts: {
+    checkEveryMs: 5 * 60_000, // while a tab is open; production pushes from the server (R-012)
+  },
+  priceHistory: {
+    days: 30, // spec: sparkline of the last 30 days
   },
 } as const;
 

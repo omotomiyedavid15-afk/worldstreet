@@ -10,6 +10,8 @@ import { navCategories } from "@/features/shell/categories";
 import { MegaMenu } from "@/features/shell/MegaMenu";
 import { DrawerLink } from "@/features/shell/NavDrawer";
 import { BottomNav } from "@/features/shell/BottomNav";
+import { CompareTray } from "@/features/compare/CompareTray";
+import { AlertsWatcher } from "@/features/alerts/AlertsWatcher";
 import { SiteFooter } from "@/features/shell/SiteFooter";
 import { SkipLinks } from "@/features/shell/SkipLinks";
 import { repos } from "@/lib/data";
@@ -65,6 +67,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           />
           {children}
           <SiteFooter />
+          <CompareTray />
+          <AlertsWatcher />
           <BottomNav />
           <ToastViewport />
           <SignInSheet />

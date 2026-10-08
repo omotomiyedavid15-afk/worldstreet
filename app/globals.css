@@ -13,6 +13,7 @@
 @import "../styles/marketplace/orders.css" layer(components);
 @import "../styles/marketplace/sell.css" layer(components);
 @import "../styles/marketplace/admin.css" layer(components);
+@import "../styles/marketplace/growth.css" layer(components);
 
 /* Tailwind is for layout only (PLAN §2.1). Its palette is cleared so a raw colour
    can't be reached; the only colours are the DS tokens below. */

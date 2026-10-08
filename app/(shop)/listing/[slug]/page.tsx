@@ -1,3 +1,4 @@
+import { rules } from "@/config/marketplace-rules";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
@@ -13,6 +14,7 @@ import { reportListing } from "@/features/listing-detail/report-action";
 import { ShareButton, ShareSheet } from "@/features/listing-detail/ShareSheet";
 import { ReviewsSection } from "@/features/listing-detail/Reviews";
 import { RevisionHistory, SellerNotes } from "@/features/listing-detail/RevisionHistory";
+import { PriceHistory } from "@/features/listing-detail/PriceHistory";
 import { SellerCard } from "@/features/listing-detail/SellerCard";
 import { StickyBuyBar } from "@/features/listing-detail/StickyBuyBar";
 import { UnavailableState } from "@/features/listing-detail/Unavailable";
@@ -141,6 +143,7 @@ export default async function ListingPage({ params }: PageProps<"/listing/[slug]
               period={listing.price_period}
               bestOffer={listing.offers_enabled}
             />
+            {rules.flags.priceHistory && <PriceHistory price_minor={listing.price_minor} created_at={listing.created_at} revisions={listing.revisions} now={now} />}
             {state === "available" ? (
               <>
                 {goods && <DeliveryLine options={listing.delivery} price_minor={listing.price_minor} listingCity={listing.location.city} buyer={anchor} />}

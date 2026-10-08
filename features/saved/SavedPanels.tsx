@@ -9,6 +9,13 @@ import { formatCurrency, kobo } from "@/lib/money";
 import { unsaveSearch, useSavedSearches } from "./searches";
 import { unsaveListing, useSavedEntries } from "./store";
 import { useListings } from "./useListings";
+import { useState } from "react";
+import { toast } from "@/components/ui";
+import { rules } from "@/config/marketplace-rules";
+import { setItemAlert, setSearchAlert } from "@/features/alerts/model";
+import { updateAlerts, useAlerts } from "@/features/alerts/store";
+import { searchTotal } from "@/features/alerts/AlertsWatcher";
+import type { ListingWithSeller } from "@/lib/data/types";
 
 /* The Saved tabs (flows B4 step 3, SCR-006). Each item shows its current price with a
    "Price dropped ₦X" tag when it's cheaper than when saved; sold and ended listings
@@ -62,6 +69,7 @@ export function SavedListings() {
                 <p className={ended ? "ws-saved__tag" : "ws-saved__tag ws-saved__tag--drop"}>{ended ?? `Price dropped ${formatCurrency(kobo(drop))}`}</p>
               )}
               <ListingCard listing={l} />
+              {rules.flags.alerts && l.status !== "sold" && l.status !== "ended" && <ItemAlerts listing={l} />}
             </li>
           );
         })}
@@ -92,7 +100,8 @@ export function SavedSearches() {
                 <span className="ws-saved-searches__at">Saved {timeAgo(s.at).long}</span>
               </span>
             </Link>
-            <button type="button" className={buttonClass({ variant: "quiet", size: "sm", icon: true })} aria-label={`Remove saved search ${s.label}`} onClick={() => unsaveSearch(s.href)}>
+            {rules.flags.alerts && <SearchAlertToggle href={s.href} label={s.label} />}
+            <button type="button" className={buttonClass({ variant: "quiet", size: "sm", icon: true })} aria-label={`Remove saved search ${s.label}`} onClick={() => { unsaveSearch(s.href); updateAlerts((a) => setSearchAlert(a, s.href, s.label, false, 0)); }}>
               <TrashIcon />
             </button>
           </li>
@@ -110,3 +119,34 @@ export function SavedSellers() {
   );
 }
 
+
+/** Opt-in alerts on a saved listing (B4 step 4): price drop while it's live, back in stock while it isn't. */
+function ItemAlerts({ listing }: { listing: ListingWithSeller }) {
+  const alert = useAlerts().items.find((a) => a.id === listing.id);
+  const kind = listing.status === "live" ? "price_drop" : "back_in_stock";
+  const on = alert?.[kind] ?? false;
+  return (
+    <label className="ws-alert-toggle">
+      <input type="checkbox" role="switch" checked={on} onChange={(e) => updateAlerts((a) => setItemAlert(a, { id: listing.id, price_minor: listing.price_minor, status: listing.status }, kind, e.target.checked))} />
+      {kind === "price_drop" ? "Alert me if the price drops" : "Alert me when it’s back"}
+    </label>
+  );
+}
+
+function SearchAlertToggle({ href, label }: { href: string; label: string }) {
+  const on = useAlerts().searches.some((s) => s.href === href);
+  const [busy, setBusy] = useState(false);
+  const toggle = async (next: boolean) => {
+    if (!next) return updateAlerts((a) => setSearchAlert(a, href, label, false, 0));
+    setBusy(true);
+    try { const total = await searchTotal(href); updateAlerts((a) => setSearchAlert(a, href, label, true, total)); }
+    catch { toast({ message: "Couldn’t turn on the alert. Check your connection and try again." }); }
+    finally { setBusy(false); }
+  };
+  return (
+    <label className="ws-alert-toggle">
+      <input type="checkbox" role="switch" checked={on} disabled={busy} onChange={(e) => void toggle(e.target.checked)} />
+      <span>New matches<span className="cx-sr-only"> for {label}</span></span>
+    </label>
+  );
+}
