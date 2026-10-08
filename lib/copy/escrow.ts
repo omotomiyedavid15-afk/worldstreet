@@ -34,10 +34,24 @@ export const ESCROW = {
   /** L7: protection doesn't end when the money is released. */
   afterRelease: `Something wrong after that? Report it within ${rules.protection.anyIssueDays} days of delivery; fakes and safety problems, within ${rules.protection.counterfeitSafetyDays} days.`,
   /** R-005: only payment requests paid through WorldStore are covered. */
-  offPlatform: "Paying the seller directly (transfer, cash before you see the item) isn't covered. Only a payment request paid through WorldStore is.",
+  offPlatform: "Paying the seller directly (transfer, cash before you see the item) isn't covered. Only payments made through a WorldStore payment request are covered.",
   /** Where the rules are explained. */
   learnMoreHref: "/help/escrow",
+  orderHeld: "Your payment is held safely while the item is delivered and checked.",
+  orderInTransit: "Your protected payment stays held until you receive and confirm the item.",
+  orderFrozen: "The affected payment is under review and cannot be released while the case is open.",
+  orderReleased: "The payment has been released to the seller. Buyer protection still applies for eligible problems.",
+  orderRefunded: "The protected payment was refunded to you.",
+  orderRefundFailed: "The refund could not reach the original payment method. The protected amount is still available for recovery.",
+  orderRefunding: "Your refund was approved and is being sent to the selected destination.",
+  orderPaymentPending: "We're confirming your payment. Your money isn't lost; we'll update this order when the provider responds.",
+  orderClosed: "No protected payment is being held for this order.",
 } as const;
+
+/** R-212 + R-243: shown verbatim before a buyer confirms receipt. */
+export function confirmReleaseCopy(total: string) {
+  return `Release ${total} to the seller. You can still report a hidden defect within ${rules.protection.anyIssueDays} days, but you'll need to ask support for a refund from the seller.`;
+}
 
 /** The inspection window a category gets before the seller is paid (L4), as a sentence. */
 export function inspectionLine(hours: number, what: string) {

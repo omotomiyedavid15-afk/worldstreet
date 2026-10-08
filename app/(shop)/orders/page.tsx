@@ -1,7 +1,11 @@
-import { ComingSoon, comingMetadata } from "@/features/placeholder/ComingSoon";
+import type { Metadata } from "next";
+import { OrdersPage } from "@/features/orders/OrdersPage";
 
-export const metadata = comingMetadata("orders");
+export const metadata: Metadata = { title: "Orders", robots: { index: false, follow: false } };
 
 export default function Page() {
-  return <ComingSoon id="orders" />;
+  // A request timestamp is intentionally captured once so the browser can correct clock skew.
+  // eslint-disable-next-line react-hooks/purity
+  const serverNow = Date.now();
+  return <OrdersPage serverNow={serverNow} />;
 }

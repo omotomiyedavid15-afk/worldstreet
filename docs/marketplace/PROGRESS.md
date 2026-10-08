@@ -28,6 +28,16 @@ _Phases 0–2 implemented; Phase 3 includes P3a–P3d (listing detail, seller/re
 - Production acceptance still requires authenticated buyer/seller identities, a durable transactional repository, provider-hosted payment fields, signed webhooks, KYC and an order/escrow ledger. The local result selector remains a test control and moves no money.
 - Plan and acceptance details: [`../plans/2026-10-07-phase-5-seller-payment-requests.md`](../plans/2026-10-07-phase-5-seller-payment-requests.md).
 
+## Phase 6 handoff — 7 Oct
+
+- `/orders` now has Active, Completed, Cancelled and Returns views. Each demo order opens a responsive detail view with its status history, delivery proof and PIN, receipt, escrow state, inspection countdown and append-only money timeline.
+- Typed order, escrow and dispute machines reject every undeclared transition. The per-order double-entry ledger keeps integer-kobo postings immutable and idempotent, and its deterministic 10,000-order simulation preserves the balance invariant through capture, release and refund paths.
+- A delivered buyer can extend the inspection window once, deliberately confirm receipt after reading the release consequence, or report a problem in four steps. Reporting freezes only that order's funds. The demo then exposes successful refund, failed provider refund and WorldStore-balance recovery states.
+- Completed purchases accept one verified review with an overall item score and separate description, delivery, communication and packaging ratings. `/help/escrow` now explains the payment-request, delivery, release and dispute sequence from the shared escrow copy.
+- This phase remains a **device-local demo**. Production trading still needs authenticated account ownership, a transactional server ledger, licensed escrow/payment custody, signed provider and courier webhooks, durable evidence uploads, caseworker tooling, notification delivery and real payout/refund rails. Post-release claw-backs, non-receipt cases tied to courier deadlines, partial refunds, replacements and generated return labels stay at that production boundary; this demo persists inspection-window evidence answers and exercises the full-refund path. The simulator buttons do not move money.
+- Verification: 74 focused unit tests pass, including all legal/illegal transition tables, release guards, seller isolation, ±5-minute clock skew, retry recovery, strict saved-state validation, copy parity and 10,000 ledger paths. Sixteen Playwright scenarios pass on 375 px mobile and 1280 px desktop for tracking, deliberate and automatic release, dispute freeze, refund recovery and review submission; axe reports zero serious/critical violations on the order detail view.
+- Plan and acceptance details: [`../plans/2026-10-07-phase-6-orders-escrow-disputes.md`](../plans/2026-10-07-phase-6-orders-escrow-disputes.md).
+
 ## Deviations from the docs and the design system
 
 | Date | Where | Deviation | Why |
@@ -337,22 +347,22 @@ _Phases 0–2 implemented; Phase 3 includes P3a–P3d (listing detail, seller/re
 - [ ] KycGateSheet
 
 ## H. Orders & trust
-- [ ] OrdersPage
-- [ ] OrderRow
-- [ ] OrderDetail
-- [ ] OrderStatusTimeline
-- [ ] MoneyTimeline
-- [ ] EscrowStatusCard
-- [ ] InspectionCountdown
-- [ ] ConfirmReleaseSheet
-- [ ] DeliveryCard (PIN/QR)
+- [x] OrdersPage
+- [x] OrderRow
+- [x] OrderDetail
+- [x] OrderStatusTimeline
+- [x] MoneyTimeline
+- [x] EscrowStatusCard
+- [x] InspectionCountdown
+- [x] ConfirmReleaseSheet
+- [x] DeliveryCard (PIN/QR)
 - [ ] TrackingMap
-- [ ] ReceiptView
-- [ ] ReviewForm
-- [ ] ReportProblemWizard
+- [x] ReceiptView
+- [x] ReviewForm
+- [x] ReportProblemWizard
 - [ ] EvidenceUploader
 - [ ] DisputeTimeline
-- [ ] RefundTracker
+- [x] RefundTracker
 - [ ] ReturnInstructionsCard
 - [ ] BuyAgainButton
 - [ ] OrderIssueBanner
@@ -390,7 +400,7 @@ _Phases 0–2 implemented; Phase 3 includes P3a–P3d (listing detail, seller/re
 - [ ] NotificationCentre
 - [ ] NotificationPreferences
 - [ ] HelpCentreHome
-- [ ] EscrowExplainerPage
+- [x] EscrowExplainerPage
 - [ ] PolicyPage template
 - [ ] ErrorPages (404, 410, 500, offline)
 

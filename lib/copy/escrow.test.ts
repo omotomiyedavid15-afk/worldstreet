@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ESCROW, escrowLine } from "./escrow";
+import { ESCROW, confirmReleaseCopy, escrowLine } from "./escrow";
 
 describe("escrow copy (L14 test 8)", () => {
   it("never makes a blanket promise", () => {
@@ -29,5 +29,13 @@ describe("listing protection copy (L7, R-005)", () => {
     expect(ESCROW.afterRelease).toContain(`${rules.protection.anyIssueDays} days`);
     expect(ESCROW.afterRelease).toContain(`${rules.protection.counterfeitSafetyDays} days`);
     expect(ESCROW.offPlatform).toMatch(/isn't covered/);
+  });
+
+  it("states release consequences before confirmation (R-212, R-243)", async () => {
+    const { rules } = await import("@/config/marketplace-rules");
+    const copy = confirmReleaseCopy("₦452,000");
+    expect(copy).toContain("Release ₦452,000");
+    expect(copy).toContain(`${rules.protection.anyIssueDays} days`);
+    expect(copy).toMatch(/refund from the seller/i);
   });
 });
