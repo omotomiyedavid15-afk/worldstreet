@@ -1,7 +1,8 @@
-import { ComingSoon, comingMetadata } from "@/features/placeholder/ComingSoon";
+import type { Metadata } from "next";
+import { NotificationsPage } from "@/features/shell/NotificationBell";
 
-export const metadata = comingMetadata("notifications");
+export const metadata: Metadata = { title: "Notifications", robots: { index: false, follow: false } };
 
 export default function Page() {
-  return <ComingSoon id="notifications" />;
+  return <NotificationsPage />;
 }

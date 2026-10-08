@@ -1,6 +1,7 @@
 /* MOCK DATA ONLY. Not real people, shops or listings. Imported only by mocks/fixtures. */
 
 import type { CategoryId, Condition, DeliveryOption, Listing, ListingFormat, ListingRevision, ListingStatus, Review, ReviewTopic } from "@/lib/data/types";
+import { slugify } from "@/lib/format";
 import { toMinor } from "@/lib/money";
 import { places, type PlaceKey } from "./fixtures/places";
 
@@ -69,16 +70,6 @@ function revisionsFor(seed: ListingSeed): ListingRevision[] {
 
 /** Fixed "now" so fixtures and tests are deterministic. */
 export const MOCK_NOW = Date.parse("2026-10-06T09:00:00Z");
-
-export function slugify(title: string) {
-  return title
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[^\p{Letter}\p{Number}]+/gu, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60)
-    .replace(/-+$/, "");
-}
 
 export function makeListing(seed: ListingSeed): Listing {
   const photos = seed.photos ?? 4;

@@ -2,12 +2,26 @@ import { rules } from "@/config/marketplace-rules";
 import type { Listing } from "@/lib/data/types";
 import { formatCurrency, kobo, toMinor } from "@/lib/money";
 import { next, type OfferEvent, type OfferStatus } from "@/lib/machines/offer";
+import { canPayRequest, nextPaymentRequest, type PaymentRequestEvent, type PaymentRequestStatus } from "@/lib/machines/payment-request";
 
 export type Role = "buyer" | "seller";
 export type Message = { id: string; role: Role; body: string; photos: string[]; at: number; flagged: boolean };
 export type Thread = { id: string; seller_id: string; created_at: number; messages: Message[]; reported: boolean };
 export type Offer = { id: string; listing_id: string; amount_minor: number; qty: number; attempts: number; status: OfferStatus; expires_at: number };
-export type PaymentRequest = { offer_id: string; delivery_minor: number; total_minor: number; outcome: "unpaid" | "success" | "declined" | "timeout" };
+export type PaymentRequest = {
+  id: string;
+  offer_id: string;
+  unit_minor: number;
+  qty: number;
+  item_subtotal_minor: number;
+  delivery_minor: number;
+  total_minor: number;
+  status: PaymentRequestStatus;
+  attempts: number;
+  last_attempted_at: number | null;
+  inventory_lock_expires_at: number | null;
+  paid_at: number | null;
+};
 export type State = { threads: Thread[]; offers: Offer[]; requests: PaymentRequest[]; blocked: string[]; receipts: Record<string, string> };
 export const emptyState: State = { threads: [], offers: [], requests: [], blocked: [], receipts: {} };
 export type Context = { now: number; role: Role; listing: Pick<Listing, "id" | "seller_id" | "price_minor" | "qty" | "status" | "category_id"> };
@@ -28,7 +42,13 @@ export function expire(state: State, now: number): State {
     changed = true;
     return { ...o, status: next(o.status, o.status === "accepted" ? "lapse" : "expire") };
   });
-  return changed ? { ...state, offers } : state;
+  const terminalOffers = new Set(offers.filter((o) => ["lapsed", "expired"].includes(o.status)).map((o) => o.id));
+  const requests = state.requests.map((request) => {
+    if (!terminalOffers.has(request.offer_id) || !canPayRequest(request.status, "expire")) return request;
+    changed = true;
+    return { ...request, status: nextPaymentRequest(request.status, "expire") };
+  });
+  return changed ? { ...state, offers, requests } : state;
 }
 /** Keep parse failures in the normal command-validation path, not React event errors. */
 export function inputMinor(value: string) {
@@ -135,16 +155,39 @@ export function execute(previous: State, command: Command, ctx: Context): State 
           assert(role === "seller", "Only the seller can send a payment request.");
           assert(!state.requests.some((r) => r.offer_id === offer.id), "A payment request already exists.");
           money(command.delivery_minor);
-          const total = offer.amount_minor * offer.qty + command.delivery_minor;
+          const itemSubtotal = offer.amount_minor * offer.qty;
+          const total = itemSubtotal + command.delivery_minor;
           money(total);
-          state.requests.push({ offer_id: offer.id, delivery_minor: command.delivery_minor, total_minor: total, outcome: "unpaid" });
+          state.requests.push({
+            id: command.id,
+            offer_id: offer.id,
+            unit_minor: offer.amount_minor,
+            qty: offer.qty,
+            item_subtotal_minor: itemSubtotal,
+            delivery_minor: command.delivery_minor,
+            total_minor: total,
+            status: "unpaid",
+            attempts: 0,
+            last_attempted_at: null,
+            inventory_lock_expires_at: null,
+            paid_at: null,
+          });
           addMessage(`Payment requested: ${formatCurrency(kobo(total))}, including delivery. Demo only; no funds move.`);
         } else {
           assert(role === "buyer", "Only the buyer can pay a payment request.");
           const request = state.requests.find((r) => r.offer_id === offer.id);
           assert(request, "Wait for the seller's payment request.");
-          request.outcome = command.outcome;
-          if (command.outcome === "success") offer.status = next(offer.status, "pay");
+          assert(["unpaid", "declined", "timed_out"].includes(request.status), "This payment request can no longer be paid.");
+          request.status = nextPaymentRequest(request.status, request.status === "unpaid" ? "start" : "retry");
+          request.attempts += 1;
+          request.last_attempted_at = now;
+          request.inventory_lock_expires_at = now + rules.paymentRequest.lockMinutes * 60_000;
+          const result: Record<typeof command.outcome, PaymentRequestEvent> = { success: "succeed", declined: "decline", timeout: "timeout" };
+          request.status = nextPaymentRequest(request.status, result[command.outcome]);
+          if (command.outcome === "success") {
+            offer.status = next(offer.status, "pay");
+            request.paid_at = now;
+          }
           addMessage(command.outcome === "success" ? "Demo payment confirmed. Simulated escrow holds the agreed total; no funds moved." : `Demo payment ${command.outcome}. No money taken. You can retry before the deadline.`);
         }
       }
@@ -158,14 +201,37 @@ export function execute(previous: State, command: Command, ctx: Context): State 
 // whole snapshot on a shape mismatch rather than crashing the inbox during hydration.
 export function parseState(raw: unknown): State {
   try {
-    const s = raw as State;
+    const source = raw as Omit<State, "requests"> & { requests: Array<Partial<PaymentRequest> & { offer_id: string; outcome?: "unpaid" | "success" | "declined" | "timeout" }> };
+    const migratedRequests = source.requests?.map((request) => {
+      if (request.status) return request;
+      const offer = source.offers?.find((candidate) => candidate.id === request.offer_id);
+      assert(offer, "legacy request offer");
+      const status = request.outcome === "success" ? "paid" : request.outcome === "declined" ? "declined" : request.outcome === "timeout" ? "timed_out" : "unpaid";
+      const itemSubtotal = offer.amount_minor * offer.qty;
+      return {
+        id: `legacy:${request.offer_id}`,
+        offer_id: request.offer_id,
+        unit_minor: offer.amount_minor,
+        qty: offer.qty,
+        item_subtotal_minor: itemSubtotal,
+        delivery_minor: request.delivery_minor,
+        total_minor: request.total_minor,
+        status,
+        attempts: status === "unpaid" ? 0 : 1,
+        last_attempted_at: null,
+        inventory_lock_expires_at: null,
+        paid_at: null,
+      };
+    });
+    const s = { ...source, requests: migratedRequests } as State;
     const str = (x: unknown) => typeof x === "string";
     const num = (x: unknown) => typeof x === "number" && Number.isSafeInteger(x) && x >= 0;
     assert(s && Array.isArray(s.threads) && Array.isArray(s.offers) && Array.isArray(s.requests) && Array.isArray(s.blocked), "state");
     assert(s.blocked.every(str) && s.receipts && typeof s.receipts === "object" && !Array.isArray(s.receipts) && Object.values(s.receipts).every(str), "receipts");
     assert(s.threads.every((t) => str(t.id) && str(t.seller_id) && num(t.created_at) && typeof t.reported === "boolean" && Array.isArray(t.messages) && t.messages.every((m) => str(m.id) && ["buyer", "seller"].includes(m.role) && str(m.body) && num(m.at) && typeof m.flagged === "boolean" && Array.isArray(m.photos) && m.photos.every(str))), "threads");
     assert(s.offers.every((o) => str(o.id) && str(o.listing_id) && num(o.amount_minor) && num(o.qty) && o.qty > 0 && num(o.attempts) && num(o.expires_at) && ["pending", "countered", "accepted", "paid", "lapsed", "withdrawn", "declined", "expired"].includes(o.status)), "offers");
-    assert(s.requests.every((r) => str(r.offer_id) && num(r.delivery_minor) && num(r.total_minor) && ["unpaid", "success", "declined", "timeout"].includes(r.outcome)), "requests");
+    const nullableNum = (x: unknown) => x === null || num(x);
+    assert(s.requests.every((r) => str(r.id) && str(r.offer_id) && num(r.unit_minor) && num(r.qty) && r.qty > 0 && num(r.item_subtotal_minor) && num(r.delivery_minor) && num(r.total_minor) && ["unpaid", "processing", "declined", "timed_out", "paid", "expired"].includes(r.status) && num(r.attempts) && nullableNum(r.last_attempted_at) && nullableNum(r.inventory_lock_expires_at) && nullableNum(r.paid_at)), "requests");
     return s;
   } catch { return emptyState; }
 }

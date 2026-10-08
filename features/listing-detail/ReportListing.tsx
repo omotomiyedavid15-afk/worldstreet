@@ -1,10 +1,13 @@
 "use client";
 
-import { useActionState, useRef } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { FlagIcon, XmarkCircleIcon } from "@/components/icons";
 import { buttonClass } from "@/components/ui";
 import { rules } from "@/config/marketplace-rules";
 import { REPORT_REASONS, REPORT_THANKS } from "@/lib/copy/listing";
+import { addReport } from "@/features/admin/model";
+import { updateAdmin } from "@/features/admin/store";
+import type { ReportReason } from "@/lib/copy/listing";
 import type { ReportState } from "./report-action";
 
 /* ReportListingModal (spec §7): reason (radios), optional details, send. A native modal
@@ -35,14 +38,24 @@ export function ReportButton({ className }: { className?: string }) {
 type Props = {
   listingId: string;
   title: string;
+  /** Shop name, kept with the report for the moderation queue. */
+  sellerName?: string;
   /** The Server Action (./report-action.ts); injectable for stories. */
   submit: (prev: ReportState, form: FormData) => Promise<ReportState>;
 };
 
-export function ReportListingModal({ listingId, title, submit }: Props) {
+export function ReportListingModal({ listingId, title, sellerName = "", submit }: Props) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const submitted = useRef<FormData | null>(null);
   const [state, action, pending] = useActionState<ReportState, FormData>(submit, { status: "idle" });
   const error = state.status === "error" ? state : null;
+  // The server accepted it; queue it for moderation (device-local until the ops service exists).
+  useEffect(() => {
+    const form = submitted.current;
+    if (state.status !== "sent" || !form) return;
+    submitted.current = null;
+    try { updateAdmin((s) => addReport(s, { id: crypto.randomUUID(), listing_id: listingId, title, seller: sellerName, reason: String(form.get("reason")) as ReportReason, details: String(form.get("details") ?? "").trim(), at: Date.now() })); } catch { /* storage blocked: the server copy stands */ }
+  }, [state, listingId, title, sellerName]);
   const close = () => dialog.current?.close();
 
   return (
@@ -65,7 +78,7 @@ export function ReportListingModal({ listingId, title, submit }: Props) {
             </button>
           </div>
         ) : (
-          <form action={action} className="ws-report" noValidate>
+          <form action={action} onSubmit={(e) => { submitted.current = new FormData(e.currentTarget); }} className="ws-report" noValidate>
             <p className="ws-share__title">{title}</p>
             <input type="hidden" name="listing" value={listingId} />
             <fieldset className="ws-field" aria-describedby={error?.field === "reason" ? `${REPORT_ID}-reason-error` : undefined}>

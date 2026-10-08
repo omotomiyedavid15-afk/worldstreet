@@ -186,6 +186,11 @@ export const rules = {
   moderation: {
     reportReviewHours: 24, // flows §632: normal-risk SLA (high risk is 1 h, internal)
     reportDetailsMax: 500,
+    highRiskHours: 1, // A1: high-risk items (luxury authenticity, prohibited, counterfeit, scam) within 1 h
+  },
+  admin: {
+    reversalApprovalMinor: 100_000 * NAIRA, // R-260: reversals above this need a second person
+    rationaleMin: 20, // L8 step 5: written rationale shown to both parties
   },
   demand: {
     watchersThreshold: 10, // R-025, PLAN C7
@@ -199,7 +204,33 @@ export const rules = {
   flags: {
     autoDecideDisputes: false, // PLAN F1
     payOnDelivery: false, // K5
-    auctions: false, // Phase 9
+    auctions: false, // Phase 9 (B7): not built; P2P deals run on offers
+    // Phase 9 growth features ship behind flags; these three are low-risk buyer tools.
+    compare: true, // spec §270 CompareTray
+    priceHistory: true, // spec §320 PriceHistorySparkline
+    alerts: true, // B4 step 4
+    promotions: true, // S2/S3 Promote
+    bulkImport: true, // R-122
+    analytics: true, // AnalyticsDashboard
+  },
+  compare: {
+    max: 4, // spec: sticky tray of up to 4 items
+  },
+  alerts: {
+    checkEveryMs: 5 * 60_000, // while a tab is open; production pushes from the server (R-012)
+  },
+  promotions: {
+    // Promoted listings: an ad rate charged only when a promoted item sells (K4 fee model, open).
+    minRatePercent: 2,
+    maxRatePercent: 15,
+    suggestedRatePercent: 5,
+  },
+  bulkImport: {
+    maxRows: 200, // R-122
+    maxBytes: 1_000_000,
+  },
+  priceHistory: {
+    days: 30, // spec: sparkline of the last 30 days
   },
 } as const;
 

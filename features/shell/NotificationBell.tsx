@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useId } from "react";
 import { BellIcon } from "@/components/icons";
 import { buttonClass, Count } from "@/components/ui";
-import { markAllRead, unreadCount, useNotices } from "@/features/notifications/store";
+import { markAllRead, unreadCount, useNotices, type Notice } from "@/features/notifications/store";
 import { timeAgo } from "@/lib/format";
 
 /* NotificationBell + NotificationPanel (spec §3.1): a popover on desktop. The badge is
@@ -35,24 +35,38 @@ export function NotificationBell() {
             </button>
           )}
         </div>
-        {notices.length === 0 ? (
-          <p className="ws-notices__empty">
-            Nothing yet. Offers, messages, order updates and price drops on things you&apos;ve saved will show here.
-          </p>
-        ) : (
-          <ul className="ws-notices__list">
-            {notices.map((n) => (
-              <li key={n.id} data-unread={!n.read || undefined}>
-                <Link href={n.href}>
-                  <span className="ws-notices__item-title">{n.title}</span>
-                  {n.body && <span className="ws-notices__item-body">{n.body}</span>}
-                  <span className="ws-notices__item-time">{timeAgo(n.at).short}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+        <NoticeList notices={notices} />
       </div>
     </>
+  );
+}
+
+/** The notices themselves: the bell's panel and the /notifications page share it. */
+export function NoticeList({ notices }: { notices: readonly Notice[] }) {
+  if (notices.length === 0) return <p className="ws-notices__empty">Nothing yet. Offers, messages, order updates and price drops on things you&apos;ve saved will show here.</p>;
+  return (
+    <ul className="ws-notices__list">
+      {notices.map((n) => (
+        <li key={n.id} data-unread={!n.read || undefined}>
+          <Link href={n.href}>
+            <span className="ws-notices__item-title">{n.title}</span>
+            {n.body && <span className="ws-notices__item-body">{n.body}</span>}
+            <span className="ws-notices__item-time">{timeAgo(n.at).short}</span>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** /notifications: the full list, for phones where the header has no bell. */
+export function NotificationsPage() {
+  const notices = useNotices();
+  const unread = unreadCount(notices);
+  return (
+    <div className="ws-notices-page">
+      <header className="ws-flow__head"><div><h1>Notifications</h1>{unread > 0 && <p>{unread} unread</p>}</div>{unread > 0 && <button type="button" className="cx-link" onClick={markAllRead}>Mark all as read</button>}</header>
+      <NoticeList notices={notices} />
+    </div>
   );
 }

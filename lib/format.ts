@@ -57,3 +57,14 @@ export function timeLeft(endsAt: string, now: number = Date.now()): string | nul
 export function formatDayRange([min, max]: readonly [number, number]) {
   return min === max ? plural(min, "day") : `${formatCount(min)}–${formatCount(max)} days`;
 }
+
+/** URL slug from a listing title (R-011): lower case, letters and numbers, 60 characters at most. */
+export function slugify(title: string) {
+  return title
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^\p{Letter}\p{Number}]+/gu, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60)
+    .replace(/-+$/, "");
+}

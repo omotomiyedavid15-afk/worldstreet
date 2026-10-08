@@ -19,6 +19,77 @@ _Phases 0–2 implemented; Phase 3 includes P3a–P3d (listing detail, seller/re
 - Verification: `npm run check` passes (icons, ESLint, Next route types + TypeScript, 28 unit-test files / 188 tests, Storybook production build). Focused Playwright coverage passes on 375 px mobile and 1280 px desktop for the full offer → accept → payment-request → simulated-payment flow, messaging safety/blocking/persistence, Watchlist replacement, Recently viewed hydration and browser-storage failure recovery. Axe reports zero serious/critical violations on the inbox flow.
 - Renamed the customer-facing product to **WorldStore** and replaced the temporary Atlas bag mark with the supplied W mark. The same SVG now generates the favicon, Apple icon and manifest icons. Internal `data-brand="worldstreet"` selectors and `ws:*` browser-storage keys stay unchanged for design-token and saved-data compatibility.
 
+## Phase 5 handoff — 7 Oct
+
+- Seller payment requests now store an immutable snapshot of the accepted unit price, quantity, item subtotal, agreed delivery and final total. The client never supplies or recalculates a payable total.
+- A typed payment-request state machine covers start, success, decline, timeout, retry and expiry. Paid and expired requests are terminal; decline and timeout keep the same request retryable before the accepted-offer deadline.
+- Every attempt rechecks listing availability, records the configured 10-minute inventory-lock deadline and uses the existing idempotency receipt. A competing accepted deal cannot pay after the final unit has been consumed (EC-008).
+- The buyer review shows every cost before the pay action (R-043), preserves the request after failure and makes the demo/provider boundary explicit. Existing local Phase 4 request records migrate to the richer shape during hydration.
+- Production acceptance still requires authenticated buyer/seller identities, a durable transactional repository, provider-hosted payment fields, signed webhooks, KYC and an order/escrow ledger. The local result selector remains a test control and moves no money.
+- Plan and acceptance details: [`../plans/2026-10-07-phase-5-seller-payment-requests.md`](../plans/2026-10-07-phase-5-seller-payment-requests.md).
+
+## Phase 6 handoff — 7 Oct
+
+- `/orders` now has Active, Completed, Cancelled and Returns views. Each demo order opens a responsive detail view with its status history, delivery proof and PIN, receipt, escrow state, inspection countdown and append-only money timeline.
+- Typed order, escrow and dispute machines reject every undeclared transition. The per-order double-entry ledger keeps integer-kobo postings immutable and idempotent, and its deterministic 10,000-order simulation preserves the balance invariant through capture, release and refund paths.
+- A delivered buyer can extend the inspection window once, deliberately confirm receipt after reading the release consequence, or report a problem in four steps. Reporting freezes only that order's funds. The demo then exposes successful refund, failed provider refund and WorldStore-balance recovery states.
+- Completed purchases accept one verified review with an overall item score and separate description, delivery, communication and packaging ratings. `/help/escrow` now explains the payment-request, delivery, release and dispute sequence from the shared escrow copy.
+- This phase remains a **device-local demo**. Production trading still needs authenticated account ownership, a transactional server ledger, licensed escrow/payment custody, signed provider and courier webhooks, durable evidence uploads, caseworker tooling, notification delivery and real payout/refund rails. Post-release claw-backs, non-receipt cases tied to courier deadlines, partial refunds, replacements and generated return labels stay at that production boundary; this demo persists inspection-window evidence answers and exercises the full-refund path. The simulator buttons do not move money.
+- Verification: 74 focused unit tests pass, including all legal/illegal transition tables, release guards, seller isolation, ±5-minute clock skew, retry recovery, strict saved-state validation, copy parity and 10,000 ledger paths. Sixteen Playwright scenarios pass on 375 px mobile and 1280 px desktop for tracking, deliberate and automatic release, dispute freeze, refund recovery and review submission; axe reports zero serious/critical violations on the order detail view.
+- Plan and acceptance details: [`../plans/2026-10-07-phase-6-orders-escrow-disputes.md`](../plans/2026-10-07-phase-6-orders-escrow-disputes.md).
+
+## Phase 7a handoff — 8 Oct (seller onboarding and listing creation)
+
+- `/sell/start` (S1): intro, shop profile (unique handle, area, categories), identity check (ID type + number, legal name, demo selfie; only the last 4 ID characters are stored), payout account with a mock name enquiry that must match the ID name (or WorldStore wallet only), and a 3-question policy quiz with the seller agreement. KYC follows R-101 (`not_started → in_review → approved | rejected | needs_more_info`) with plain-language reasons and 3 attempts per 24 h (R-102). A labelled demo control stands in for the identity provider's result.
+- `/sell/new` → `/sell/:draftId` (S2): the 7-step CreateListingWizard. Photos are decoded upright, re-encoded (EXIF stripped), compressed to ≤ 300 KB and can be reordered, rotated and removed; min 600px, max 10 MB (R-114). Category-driven item specifics (with suggestions), condition definitions, flaws required for used/for parts, IMEI with a Luhn check for phones and serials for laptops (R-111). Title/description counters, a price guidance panel from comparable live listings with over/under warnings (EC-027), offer auto-accept/decline thresholds, delivery methods with fee and handling time, return policy, then a live card preview, the fee preview (same maths as the escrow ledger via `sellerFees`) and a publish checklist.
+- Autosave on blur, on step change, every 10 s and on page hide; a draft reopens at its last step (EC-011). Steps with blocking errors carry a red dot and the review lists every one with a link back (R-116). Drafts work before KYC; publishing is blocked until identity, payout and agreement are done (R-100). Prohibited terms block publishing (R-110), luxury brands go to In review (R-111), and the same title within 24 h is blocked (R-113).
+- `/vendor`: SellerShell (sidebar on desktop, scrolling tabs on phones) and the Seller Hub overview: first-task checklist, drafts (continue/delete) and published listings with status.
+- **Deviations:** P2P has no Buy now or auction format, so step 4 is a price plus "Accept offers". New listings can't carry a crossed-out price (needs 7 days of history). Rich text is plain text with paragraphs, which is how listing descriptions already render. Crop, video, AI suggestions, phone/email OTP (the mock sign-in counts as L1), the detail-page preview and share/WhatsApp links are deferred; published listings stay on this device, so the public `/listing` page and search don't include them until a server repository exists. Vehicles and property listing creation waits for the viewing flow.
+- **Acceptance:** the scripted e2e publishes a verified seller's first listing in well under 4 minutes (§18) with human-paced typing; R-100 is covered by unit and e2e tests.
+- Verification: 15 seller model tests (onboarding validation, KYC attempt limit, payout name match, every listing rule, fee parity, strict saved-state parsing) and 5 Playwright scenarios on 375 px, 1280 px and Android 360 (onboarding with rejection and payout mismatch, draft before KYC with reload, first listing under 4 minutes, prohibited/review paths, axe with zero serious/critical violations).
+
+## Phase 7b handoff — 8 Oct (Seller Hub)
+
+- SellerShell nav: Overview, Listings, Orders, Offers, Payouts, Performance, Create listing, Shop setup.
+- `/vendor/listings` (S3): Active / In review / Ended tabs; a table on desktop and compact rows on phones. Inline price and quantity edits (Enter saves, Escape cancels) with an Undo toast, logged as revisions (R-112). Quantity 0 pauses and restocking reactivates (R-121). Bulk price change by % and bulk end; ending is confirmed and blocked while an order is still to ship (R-120); relist restarts the 30-day run (R-115); "Sell similar" opens a copied draft.
+- `/vendor/orders` (S5): To ship / Shipped / Completed / Cancelled, with confirm and dispatch deadlines. The DispatchSheet offers a tracked courier, your own rider (not allowed over ₦20,000, R-141) or a meet-up with a handover PIN; late dispatches are recorded (R-140). Cancelling needs a reason, refunds the buyer in full through the ledger and restocks the item.
+- `/vendor/payouts` (S6): Available / Pending / In escrow / Withdrawn, each a sum of the Phase 6 ledger. Pending becomes available after the new-seller delay, with the 10% reserve released after 14 days (L4). WithdrawFlow: amount (₦1,000 minimum), a step-up code, then the bank result; a failed transfer leaves the money available (R-153). Changing the bank account holds withdrawals for 24 h (R-270). The transaction table lists every posting.
+- `/vendor/performance` (S7): level (New during the first 10 orders, R-160) and meters for late dispatch, seller-fault cancellations, not-as-described and disputes against their targets, each with what to do (R-161).
+- Offers: the sidebar opens the existing offers hub in the seller view (`/offers?as=seller`) instead of a second inbox.
+- **Demo boundary:** buyers can't reach device-local listings, so labelled demo actions simulate a purchase, a delivery and the buyer's confirmation. Every money movement still goes through the order/escrow machines and the double-entry ledger. Deferred: CSV import/export (R-122), promotions, insight nudges, reply-time and rating metrics (need real buyer messages and reviews), withdrawal caps and first-withdrawal review (R-271).
+- Verification: 12 hub unit tests (edits and revisions, bulk price, end/relist, the full purchase → release → reserve → withdrawal ledger path, R-141, cancellation refund and restock, R-270 hold, performance, migration of 7a data, tampered-ledger rejection) and 4 Playwright scenarios on 375 px, 1280 px and Android 360, including axe on every hub page.
+
+## Phase 8 handoff — 8 Oct (staff console)
+
+- `/admin` with AdminShell: demo staff accounts with one role each (Moderation, Disputes, Finance, Support); the nav shows only that role's tools and every page checks the role. An overview shows queue sizes with the nearest SLA.
+- **Moderation** (A1): one queue for listings the automatic check sent to review and buyer reports from the listing page, oldest-due first, with live SLA timers (high-risk 1 h, otherwise 24 h). The review panel shows photos, price, KYC, prior removals and the flag. Actions: approve, request edit (the listing returns to the seller's drafts with the note, then goes through publish checks again), remove with a policy code (the seller sees the code and the 7-day appeal window), suspend the seller, and uphold or dismiss reports.
+- **Cases** (A2, L8): every disputed order with seller-response and decision SLA timers. The case view shows the claim, evidence flags, delivery proof, the order timeline, its ledger and a policy hint (guidance only, PLAN F1). Decisions: full refund, partial refund with the rest released to the seller, release, or request more information; each needs a written rationale of 20+ characters, which the buyer then sees on their order. Every outcome runs through the dispute/escrow machines and keeps the ledger balanced.
+- **Ledger** (R-260, R-261): every buyer and seller order posting, filterable by order. Corrections post the mirror entry with a reason, once per row; reversals over ₦100,000 need a second finance person to approve.
+- **Risk** (A3): live signals (new seller with a high-value listing, repeated cancellations, off-platform messages, bank change hold, failed refunds) and actions to hold or release payouts and suspend the shop, each with a reason shown to the seller.
+- **Support** (A4): search across orders, listings and the shop; read-only views are logged, with reply templates and a link to the case.
+- **Audit log**: every staff action and support view, newest first, append-only.
+- **Demo boundary:** staff accounts are mocks (production needs SSO and server-side permission checks); the console acts on this browser's buyer, seller and message data. Reports on server listings are recorded but removal waits for the listing service. Deferred: the appeal flow to a second reviewer, replacement remedies, chargeback handling, the reconciliation job and the §3B scorecard review.
+- Verification: 15 admin unit tests (role gate, audit, queue order and SLAs, moderation outcomes, case decisions incl. ledger balance for refund/partial/release, reversal approval rules, risk, support search, persisted-state checks) and 5 Playwright scenarios on 375 px, 1280 px and Android 360 (role gating, report → queue → removal → audit, case rationale reaching the buyer, two-person reversal, axe on every console page).
+
+## Phase 9a handoff — 8 Oct (growth: buyer tools)
+
+- Phase 9 ships behind flags in `config/marketplace-rules.ts`. On: `compare`, `priceHistory`, `alerts`. Off: `auctions` (not built; P2P deals run on offers).
+- **CompareTray** (spec §270): "Add to compare" in every card's menu; a sticky tray of up to 4 picks (thumbnail, remove, Compare, Clear) above the bottom nav. `/compare?ids=` is server-rendered: one column per listing, rows for price (cheapest marked), condition, delivery, location, returns, offers, seller and feedback, then the union of item specifics. Picking a fifth says the tray is full instead of dropping one.
+- **PriceHistorySparkline** (spec §320): a stepped 30-day line in the buy box, built from the public revision log (R-112), with "Lowered from ₦X on <date> · lowest ₦Y". Nothing shows when the price hasn't changed in the window. It also lets buyers check a crossed-out "was" price.
+- **Alerts** (B4 step 4): opt-in switches on Saved: "Alert me if the price drops" for live items, "Alert me when it’s back" for unavailable ones, and "New matches" per saved search. A watcher checks when a tab opens and every 5 minutes, then posts to the existing notifications; notice ids carry the new value, so a change notifies once. Production evaluates alerts on the server and sends push/email (R-012).
+- `/notifications` replaces its placeholder with the real list (phones have no header bell), sharing the bell's list.
+- Already in place: WhatsApp sharing (ShareSheet, Phase 3).
+- Next, 9b: promotions, CSV bulk import (R-122) and seller analytics. Waiting: Q&A (needs real seller accounts to answer) and auctions (revisited with payment requests). Removed by the owner (8 Oct): coupons, referrals, TrackingMap.
+- Verification: 6 unit tests (price-drop once, back in stock, new matches, malformed alerts, sparkline series and window) and 3 Playwright scenarios on all three viewports (compare from search to table and clear, alert notice exactly once across reloads, sparkline on the listing).
+
+## Phase 9b handoff — 8 Oct (growth: seller tools)
+
+- Seller listing promotions charge a configurable 2–15% ad fee only when a promoted item sells; the fee is posted at escrow release and appears in payouts and 30-day analytics.
+- CSV import turns valid spreadsheet rows into drafts and reports invalid rows with their row numbers. Template and listing exports now attach their browser download before clicking and keep the object URL alive long enough for the browser to consume it.
+- Seller analytics shows sales, earnings, average order value, fees, daily sales and top listings. A seller with no sales gets a compact zero-data state instead of an empty interactive chart.
+- Seller Hub navigation now treats Import as part of Listings and scrolls the active section into view in the phone tab row.
+- Verification: 8 focused unit tests; the CSV import/export flow; responsive navigation and zero-state checks; and axe checks on Import and Analytics at 375 px and 1280 px. The full repository `npm run check` passes; Storybook retains its existing Vite module-directive and large-chunk warnings.
+
 ## Deviations from the docs and the design system
 
 | Date | Where | Deviation | Why |
@@ -53,6 +124,7 @@ _Phases 0–2 implemented; Phase 3 includes P3a–P3d (listing detail, seller/re
 | 7 Oct | Listing P3c | About this seller (SellerCard + four detailed ratings), Ratings and reviews (This item / All items tabs, star spread, topic chips, Verified purchase, seller replies, Show more), Similar items and Seller's other items rails. DS Tabs rebuilt (`components/ui/Tabs.tsx`). "Save seller" waits for Saved › Sellers; review photos wait for uploads (Phase 7) | Spec §7, flows B3 steps 6–8, B11. Mock reviews are generated from each seed's rating and every listing's displayed rating is computed from its records (lib/reviews.ts), so card, page and list agree (F13, PLAN F7). Item and seller summaries are labelled apart (R-073). Similar skips the seller's own items so nothing shows twice (R-013) and collapses under 4 (R-014); the seller rail shows at any size. Time zone added to config (R-006) |
 | 7 Oct | Home layout | Trust strip removed from the home page (component, story, CSS and its copy); the hero carousel moved below Near you (or its nationwide fallback) | Your direction, 7 Oct. Departs from flows B1 step 3 ("trust strip above the fold") and the blueprint's "keep it"; escrow is still stated by the hero's first slide, the sell block and every listing page |
 | 7 Oct | Scroll performance | Hover effects (tilt, lift, photo zoom) stand down while the page scrolls (`components/motion/ScrollState`, `html[data-scrolling]`); `will-change` only on the hovered card; the 3D stage and the sell-block aurora pause mid-scroll; result reveals use IntersectionObserver instead of ScrollTrigger (plugin no longer loaded) | Measured in Chrome on the production build: cards entering `:hover` under a still pointer cost 378 ms of style work per scroll on /search (22 ms with the pointer off the grid). After: search layouts 68→27, frames over 33 ms 14→6, p95 33→16.8 ms; home slow frames 61→34, layouts 63→29. `scrollend` fires per wheel notch, so the state ends on a 180 ms quiet spell instead |
+| 7 Oct | Messaging layout | Inbox and Offers are one three-pane chat (conversations with search and All / With offers · thread with pinned listing, day dividers, solid-gold own bubbles, floating composer, Enter to send · deal panel with seller, offer and block/report). Full-bleed: the shop container's cap is lifted on these pages only. Under 1200px the Inbox deal panel is a sheet from "Deal details"; Offers keeps it above the thread. The category rail is hidden here, as on listings. Read ticks show "Saved on this device", not "read" | Owner's references and direction (7 Oct: three chat apps, "fill the width"). Nothing is delivered in the demo, so no delivered/read state is claimed (PLAN F7). Plans in `design-plans/` |
 | 6 Oct | Tooling | Local browser tests drive installed Chrome | Playwright has no Chromium build for macOS 13; CI uses bundled Chromium |
 | 6 Oct | Config | Low-price warning uses EC-027's "under 40% **of** the comparable median" (`priceWarnBelowPercentOfMedian`) | S2 step 4 says "< 40% below" the median (i.e. under 60% of it). The two disagree; EC-027 is the specific rule. **Confirm which you want** |
 | 6 Oct | Data | Entity fields keep Part G's snake_case (`price_minor`, `seller_id`, `created_at`) | Matches the docs and the eventual API, so nothing is renamed at the boundary |
@@ -174,7 +246,7 @@ _Phases 0–2 implemented; Phase 3 includes P3a–P3d (listing detail, seller/re
 
 ## B. Home
 - [x] HeroCarousel w/ pause + counter
-- [ ] PromoCouponCard
+- [ ] ~~PromoCouponCard~~ (removed from scope, 8 Oct)
 - [x] TrustStrip
 - [x] CategoryTiles
 - [x] ProductRail
@@ -299,7 +371,7 @@ _Phases 0–2 implemented; Phase 3 includes P3a–P3d (listing detail, seller/re
 - [ ] CartLineItem
 - [ ] SaveForLaterList
 - [ ] CartPriceChangeBanner
-- [ ] CouponField
+- [ ] ~~CouponField~~ (removed from scope, 8 Oct)
 - [ ] OrderSummary
 - [ ] EmptyCart
 - [ ] CartRecommendations
@@ -327,22 +399,22 @@ _Phases 0–2 implemented; Phase 3 includes P3a–P3d (listing detail, seller/re
 - [ ] KycGateSheet
 
 ## H. Orders & trust
-- [ ] OrdersPage
-- [ ] OrderRow
-- [ ] OrderDetail
-- [ ] OrderStatusTimeline
-- [ ] MoneyTimeline
-- [ ] EscrowStatusCard
-- [ ] InspectionCountdown
-- [ ] ConfirmReleaseSheet
-- [ ] DeliveryCard (PIN/QR)
-- [ ] TrackingMap
-- [ ] ReceiptView
-- [ ] ReviewForm
-- [ ] ReportProblemWizard
+- [x] OrdersPage
+- [x] OrderRow
+- [x] OrderDetail
+- [x] OrderStatusTimeline
+- [x] MoneyTimeline
+- [x] EscrowStatusCard
+- [x] InspectionCountdown
+- [x] ConfirmReleaseSheet
+- [x] DeliveryCard (PIN/QR)
+- [ ] ~~TrackingMap~~ (removed from scope, 8 Oct)
+- [x] ReceiptView
+- [x] ReviewForm
+- [x] ReportProblemWizard
 - [ ] EvidenceUploader
 - [ ] DisputeTimeline
-- [ ] RefundTracker
+- [x] RefundTracker
 - [ ] ReturnInstructionsCard
 - [ ] BuyAgainButton
 - [ ] OrderIssueBanner
@@ -380,7 +452,7 @@ _Phases 0–2 implemented; Phase 3 includes P3a–P3d (listing detail, seller/re
 - [ ] NotificationCentre
 - [ ] NotificationPreferences
 - [ ] HelpCentreHome
-- [ ] EscrowExplainerPage
+- [x] EscrowExplainerPage
 - [ ] PolicyPage template
 - [ ] ErrorPages (404, 410, 500, offline)
 

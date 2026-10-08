@@ -213,7 +213,8 @@ The Phase 4 local prototype includes explicit simulated success/decline/timeout 
 **Phase reviews:** each phase ends by scoring its screens against the blueprint's scorecard (§3B: D1–D8, S1–S8, C1–C8, L1–L10, K1–K7, M1–M7, X1–X10). The target is ≥ 85%, recorded in PROGRESS.md.
 
 ### Phase 9 — Growth (later; flags off)
-Auctions (`BidPanel`, `CountdownTimer`, `BidHistory`), `CompareTray`, `PriceHistorySparkline`, `QAThread`, promotions, alerts, `TrackingMap`, `BulkImport`, `AnalyticsDashboard`.
+Auctions (`BidPanel`, `CountdownTimer`, `BidHistory`), `CompareTray`, `PriceHistorySparkline`, `QAThread`, promotions, alerts, `BulkImport`, `AnalyticsDashboard`.
+*Owner's decision, 8 Oct:* coupons, referrals and the delivery `TrackingMap` are out of scope (order tracking codes and status from Phase 6 stay). Auctions wait until the payment-request work is revisited.
 
 ---
 

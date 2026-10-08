@@ -16,7 +16,7 @@ import { DIMENSIONS } from "@/lib/reviews";
 const joined = new Intl.DateTimeFormat("en-NG", { month: "short", year: "numeric", timeZone: rules.time.zone });
 const percent = new Intl.NumberFormat("en-NG", { maximumFractionDigits: 1 });
 
-function replyTime(hours: number) {
+export function replyTime(hours: number) {
   if (hours <= 1) return "within an hour";
   if (hours < 24) return `within ${hours} hours`;
   return `within ${plural(Math.round(hours / 24), "day")}`;

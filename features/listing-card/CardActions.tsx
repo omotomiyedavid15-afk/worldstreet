@@ -2,8 +2,10 @@
 
 import { AnimatePresence, m } from "motion/react";
 import { type ReactNode } from "react";
-import { DotsVerticalIcon, StoreIcon, XmarkCircleIcon } from "@/components/icons";
-import { buttonClass, Menu } from "@/components/ui";
+import { DotsVerticalIcon, GridIcon, StoreIcon, XmarkCircleIcon } from "@/components/icons";
+import { buttonClass, Menu, toast } from "@/components/ui";
+import { rules } from "@/config/marketplace-rules";
+import { toggleCompare, useCompare } from "@/features/compare/store";
 import { hiddenThisVisit, hideListing, hideSeller, unhide, useHidden } from "@/features/hidden/store";
 import { spring } from "@/lib/motion/tokens";
 
@@ -14,6 +16,12 @@ import { spring } from "@/lib/motion/tokens";
 type Target = { listingId: string; title: string; sellerId: string; shopName: string };
 
 export function CardMenu({ listingId, title, sellerId, shopName }: Target) {
+  const compared = useCompare();
+  const inCompare = compared.includes(listingId);
+  const compare = () => {
+    const result = toggleCompare(listingId);
+    if (result === "full") toast({ message: `You can compare up to ${rules.compare.max} items. Remove one first.` });
+  };
   return (
     <Menu
       label={`More actions for ${title}`}
@@ -21,6 +29,7 @@ export function CardMenu({ listingId, title, sellerId, shopName }: Target) {
       items={[
         { label: "Not interested", icon: <XmarkCircleIcon />, onSelect: () => hideListing(listingId) },
         { label: `Hide ${shopName}`, icon: <StoreIcon />, onSelect: () => hideSeller(sellerId, listingId) },
+        ...(rules.flags.compare ? [{ label: inCompare ? "Remove from compare" : "Add to compare", icon: <GridIcon />, onSelect: compare }] : []),
       ]}
     />
   );
