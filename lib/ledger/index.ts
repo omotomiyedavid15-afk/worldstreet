@@ -55,6 +55,15 @@ export function releaseToSeller(ledger: Ledger, itemMinor: number, deliveryMinor
   next = post(next, { idempotency_key: `${key}:seller`, debit_account: "escrow_held", credit_account: "seller_pending", amount_minor: gross - fee, reason_code: "escrow_released", actor: "system", created_at: at });
   return next;
 }
+/** R-260: corrections never edit a row; they post the mirror entry, once per posting. */
+export function reversePosting(ledger: Ledger, postingId: string, at: number, reason: string) {
+  const row = ledger.postings.find((p) => p.id === postingId);
+  if (!row) throw new Error("Posting not found.");
+  if (row.reason_code.startsWith("reversal")) throw new Error("A reversal can’t itself be reversed. Post a new correction instead.");
+  if (ledger.receipts[`${postingId}:reversal`]) throw new Error("This posting has already been reversed.");
+  if (reason.trim().length < 10) throw new Error("Give a reason of at least 10 characters.");
+  return post(ledger, { idempotency_key: `${postingId}:reversal`, debit_account: row.credit_account, credit_account: row.debit_account, amount_minor: row.amount_minor, reason_code: `reversal:${row.reason_code}`, actor: "admin", created_at: at });
+}
 export function refundToBuyer(ledger: Ledger, amountMinor: number, key: string, at: number, fail = false) {
   let next = post(ledger, { idempotency_key: `${key}:approved`, debit_account: "escrow_held", credit_account: "refunds_payable", amount_minor: amountMinor, reason_code: "refund_approved", actor: "system", created_at: at });
   if (!fail) next = post(next, { idempotency_key: `${key}:paid`, debit_account: "refunds_payable", credit_account: "buyer_refunded", amount_minor: amountMinor, reason_code: "refund_paid", actor: "system", created_at: at });

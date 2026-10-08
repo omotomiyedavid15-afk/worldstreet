@@ -1,5 +1,5 @@
 import { rules } from "@/config/marketplace-rules";
-import { assertLedgerInvariant, balances, captureToEscrow, createLedger, LEDGER_ACCOUNTS, post, releaseToSeller, type Ledger } from "@/lib/ledger";
+import { assertLedgerInvariant, balances, captureToEscrow, createLedger, LEDGER_ACCOUNTS, post, releaseToSeller, reversePosting, type Ledger } from "@/lib/ledger";
 import { DISPUTE_STATUSES, nextDispute, type DisputeStatus } from "@/lib/machines/dispute";
 import { ESCROW_STATUSES, nextEscrow, type EscrowStatus } from "@/lib/machines/escrow";
 import { nextOrder, ORDER_STATUSES, type OrderStatus } from "@/lib/machines/order";
@@ -9,7 +9,10 @@ export type Review = { overall: number; description: number; delivery: number; c
 export const DISPUTE_REASONS = ["wrong_item", "damaged", "not_as_described", "missing_parts", "other"] as const;
 export type DisputeReason = typeof DISPUTE_REASONS[number];
 export const needsMediaEvidence = (reason: DisputeReason) => reason === "damaged" || reason === "not_as_described";
-export type Dispute = { id: string; reason: DisputeReason; detail: string; remedy: "refund"; package_opened: boolean; media_ready: boolean; status: DisputeStatus; opened_at: number; seller_due_at: number; refund_destination?: "original" | "wallet" };
+export type OpsOutcome = "refund" | "release" | "partial";
+/** Ops ruling (L8 step 5): the written rationale is shown to both parties. */
+export type Decision = { outcome: OpsOutcome; refund_minor: number; rationale: string; staff: string; at: number };
+export type Dispute = { id: string; reason: DisputeReason; detail: string; remedy: "refund"; package_opened: boolean; media_ready: boolean; status: DisputeStatus; opened_at: number; seller_due_at: number; refund_destination?: "original" | "wallet"; decision?: Decision; info_requests?: { at: number; note: string; staff: string }[] };
 export type Order = {
   id: string; listing_id: string; seller_id: string; seller_name: string; title: string; photo: string;
   unit_minor: number; qty: number; delivery_minor: number; total_minor: number;
@@ -26,7 +29,9 @@ export type OrderCommand =
   | { type: "dispute"; id: string; order_id: string; reason: DisputeReason; detail: string; remedy: "refund"; package_opened: boolean; media_ready: boolean }
   | { type: "refund"; id: string; order_id: string; outcome: "success" | "failed" }
   | { type: "wallet_credit"; id: string; order_id: string }
-  | { type: "review"; id: string; order_id: string; review: Omit<Review, "created_at"> };
+  | { type: "review"; id: string; order_id: string; review: Omit<Review, "created_at"> }
+  | { type: "ops_decide"; id: string; order_id: string; outcome: OpsOutcome | "info"; refund_minor?: number; rationale: string; staff: string }
+  | { type: "reverse"; id: string; order_id: string; posting_id: string; reason: string };
 
 const HOUR = 3_600_000;
 const at = (value: string) => Date.parse(value);
@@ -107,6 +112,43 @@ export function executeOrder(previous: OrdersState, command: OrderCommand, now: 
     order.ledger = post(order.ledger, { idempotency_key: `${command.id}:wallet`, debit_account: "refunds_payable", credit_account: "buyer_refunded", amount_minor: payable, reason_code: "wallet_credit", actor: "system", created_at: now });
     order.escrow_status = nextEscrow(order.escrow_status, "wallet_credit"); order.status = nextOrder(order.status, "resolve_buyer");
     order.events.push({ status: order.status, at: now, label: "Refund recovered to WorldStore balance" });
+  } else if (command.type === "ops_decide") {
+    const dispute = order.dispute;
+    assert(dispute && order.escrow_status === "frozen" && ["seller_response", "escalated"].includes(dispute.status), "This case has no frozen escrow to decide.");
+    const rationale = command.rationale.trim();
+    assert(rationale.length >= 20, "Write a rationale of at least 20 characters. Both parties will read it.");
+    if (dispute.status === "seller_response") dispute.status = nextDispute(dispute.status, "escalate");
+    if (command.outcome === "info") {
+      dispute.info_requests = [...(dispute.info_requests ?? []), { at: now, note: rationale, staff: command.staff }];
+      order.events.push({ status: order.status, at: now, label: "WorldStore asked for more information" });
+    } else {
+      const item = order.unit_minor * order.qty;
+      const refund = command.outcome === "refund" ? order.total_minor : command.outcome === "release" ? 0 : command.refund_minor ?? 0;
+      assert(Number.isSafeInteger(refund) && (command.outcome !== "partial" || (refund > 0 && refund < order.total_minor)), "A partial refund must be more than ₦0 and less than the order total.");
+      if (refund) {
+        order.ledger = post(order.ledger, { idempotency_key: `${command.id}:refund`, debit_account: "escrow_frozen", credit_account: "refunds_payable", amount_minor: refund, reason_code: "ruling_refund", actor: "admin", created_at: now });
+        order.ledger = post(order.ledger, { idempotency_key: `${command.id}:refund_paid`, debit_account: "refunds_payable", credit_account: "buyer_refunded", amount_minor: refund, reason_code: "refund_paid", actor: "system", created_at: now });
+      }
+      const rest = order.total_minor - refund;
+      if (rest) {
+        order.ledger = post(order.ledger, { idempotency_key: `${command.id}:unfreeze`, debit_account: "escrow_frozen", credit_account: "escrow_held", amount_minor: rest, reason_code: "ruling_release", actor: "admin", created_at: now });
+        const itemPart = Math.max(0, item - refund);
+        order.ledger = releaseToSeller(order.ledger, itemPart, rest - itemPart, `${command.id}:release`, now);
+      }
+      if (command.outcome === "refund") {
+        dispute.status = nextDispute(dispute.status, "ops_refund");
+        order.escrow_status = nextEscrow(nextEscrow(order.escrow_status, "buyer_ruling"), "refund_confirm");
+        order.status = nextOrder(order.status, "resolve_buyer");
+      } else {
+        dispute.status = nextDispute(dispute.status, command.outcome === "release" ? "ops_release" : "ops_partial");
+        order.escrow_status = command.outcome === "release" ? nextEscrow(order.escrow_status, "seller_ruling") : nextEscrow(nextEscrow(order.escrow_status, "partial_ruling"), "seller_ruling");
+        order.status = nextOrder(order.status, "resolve_seller");
+      }
+      dispute.decision = { outcome: command.outcome, refund_minor: refund, rationale, staff: command.staff, at: now };
+      order.events.push({ status: order.status, at: now, label: command.outcome === "refund" ? "Case decided · full refund" : command.outcome === "release" ? "Case decided · paid to seller" : "Case decided · partial refund" });
+    }
+  } else if (command.type === "reverse") {
+    order.ledger = reversePosting(order.ledger, command.posting_id, now, command.reason);
   } else {
     assert(order.status === "completed" && !order.review, "Only an unreviewed completed order can be reviewed.");
     for (const score of [command.review.overall, command.review.description, command.review.delivery, command.review.communication, command.review.packaging]) assert(Number.isInteger(score) && score >= 1 && score <= 5, "Choose every rating from 1 to 5.");
@@ -133,7 +175,9 @@ function validPersistedOrder(order: Order) {
     const input = { idempotency_key: row.idempotency_key, debit_account: row.debit_account, credit_account: row.credit_account, amount_minor: row.amount_minor, reason_code: row.reason_code, actor: row.actor, created_at: row.created_at };
     return isText(row.id) && row.order_id === order.id && isText(row.idempotency_key) && LEDGER_ACCOUNTS.includes(row.debit_account) && LEDGER_ACCOUNTS.includes(row.credit_account) && row.debit_account !== row.credit_account && Number.isSafeInteger(row.amount_minor) && row.amount_minor > 0 && isText(row.reason_code) && ["system", "user", "admin"].includes(row.actor) && isTime(row.created_at) && ledger.receipts[row.idempotency_key] === JSON.stringify(input);
   });
-  const validDispute = order.dispute === null || (isText(order.dispute?.id) && DISPUTE_REASONS.includes(order.dispute.reason) && isText(order.dispute.detail) && order.dispute.remedy === "refund" && typeof order.dispute.package_opened === "boolean" && typeof order.dispute.media_ready === "boolean" && DISPUTE_STATUSES.includes(order.dispute.status) && isTime(order.dispute.opened_at) && isTime(order.dispute.seller_due_at) && (!order.dispute.refund_destination || ["original", "wallet"].includes(order.dispute.refund_destination)));
+  const validDispute = order.dispute === null || (isText(order.dispute?.id) && DISPUTE_REASONS.includes(order.dispute.reason) && isText(order.dispute.detail) && order.dispute.remedy === "refund" && typeof order.dispute.package_opened === "boolean" && typeof order.dispute.media_ready === "boolean" && DISPUTE_STATUSES.includes(order.dispute.status) && isTime(order.dispute.opened_at) && isTime(order.dispute.seller_due_at) && (!order.dispute.refund_destination || ["original", "wallet"].includes(order.dispute.refund_destination))
+    && (order.dispute.decision === undefined || (["refund", "release", "partial"].includes(order.dispute.decision.outcome) && Number.isSafeInteger(order.dispute.decision.refund_minor) && order.dispute.decision.refund_minor >= 0 && isText(order.dispute.decision.rationale) && isText(order.dispute.decision.staff) && isTime(order.dispute.decision.at)))
+    && (order.dispute.info_requests === undefined || (Array.isArray(order.dispute.info_requests) && order.dispute.info_requests.every((r) => isTime(r.at) && isText(r.note) && isText(r.staff)))));
   const validReview = order.review === null || ([order.review.overall, order.review.description, order.review.delivery, order.review.communication, order.review.packaging].every(isScore) && typeof order.review.body === "string" && isTime(order.review.created_at));
   return text.every(isText) && ORDER_STATUSES.includes(order.status) && ESCROW_STATUSES.includes(order.escrow_status) && money.every((value) => Number.isSafeInteger(value) && value >= 0) && Number.isSafeInteger(order.qty) && order.qty > 0 && order.total_minor === order.unit_minor * order.qty + order.delivery_minor && isTime(order.created_at) && Array.isArray(order.events) && order.events.every((event) => ORDER_STATUSES.includes(event.status) && isTime(event.at) && isText(event.label)) && typeof order.delivery_proof === "boolean" && (order.delivered_at === null || isTime(order.delivered_at)) && (order.inspection_deadline === null || isTime(order.inspection_deadline)) && typeof order.inspection_extended === "boolean" && typeof order.ops_hold === "boolean" && typeof order.chargeback_pending === "boolean" && validLedger && validDispute && validReview && assertLedgerInvariant(ledger);
 }

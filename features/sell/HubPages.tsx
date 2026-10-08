@@ -50,7 +50,7 @@ const Thumb = ({ src }: { src: string }) => src
 
 const LISTING_TABS = [{ value: "active", label: "Active" }, { value: "in_review", label: "In review" }, { value: "ended", label: "Ended" }] as const;
 type ListingTab = (typeof LISTING_TABS)[number]["value"];
-const STATUS_LABEL: Record<SellerListing["status"], string> = { live: "Live", paused: "Out of stock", in_review: "In review", ended: "Ended" };
+const STATUS_LABEL: Record<SellerListing["status"], string> = { live: "Live", paused: "Out of stock", in_review: "In review", ended: "Ended", removed: "Removed" };
 
 export function ListingsPage() {
   return <Gate title="Listings">{(account) => <Listings account={account} />}</Gate>;
@@ -63,7 +63,8 @@ function Listings({ account }: { account: SellerAccount }) {
   const [percent, setPercent] = useState("");
   const [ending, setEnding] = useState<string[] | null>(null);
   const { run, alert } = useRun();
-  const rows = account.listings.filter((l) => tab === "active" ? l.status === "live" || l.status === "paused" : l.status === tab);
+  const inListingTab = (l: SellerListing, t: ListingTab) => t === "active" ? l.status === "live" || l.status === "paused" : t === "ended" ? l.status === "ended" || l.status === "removed" : l.status === t;
+  const rows = account.listings.filter((l) => inListingTab(l, tab));
   const visible = selected.filter((id) => rows.some((r) => r.id === id));
   const all = rows.length > 0 && visible.length === rows.length;
   const change = (id: string, patch: { price_minor?: number; qty?: number }) => {
@@ -73,7 +74,7 @@ function Listings({ account }: { account: SellerAccount }) {
   return <div className="ws-hub">
     <header className="ws-flow__head"><div><p className="ws-sell-eyebrow">Seller Hub</p><h1>Listings</h1></div><Link className={buttonClass({})} href="/sell/new">Create listing</Link></header>
     {alert}
-    <Tabs aria-label="Listing status" idBase="listings" items={LISTING_TABS.map((t) => ({ ...t, label: `${t.label} (${account.listings.filter((l) => t.value === "active" ? l.status === "live" || l.status === "paused" : l.status === t.value).length})` }))} value={tab} onChange={(v) => { setTab(v); setSelected([]); }} />
+    <Tabs aria-label="Listing status" idBase="listings" items={LISTING_TABS.map((t) => ({ ...t, label: `${t.label} (${account.listings.filter((l) => inListingTab(l, t.value)).length})` }))} value={tab} onChange={(v) => { setTab(v); setSelected([]); }} />
     <div {...tabPanelProps("listings", tab)}>
       {visible.length > 0 && <div className="ws-bulk" role="region" aria-label="Bulk actions">
         <strong>{visible.length} selected</strong>
@@ -87,13 +88,13 @@ function Listings({ account }: { account: SellerAccount }) {
         <thead><tr><th scope="col"><input type="checkbox" aria-label="Select all" checked={all} onChange={(e) => setSelected(e.target.checked ? rows.map((r) => r.id) : [])} /><span className="ws-table__all" aria-hidden="true">Select all</span></th><th scope="col">Item</th><th scope="col">Price</th><th scope="col">Qty</th><th scope="col">Status</th><th scope="col">Updated</th><th scope="col"><span className="cx-sr-only">Actions</span></th></tr></thead>
         <tbody>{rows.map((l) => <tr key={l.id}>
           <td><input type="checkbox" aria-label={`Select ${l.title}`} checked={visible.includes(l.id)} onChange={(e) => setSelected(e.target.checked ? [...visible, l.id] : visible.filter((x) => x !== l.id))} /></td>
-          <td className="ws-table__item"><Thumb src={l.photos[0]?.url ?? ""} /><span><strong>{l.title}</strong>{l.revisions.length > 0 && <small>{l.revisions.length} edit{l.revisions.length > 1 ? "s" : ""} logged</small>}</span></td>
-          <td data-label="Price"><InlineEdit label={`Price of ${l.title}`} value={l.price_minor ?? 0} money disabled={l.status === "ended"} onSave={(v) => change(l.id, { price_minor: v })} /></td>
-          <td data-label="Qty"><InlineEdit label={`Quantity of ${l.title}`} value={l.qty} disabled={l.status === "ended"} onSave={(v) => change(l.id, { qty: v })} /></td>
+          <td className="ws-table__item"><Thumb src={l.photos[0]?.url ?? ""} /><span><strong>{l.title}</strong>{l.status === "removed" && <small className="ws-table__note">{l.review_reason}</small>}{l.revisions.length > 0 && <small>{l.revisions.length} edit{l.revisions.length > 1 ? "s" : ""} logged</small>}</span></td>
+          <td data-label="Price"><InlineEdit label={`Price of ${l.title}`} value={l.price_minor ?? 0} money disabled={l.status === "ended" || l.status === "removed"} onSave={(v) => change(l.id, { price_minor: v })} /></td>
+          <td data-label="Qty"><InlineEdit label={`Quantity of ${l.title}`} value={l.qty} disabled={l.status === "ended" || l.status === "removed"} onSave={(v) => change(l.id, { qty: v })} /></td>
           <td data-label="Status"><span className="ws-hub-status" data-status={l.status}>{STATUS_LABEL[l.status]}</span></td>
           <td data-label="Updated">{when.format(l.updated_at)}</td>
           <td className="ws-table__actions"><Menu label={`Actions for ${l.title}`} iconOnly variant="quiet" size="sm" sheetTitle={l.title} trigger={<DotsVerticalIcon />} items={[
-            ...(l.status === "ended" ? [{ label: "Relist", onSelect: () => run((a) => relist(a, l.id, Date.now())) }] : [{ label: "End listing", danger: true, onSelect: () => setEnding([l.id]) }]),
+            ...(l.status === "removed" ? [] : l.status === "ended" ? [{ label: "Relist", onSelect: () => run((a) => relist(a, l.id, Date.now())) }] : [{ label: "End listing", danger: true, onSelect: () => setEnding([l.id]) }]),
             { label: "Sell similar", onSelect: () => { const id = uid("d"); if (run((a) => sellSimilar(a, l.id, id, Date.now()))) router.push(`/sell/${id}`); } },
             ...(l.status === "live" ? ["separator" as const, { label: "Demo: simulate a buyer purchase", onSelect: () => { if (run((a) => simulatePurchase(a, l.id, `WS-${String(Date.now()).slice(-6)}`, Date.now()))) toast({ message: "New order: a buyer paid into escrow", action: { label: "View orders", onClick: () => router.push("/vendor/orders") } }); } }] : []),
           ]} /></td>

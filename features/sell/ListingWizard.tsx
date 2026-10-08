@@ -92,6 +92,7 @@ function Wizard({ draft: saved, account, categories, guidance }: Props & { draft
       <div><p className="ws-sell-eyebrow">Create a listing · Step {form.step} of {STEPS.length}</p><h1 ref={heading} tabIndex={-1}>{TITLES[form.step - 1]}</h1></div>
       <p className="ws-sell-saved" role="status" data-error={status.error || undefined}>{status.error && <WarningIcon />}{status.text}</p>
     </header>
+    {form.admin_note && <div className="ws-sell-alert" role="note"><strong>WorldStore asked for changes</strong><p>{form.admin_note}</p><p>Fix them, then publish again. It goes back through review.</p></div>}
     <nav aria-label="Listing steps" className="ws-stepper"><ol>{STEPS.map((label, index) => {
       const step = index + 1;
       const bad = shown(step) && blocking(stepIssues(step)).length > 0;

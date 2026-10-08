@@ -2,8 +2,9 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
-import { ArrowUpGraphIncreaseIcon, CheckCircleIcon, GridIcon, HandshakeAgreementDealIcon, PackageIcon, PencilEditIcon, PlusCircleIcon, StoreIcon, TagIcon, TrashIcon, WalletIcon } from "@/components/icons";
+import { ArrowUpGraphIncreaseIcon, CheckCircleIcon, GridIcon, HandshakeAgreementDealIcon, PackageIcon, PencilEditIcon, PlusCircleIcon, StoreIcon, TagIcon, TrashIcon, WalletIcon, WarningIcon } from "@/components/icons";
 import { buttonClass } from "@/components/ui";
+import { rules } from "@/config/marketplace-rules";
 import { requireAuth, useSession } from "@/features/auth/session";
 import { formatCurrency, kobo } from "@/lib/money";
 import { canPublish, newDraft, STEPS, type SellerAccount } from "./model";
@@ -47,6 +48,9 @@ export function SellerHub() {
   return <div className="ws-hub">
     <header className="ws-flow__head"><div><p className="ws-sell-eyebrow">Seller Hub</p><h1>{account.profile ? account.profile.shop_name : "Your shop"}</h1>{account.profile && <p>@{account.profile.handle}</p>}</div>
       <Link className={buttonClass({})} href="/sell/new"><PlusCircleIcon />Create listing</Link></header>
+    {account.suspended_reason && <div role="alert" className="ws-sell-alert"><strong>Your shop is suspended</strong><p>{account.suspended_reason} Your listings are hidden and you can’t publish. You can appeal within {rules.disputes.appealDays} days by contacting support.</p></div>}
+    {account.payout_hold_reason && <div role="alert" className="ws-sell-alert"><strong>Payouts are on hold</strong><p>{account.payout_hold_reason} Orders still complete; withdrawals resume once the hold is lifted.</p></div>}
+    {account.drafts.some((d) => d.admin_note) && <p className="ws-sell-tip"><WarningIcon />WorldStore asked for changes to a listing. It’s in your drafts below.</p>}
     {tasks.some((t) => !t.done) && <section className="ws-sell-card" aria-labelledby="tasks"><h2 id="tasks">Get ready to sell</h2><ol className="ws-tasks">{tasks.map((t) => <li key={t.label} data-done={t.done || undefined}>
       <CheckCircleIcon />{t.done ? <span>{t.label}<span className="cx-sr-only"> (done)</span></span> : <Link href={t.href}>{t.label}</Link>}</li>)}</ol>
       {!canPublish(account) && <p className="ws-form-field__hint">You can write drafts now. Publishing opens once you’re verified and have a payout account.</p>}</section>}

@@ -44,7 +44,7 @@ const withListing = (account: SellerAccount, id: string, patch: (l: SellerListin
 /** Inline price/quantity edits, allowed any time and logged (R-112). Stock back above 0 reactivates (R-121). */
 export function editListing(account: SellerAccount, id: string, patch: { price_minor?: number; qty?: number }, now: number): SellerAccount {
   const listing = account.listings.find((l) => l.id === id) ?? fail("Listing not found.");
-  if (listing.status === "ended") fail("Relist this item before editing it.");
+  if (listing.status === "ended" || listing.status === "removed") fail(listing.status === "removed" ? "This listing was removed by WorldStore and can’t be edited." : "Relist this item before editing it.");
   const revisions = [...listing.revisions];
   let { price_minor, qty, status } = listing;
   if (patch.price_minor !== undefined && patch.price_minor !== price_minor) {
@@ -69,7 +69,7 @@ export function bulkPrice(account: SellerAccount, ids: readonly string[], percen
   if (!Number.isFinite(percent) || percent <= -90 || percent > 500 || percent === 0) fail("Enter a change between −90% and +500%.");
   return ids.reduce((a, id) => {
     const l = a.listings.find((x) => x.id === id);
-    if (!l || l.price_minor === null || l.status === "ended") return a;
+    if (!l || l.price_minor === null || l.status === "ended" || l.status === "removed") return a;
     return editListing(a, id, { price_minor: Math.max(toMinor(100), Math.round(l.price_minor * (1 + percent / 100) / 100) * 100) }, now);
   }, account);
 }
@@ -77,7 +77,7 @@ export function bulkPrice(account: SellerAccount, ids: readonly string[], percen
 /** R-120: an item with orders still to ship can't be ended. */
 export function endListing(account: SellerAccount, id: string, now: number) {
   const listing = account.listings.find((l) => l.id === id) ?? fail("Listing not found.");
-  if (listing.status === "ended") return account;
+  if (listing.status === "ended" || listing.status === "removed") return account;
   if (account.orders.some((o) => o.listing_id === id && ["paid", "preparing"].includes(o.status))) fail(`“${listing.title}” has an order to ship. Ship or cancel it first.`);
   return withListing(account, id, (l) => ({ ...l, status: "ended", updated_at: now }));
 }
@@ -216,6 +216,7 @@ export function wallet(account: SellerAccount) {
 export function withdraw(account: SellerAccount, amount: number, otp: string, outcome: "paid" | "failed", id: string, now: number): SellerAccount {
   const payout = account.payout;
   if (payout?.kind !== "bank") fail("Add a bank account to withdraw. Wallet-only earnings stay in your WorldStore balance.");
+  if (account.payout_hold_reason) fail(`Payouts are on hold: ${account.payout_hold_reason} Contact support to resolve it.`);
   if (account.withdraw_hold_until !== null && now < account.withdraw_hold_until) fail("Withdrawals are on hold for 24 hours after a bank account change, to protect you.");
   if (!Number.isSafeInteger(amount) || amount < rules.fees.minWithdrawalMinor) fail("The minimum withdrawal is ₦1,000.");
   if (amount > wallet(account).available) fail("That’s more than your available balance.");

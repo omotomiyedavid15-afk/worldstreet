@@ -127,7 +127,7 @@ describe("persisted account", () => {
     expect(broken((c) => { c.listings[0].price_minor = 1.5; })).toThrow();
     expect(broken((c) => { c.drafts[0].photos[0].url = "javascript:alert(1)"; })).toThrow();
     expect(broken((c) => { c.drafts[0].delivery[0].method = "teleport" as never; })).toThrow();
-    expect(broken((c) => { c.listings[0].status = "removed" as never; })).toThrow();
+    expect(broken((c) => { c.listings[0].status = "deleted" as never; })).toThrow();
     expect(() => parseAccount(null)).toThrow();
   });
 });

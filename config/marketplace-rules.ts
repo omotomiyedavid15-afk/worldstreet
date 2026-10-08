@@ -186,6 +186,11 @@ export const rules = {
   moderation: {
     reportReviewHours: 24, // flows §632: normal-risk SLA (high risk is 1 h, internal)
     reportDetailsMax: 500,
+    highRiskHours: 1, // A1: high-risk items (luxury authenticity, prohibited, counterfeit, scam) within 1 h
+  },
+  admin: {
+    reversalApprovalMinor: 100_000 * NAIRA, // R-260: reversals above this need a second person
+    rationaleMin: 20, // L8 step 5: written rationale shown to both parties
   },
   demand: {
     watchersThreshold: 10, // R-025, PLAN C7
