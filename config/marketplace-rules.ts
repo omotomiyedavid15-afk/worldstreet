@@ -209,12 +209,25 @@ export const rules = {
     compare: true, // spec §270 CompareTray
     priceHistory: true, // spec §320 PriceHistorySparkline
     alerts: true, // B4 step 4
+    promotions: true, // S2/S3 Promote
+    bulkImport: true, // R-122
+    analytics: true, // AnalyticsDashboard
   },
   compare: {
     max: 4, // spec: sticky tray of up to 4 items
   },
   alerts: {
     checkEveryMs: 5 * 60_000, // while a tab is open; production pushes from the server (R-012)
+  },
+  promotions: {
+    // Promoted listings: an ad rate charged only when a promoted item sells (K4 fee model, open).
+    minRatePercent: 2,
+    maxRatePercent: 15,
+    suggestedRatePercent: 5,
+  },
+  bulkImport: {
+    maxRows: 200, // R-122
+    maxBytes: 1_000_000,
   },
   priceHistory: {
     days: 30, // spec: sparkline of the last 30 days

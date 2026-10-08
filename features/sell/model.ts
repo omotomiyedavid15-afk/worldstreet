@@ -56,7 +56,9 @@ export type Draft = ListingFields & { id: string; created_at: number; updated_at
 export type ListingState = "live" | "in_review" | "paused" | "ended" | "removed";
 /** One logged edit to a live listing (R-112). */
 export type Revision = { at: number; field: "price" | "qty"; from: number; to: number };
-export type SellerListing = ListingFields & { id: string; created_at: number; published_at: number; updated_at: number; status: ListingState; review_reason: string; revisions: Revision[] };
+/** Promoted listing (S3): the ad rate is charged at release, only if it sells while promoted. */
+export type Promotion = { rate_percent: number; since: number };
+export type SellerListing = ListingFields & { id: string; created_at: number; published_at: number; updated_at: number; status: ListingState; review_reason: string; revisions: Revision[]; promotion: Promotion | null };
 export type SellerAccount = { profile: Profile | null; kyc: Kyc; payout: Payout | null; agreed_at: number | null; drafts: Draft[]; listings: SellerListing[]; orders: SellerOrder[]; withdrawals: Withdrawal[]; withdraw_hold_until: number | null; /** Set by Trust & Safety (A1, A3). */ suspended_reason: string | null; payout_hold_reason: string | null };
 
 export const initialAccount: SellerAccount = {
@@ -268,7 +270,7 @@ export function publish(account: SellerAccount, draftId: string, guidance: Parti
   if (blocked.length) fail(blocked[0].message);
   const flagged = AUTHENTICATE.exec(`${draft.title} ${draft.description}`);
   const fields: ListingFields = { photos: draft.photos, category_id: draft.category_id, specifics: draft.specifics, condition: draft.condition, flaws: draft.flaws, serial: draft.serial, title: draft.title.trim(), description: draft.description.trim(), price_minor: draft.price_minor, qty: draft.qty, offers_enabled: draft.offers_enabled, auto_accept_minor: draft.offers_enabled ? draft.auto_accept_minor : null, auto_decline_minor: draft.offers_enabled ? draft.auto_decline_minor : null, delivery: draft.delivery, package: draft.package, return_days: draft.return_days, return_payer: draft.return_payer };
-  const listing: SellerListing = { ...fields, id: draft.id, created_at: draft.created_at, published_at: now, updated_at: now, revisions: [], status: flagged ? "in_review" : "live", review_reason: flagged ? `${flagged[0]} items get an authenticity check before going live, usually within 24 hours.` : "" };
+  const listing: SellerListing = { ...fields, id: draft.id, created_at: draft.created_at, published_at: now, updated_at: now, revisions: [], promotion: null, status: flagged ? "in_review" : "live", review_reason: flagged ? `${flagged[0]} items get an authenticity check before going live, usually within 24 hours.` : "" };
   return { ...account, drafts: account.drafts.filter((item) => item.id !== draftId), listings: [listing, ...account.listings.filter((item) => item.id !== draftId)] };
 }
 
@@ -320,10 +322,11 @@ export function parseAccount(raw: unknown): SellerAccount {
   const okPayout = payout === null || (isRecord(payout) && (payout.kind === "wallet" || (payout.kind === "bank" && isText(payout.bank, 40) && isText(payout.account_last4, 4) && isText(payout.account_name, 120))));
   const okDrafts = raw.drafts.every((d) => isRecord(d) && (d.admin_note === undefined || isText(d.admin_note, 600)) && isText(d.id, 40) && isTime(d.created_at) && isTime(d.updated_at) && Number.isSafeInteger(d.step) && Number.isSafeInteger(d.max_step) && validFields(d));
   // Accounts saved before Phase 7b lack these fields; they start empty.
-  for (const l of raw.listings) if (isRecord(l)) { l.updated_at ??= l.published_at; l.revisions ??= []; }
+  for (const l of raw.listings) if (isRecord(l)) { l.updated_at ??= l.published_at; l.revisions ??= []; l.promotion ??= null; }
+  for (const o of Array.isArray(raw.orders) ? raw.orders : []) if (isRecord(o)) o.promotion_rate ??= null;
   raw.orders ??= []; raw.withdrawals ??= []; raw.withdraw_hold_until ??= null; raw.suspended_reason ??= null; raw.payout_hold_reason ??= null;
   const okListings = raw.listings.every((l) => isRecord(l) && isText(l.id, 40) && isTime(l.created_at) && isTime(l.published_at) && isTime(l.updated_at) && ["live", "in_review", "paused", "ended", "removed"].includes(l.status as string) && isText(l.review_reason, 400) && validFields(l)
-    && Array.isArray(l.revisions) && l.revisions.every((r) => isRecord(r) && isTime(r.at) && (r.field === "price" || r.field === "qty") && Number.isSafeInteger(r.from) && Number.isSafeInteger(r.to)));
+    && (l.promotion === null || (isRecord(l.promotion) && Number.isSafeInteger(l.promotion.rate_percent) && isTime(l.promotion.since))) && Array.isArray(l.revisions) && l.revisions.every((r) => isRecord(r) && isTime(r.at) && (r.field === "price" || r.field === "qty") && Number.isSafeInteger(r.from) && Number.isSafeInteger(r.to)));
   const okOrders = Array.isArray(raw.orders) && raw.orders.every(validOrder) && Array.isArray(raw.withdrawals) && raw.withdrawals.every(validWithdrawal) && (raw.withdraw_hold_until === null || isTime(raw.withdraw_hold_until)) && (raw.suspended_reason === null || isText(raw.suspended_reason, 400)) && (raw.payout_hold_reason === null || isText(raw.payout_hold_reason, 400));
   if (!okProfile || !okKyc || !okPayout || !okDrafts || !okListings || !okOrders || !(raw.agreed_at === null || isTime(raw.agreed_at))) throw new Error("Invalid seller account");
   return raw as SellerAccount;

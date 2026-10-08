@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
-import { ArrowUpGraphIncreaseIcon, CheckCircleIcon, GridIcon, HandshakeAgreementDealIcon, PackageIcon, PencilEditIcon, PlusCircleIcon, StoreIcon, TagIcon, TrashIcon, WalletIcon, WarningIcon } from "@/components/icons";
+import { ArrowUpGraphIncreaseIcon, CheckCircleIcon, DialIcon, GridIcon, HandshakeAgreementDealIcon, PackageIcon, PencilEditIcon, PlusCircleIcon, StoreIcon, TagIcon, TrashIcon, WalletIcon, WarningIcon } from "@/components/icons";
 import { buttonClass } from "@/components/ui";
 import { rules } from "@/config/marketplace-rules";
 import { requireAuth, useSession } from "@/features/auth/session";
@@ -17,6 +17,7 @@ const NAV = [
   { href: "/offers?as=seller", label: "Offers", icon: HandshakeAgreementDealIcon },
   { href: "/vendor/payouts", label: "Payouts", icon: WalletIcon },
   { href: "/vendor/performance", label: "Performance", icon: ArrowUpGraphIncreaseIcon },
+  ...(rules.flags.analytics ? [{ href: "/vendor/analytics", label: "Analytics", icon: DialIcon }] : []),
   { href: "/sell/new", label: "Create listing", icon: PlusCircleIcon },
   { href: "/sell/start", label: "Shop setup", icon: StoreIcon },
 ];

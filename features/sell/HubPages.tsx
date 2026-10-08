@@ -6,7 +6,8 @@ import { CheckCircleIcon, DeliveryTruckIcon, DotsVerticalIcon, PackageIcon, Stor
 import { buttonClass, Menu, tabPanelProps, Tabs, toast } from "@/components/ui";
 import { rules } from "@/config/marketplace-rules";
 import { formatCurrency, kobo, toMinor } from "@/lib/money";
-import { bulkPrice, cancelOrder, CANCEL_REASONS, confirmOrder, COURIERS, DEMO_OTP, dispatchOrder, editListing, endListing, ledgerRows, performance, reconcilePayouts, relist, sellSimilar, simulateBuyerConfirm, simulateDelivery, simulatePurchase, wallet, withdraw, type SellerOrder } from "./hub";
+import { COLUMNS, exportCsv, importCsv, TEMPLATE, type RowReport } from "./csv";
+import { analytics, promote, promotionFee, stopPromotion, bulkPrice, cancelOrder, CANCEL_REASONS, confirmOrder, COURIERS, DEMO_OTP, dispatchOrder, editListing, endListing, ledgerRows, performance, reconcilePayouts, relist, sellSimilar, simulateBuyerConfirm, simulateDelivery, simulatePurchase, wallet, withdraw, type SellerOrder } from "./hub";
 import { DELIVERY_METHODS, type SellerAccount, type SellerListing } from "./model";
 import { updateSeller, useHydrated, useSeller } from "./store";
 
@@ -62,6 +63,7 @@ function Listings({ account }: { account: SellerAccount }) {
   const [selected, setSelected] = useState<string[]>([]);
   const [percent, setPercent] = useState("");
   const [ending, setEnding] = useState<string[] | null>(null);
+  const [promoting, setPromoting] = useState<string[] | null>(null);
   const { run, alert } = useRun();
   const inListingTab = (l: SellerListing, t: ListingTab) => t === "active" ? l.status === "live" || l.status === "paused" : t === "ended" ? l.status === "ended" || l.status === "removed" : l.status === t;
   const rows = account.listings.filter((l) => inListingTab(l, tab));
@@ -72,7 +74,10 @@ function Listings({ account }: { account: SellerAccount }) {
     if (run((a) => editListing(a, id, patch, Date.now()))) toast({ message: `Saved “${before.title}”`, action: { label: "Undo", onClick: () => run((a) => editListing(a, id, { price_minor: before.price_minor ?? undefined, qty: before.qty }, Date.now())) } });
   };
   return <div className="ws-hub">
-    <header className="ws-flow__head"><div><p className="ws-sell-eyebrow">Seller Hub</p><h1>Listings</h1></div><Link className={buttonClass({})} href="/sell/new">Create listing</Link></header>
+    <header className="ws-flow__head"><div><p className="ws-sell-eyebrow">Seller Hub</p><h1>Listings</h1></div><div className="ws-flow__actions">
+      {rules.flags.bulkImport && <><Link className={buttonClass({ variant: "ghost", size: "sm" })} href="/vendor/import">Import CSV</Link>
+        <button type="button" className={buttonClass({ variant: "ghost", size: "sm" })} disabled={!account.listings.length} onClick={() => download("worldstore-listings.csv", exportCsv(account.listings))}>Export CSV</button></>}
+      <Link className={buttonClass({})} href="/sell/new">Create listing</Link></div></header>
     {alert}
     <Tabs aria-label="Listing status" idBase="listings" items={LISTING_TABS.map((t) => ({ ...t, label: `${t.label} (${account.listings.filter((l) => inListingTab(l, t.value)).length})` }))} value={tab} onChange={(v) => { setTab(v); setSelected([]); }} />
     <div {...tabPanelProps("listings", tab)}>
@@ -81,6 +86,7 @@ function Listings({ account }: { account: SellerAccount }) {
         <form className="ws-bulk__price" onSubmit={(e) => { e.preventDefault(); if (run((a) => bulkPrice(a, visible, Number(percent), Date.now()))) { toast({ message: `Updated ${visible.length} price${visible.length > 1 ? "s" : ""}` }); setPercent(""); } }}>
           <label htmlFor="bulk-pct">Change price by %</label><input id="bulk-pct" className="ws-input" inputMode="decimal" value={percent} onChange={(e) => setPercent(e.target.value)} placeholder="−10" /><button type="submit" className={buttonClass({ size: "sm", variant: "ghost" })}>Apply</button>
         </form>
+        {rules.flags.promotions && tab === "active" && <button type="button" className={buttonClass({ size: "sm", variant: "ghost" })} onClick={() => setPromoting(visible)}>Promote</button>}
         {tab !== "ended" && <button type="button" className={buttonClass({ size: "sm", variant: "ghost" })} onClick={() => setEnding(visible)}>End listings</button>}
         <button type="button" className={buttonClass({ size: "sm", variant: "quiet" })} onClick={() => setSelected([])}>Clear</button>
       </div>}
@@ -91,16 +97,18 @@ function Listings({ account }: { account: SellerAccount }) {
           <td className="ws-table__item"><Thumb src={l.photos[0]?.url ?? ""} /><span><strong>{l.title}</strong>{l.status === "removed" && <small className="ws-table__note">{l.review_reason}</small>}{l.revisions.length > 0 && <small>{l.revisions.length} edit{l.revisions.length > 1 ? "s" : ""} logged</small>}</span></td>
           <td data-label="Price"><InlineEdit label={`Price of ${l.title}`} value={l.price_minor ?? 0} money disabled={l.status === "ended" || l.status === "removed"} onSave={(v) => change(l.id, { price_minor: v })} /></td>
           <td data-label="Qty"><InlineEdit label={`Quantity of ${l.title}`} value={l.qty} disabled={l.status === "ended" || l.status === "removed"} onSave={(v) => change(l.id, { qty: v })} /></td>
-          <td data-label="Status"><span className="ws-hub-status" data-status={l.status}>{STATUS_LABEL[l.status]}</span></td>
+          <td data-label="Status"><span className="ws-hub-status" data-status={l.status}>{STATUS_LABEL[l.status]}</span>{l.promotion && <span className="ws-hub-status" data-status="promoted">Promoted {l.promotion.rate_percent}%</span>}</td>
           <td data-label="Updated">{when.format(l.updated_at)}</td>
           <td className="ws-table__actions"><Menu label={`Actions for ${l.title}`} iconOnly variant="quiet" size="sm" sheetTitle={l.title} trigger={<DotsVerticalIcon />} items={[
             ...(l.status === "removed" ? [] : l.status === "ended" ? [{ label: "Relist", onSelect: () => run((a) => relist(a, l.id, Date.now())) }] : [{ label: "End listing", danger: true, onSelect: () => setEnding([l.id]) }]),
+            ...(rules.flags.promotions && (l.status === "live" || l.status === "paused") ? [l.promotion ? { label: "Stop promoting", onSelect: () => run((a) => stopPromotion(a, [l.id], Date.now())) } : { label: "Promote…", onSelect: () => setPromoting([l.id]) }] : []),
             { label: "Sell similar", onSelect: () => { const id = uid("d"); if (run((a) => sellSimilar(a, l.id, id, Date.now()))) router.push(`/sell/${id}`); } },
             ...(l.status === "live" ? ["separator" as const, { label: "Demo: simulate a buyer purchase", onSelect: () => { if (run((a) => simulatePurchase(a, l.id, `WS-${String(Date.now()).slice(-6)}`, Date.now()))) toast({ message: "New order: a buyer paid into escrow", action: { label: "View orders", onClick: () => router.push("/vendor/orders") } }); } }] : []),
           ]} /></td>
         </tr>)}</tbody>
       </table> : <section className="ws-order-empty"><PackageIcon /><h2>No {LISTING_TABS.find((t) => t.value === tab)!.label.toLowerCase()} listings</h2>{tab === "active" && <Link className={buttonClass({ variant: "ghost" })} href="/sell/new">Create a listing</Link>}</section>}
     </div>
+    {promoting && <PromoteDialog account={account} ids={promoting} close={() => { setPromoting(null); setSelected([]); }} />}
     {ending && <Dialog title={ending.length > 1 ? `End ${ending.length} listings?` : "End this listing?"} close={() => setEnding(null)}>
       <p>Buyers won’t see {ending.length > 1 ? "them" : "it"} any more. Open offers are declined automatically. You can relist from the Ended tab.</p>
       <div className="ws-order-actions"><button type="button" className={buttonClass({ variant: "danger" })} onClick={() => run((a) => ending.reduce((acc, id) => endListing(acc, id, Date.now()), a), () => { setEnding(null); setSelected([]); })}>End {ending.length > 1 ? "listings" : "listing"}</button><button type="button" className={buttonClass({ variant: "ghost" })} onClick={() => setEnding(null)}>Keep</button></div>
@@ -301,5 +309,106 @@ function Performance({ account }: { account: SellerAccount }) {
       </li>;
     })}</ul>
     <p className="ws-form-field__hint">Average reply time and ratings appear once buyers message and review you. Anything that affects your level is explained here and can be appealed.</p>
+  </div>;
+}
+
+/** A file the browser saves, e.g. the CSV export. */
+function download(name: string, text: string) {
+  const url = URL.createObjectURL(new Blob(["\uFEFF", text], { type: "text/csv;charset=utf-8" }));
+  const a = Object.assign(document.createElement("a"), { href: url, download: name });
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function PromoteDialog({ account, ids, close }: { account: SellerAccount; ids: string[]; close: () => void }) {
+  const { minRatePercent: min, maxRatePercent: max, suggestedRatePercent } = rules.promotions;
+  const [rate, setRate] = useState(String(account.listings.find((l) => l.id === ids[0])?.promotion?.rate_percent ?? suggestedRatePercent));
+  const { run, alert } = useRun();
+  const listing = ids.length === 1 ? account.listings.find((l) => l.id === ids[0]) : undefined;
+  const r = Number(rate);
+  return <Dialog title={ids.length > 1 ? `Promote ${ids.length} listings` : `Promote “${listing?.title}”`} close={close}>
+    <p>Promoted listings rank higher in search, marked Sponsored. You pay the ad rate only if the item sells while promoted, taken when the buyer’s payment is released.</p>
+    <p className="ws-form-field__hint">Demo: ranking takes effect once your listings are served from WorldStore’s servers; the fee already applies to demo sales.</p>
+    {alert}
+    <div className="ws-form-field"><label htmlFor="ad-rate">Ad rate (%)</label><p id="ad-rate-hint" className="ws-form-field__hint">{min}–{max}%. Higher rates rank higher. Suggested: {suggestedRatePercent}%.</p>
+      <input id="ad-rate" className="ws-input" type="number" min={min} max={max} step={1} value={rate} aria-describedby="ad-rate-hint" onChange={(e) => setRate(e.target.value)} /></div>
+    {listing?.price_minor && Number.isInteger(r) && r >= min && r <= max && <p className="ws-sell-tip">If it sells at {money(listing.price_minor)}, the ad fee is {money(promotionFee(listing.price_minor, r))}.</p>}
+    <div className="ws-order-actions"><button type="button" className={buttonClass({})} onClick={() => run((a) => promote(a, ids, Number(rate), Date.now()), () => { toast({ message: ids.length > 1 ? `Promoting ${ids.length} listings at ${rate}%` : `Promoting at ${rate}%` }); close(); })}>Promote</button><button type="button" className={buttonClass({ variant: "ghost" })} onClick={close}>Cancel</button></div>
+  </Dialog>;
+}
+
+/* ---------- BulkImport (R-122) ---------- */
+
+export function ImportPage() {
+  return <Gate title="Import listings">{() => <Import />}</Gate>;
+}
+
+function Import() {
+  const [report, setReport] = useState<RowReport[] | null>(null);
+  const [name, setName] = useState("");
+  const { run, alert, setError } = useRun();
+  const load = async (file: File | undefined) => {
+    if (!file) return;
+    setReport(null); setName(file.name);
+    if (!/\.csv$/i.test(file.name) && file.type !== "text/csv") return setError("Choose a .csv file. In a spreadsheet use File › Download › CSV.");
+    const text = await file.text();
+    let result: RowReport[] = [];
+    if (run((a) => { const out = importCsv(a, text, Date.now(), (n) => uid(`i${n}`)); result = out.report; return out.account; })) setReport(result);
+  };
+  const ok = report?.filter((r) => r.draft_id) ?? [];
+  const bad = report?.filter((r) => !r.draft_id) ?? [];
+  return <>
+    <header className="ws-flow__head"><div><p className="ws-sell-eyebrow">Seller Hub · Listings</p><h1>Import listings</h1><p>Add up to {rules.bulkImport.maxRows} items from a spreadsheet. Each valid row becomes a draft; add photos, then publish.</p></div></header>
+    <ol className="ws-import-steps">
+      <li><strong>Download the template</strong><span>Columns: {COLUMNS.join(", ")}. Specifics are Key=Value pairs separated by “;”.</span><button type="button" className={buttonClass({ variant: "ghost", size: "sm" })} onClick={() => download("worldstore-import-template.csv", TEMPLATE)}>Download template</button></li>
+      <li><strong>Fill it in and save as CSV</strong><span>One item per row. Prices in whole naira.</span></li>
+      <li><strong>Upload</strong><label className="ws-dropzone ws-import-drop"><span>{name || "Choose a CSV file"}</span><input type="file" accept=".csv,text/csv" className="cx-sr-only" onChange={(e) => { void load(e.target.files?.[0]); e.target.value = ""; }} /></label></li>
+    </ol>
+    {alert}
+    {report && <section className="ws-sell-card" aria-labelledby="import-result" role="status"><h2 id="import-result">{ok.length} draft{ok.length === 1 ? "" : "s"} created{bad.length ? `, ${bad.length} row${bad.length === 1 ? "" : "s"} need fixing` : ""}</h2>
+      {bad.length > 0 && <ul className="ws-import-errors">{bad.map((r) => <li key={r.row}><strong>Row {r.row}{r.title ? `: ${r.title}` : ""}</strong><ul>{r.errors.map((e) => <li key={e}>{e}</li>)}</ul></li>)}</ul>}
+      {bad.length > 0 && <p className="ws-form-field__hint">Fix these rows and upload just them again. Rows that worked were already saved.</p>}
+      {ok.length > 0 && <Link className={buttonClass({})} href="/vendor">See drafts in Seller Hub</Link>}
+    </section>}
+  </>;
+}
+
+/* ---------- AnalyticsDashboard ---------- */
+
+export function AnalyticsPage() {
+  return <Gate title="Analytics">{(account) => <Analytics account={account} />}</Gate>;
+}
+
+const dayLabel = new Intl.DateTimeFormat("en-NG", { day: "numeric", month: "short", timeZone: "UTC" });
+function Analytics({ account }: { account: SellerAccount }) {
+  const [now] = useState(() => Date.now());
+  const a = analytics(account, now);
+  const max = Math.max(1, ...a.daily.map((d) => d.gross_minor));
+  const [hover, setHover] = useState<number | null>(null);
+  const tiles: [string, string, string][] = [
+    ["Sales", money(a.gross_minor), `${a.orders} order${a.orders === 1 ? "" : "s"}${a.cancelled ? `, ${a.cancelled} cancelled` : ""}`],
+    ["Earned", money(a.earned_minor), "Released to you after fees"],
+    ["Average order", a.orders ? money(a.average_minor) : "—", "Item plus delivery"],
+    ["Fees", money(a.fees_minor + a.ad_fees_minor), `${money(a.ad_fees_minor)} of it on promotions${a.promoted_orders ? ` (${a.promoted_orders} promoted sale${a.promoted_orders === 1 ? "" : "s"})` : ""}`],
+  ];
+  const shown = hover === null ? null : a.daily[hover];
+  return <div className="ws-hub">
+    <header className="ws-flow__head"><div><p className="ws-sell-eyebrow">Seller Hub · last {a.days} days</p><h1>Analytics</h1></div></header>
+    <ul className="ws-balances ws-admin-tiles">{tiles.map(([label, value, sub]) => <li key={label} className="ws-balance"><span>{label}</span><strong>{value}</strong><small>{sub}</small></li>)}</ul>
+    <section className="ws-sell-card" aria-labelledby="daily"><h2 id="daily">Daily sales</h2>
+      <p className="ws-chart__readout" aria-live="polite">{shown ? `${dayLabel.format(Date.parse(shown.day))}: ${money(shown.gross_minor)} · ${shown.orders} order${shown.orders === 1 ? "" : "s"}` : `Peak day ${a.gross_minor ? money(max) : "—"}. Hover or focus a bar for the day.`}</p>
+      <div className="ws-chart" role="group" aria-label={`Daily sales, last ${a.days} days`} onMouseLeave={() => setHover(null)}>
+        {a.daily.map((d, i) => <button key={d.day} type="button" className="ws-chart__bar" aria-label={`${dayLabel.format(Date.parse(d.day))}: ${money(d.gross_minor)}, ${d.orders} order${d.orders === 1 ? "" : "s"}`} onMouseEnter={() => setHover(i)} onFocus={() => setHover(i)} onBlur={() => setHover(null)}>
+          <span style={{ blockSize: `${d.gross_minor / max * 100}%` }} data-empty={!d.gross_minor || undefined} />
+        </button>)}
+      </div>
+      <div className="ws-chart__axis" aria-hidden="true"><span>{dayLabel.format(Date.parse(a.daily[0].day))}</span><span>Today</span></div>
+      <details className="ws-chart__table"><summary>Show as a table</summary><table className="ws-table ws-table--ledger"><thead><tr><th scope="col">Day</th><th scope="col">Orders</th><th scope="col">Sales</th></tr></thead>
+        <tbody>{a.daily.filter((d) => d.orders).map((d) => <tr key={d.day}><td data-label="Day">{dayLabel.format(Date.parse(d.day))}</td><td data-label="Orders" className="ws-num">{d.orders}</td><td data-label="Sales" className="ws-num">{money(d.gross_minor)}</td></tr>)}</tbody></table></details>
+    </section>
+    <section className="ws-sell-card" aria-labelledby="top"><h2 id="top">Top listings</h2>
+      {a.top.length ? <ol className="ws-hub-rows">{a.top.map((t) => <li key={t.title} className="ws-hub-rows--text"><span className="ws-hub-rows__main"><strong>{t.title}</strong><small>{t.units} sold{t.promoted ? " · promoted" : ""}</small></span><span className="ws-num">{money(t.gross_minor)}</span></li>)}</ol> : <p className="ws-form-field__hint">No sales in the last {a.days} days.</p>}
+    </section>
+    <p className="ws-form-field__hint">Views, watchers and search impressions appear once listings are served from WorldStore’s servers and visits are counted there.</p>
   </div>;
 }

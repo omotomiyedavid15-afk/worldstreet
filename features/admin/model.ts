@@ -86,7 +86,7 @@ export function moderateListing(seller: SellerAccount, id: string, action: "appr
   if (action === "approve") return { ...seller, listings: seller.listings.map((l) => l.id === id ? { ...l, status: "live", review_reason: "", updated_at: now } : l) };
   if (action === "remove") {
     const p = policy(detail);
-    return { ...seller, listings: seller.listings.map((l) => l.id === id ? { ...l, status: "removed", review_reason: `Removed for ${p.code}: ${p.label}. You can appeal within ${rules.disputes.appealDays} days.`, updated_at: now } : l) };
+    return { ...seller, listings: seller.listings.map((l) => l.id === id ? { ...l, status: "removed", promotion: null, review_reason: `Removed for ${p.code}: ${p.label}. You can appeal within ${rules.disputes.appealDays} days.`, updated_at: now } : l) };
   }
   if (detail.trim().length < 10) fail("Tell the seller what to change (at least 10 characters).");
   const copied = sellSimilar(seller, id, id, now);
@@ -95,7 +95,7 @@ export function moderateListing(seller: SellerAccount, id: string, action: "appr
 
 export function suspendSeller(seller: SellerAccount, reason: string): SellerAccount {
   if (reason.trim().length < 10) fail("Give the reason the seller will see (at least 10 characters).");
-  return { ...seller, suspended_reason: reason.trim(), listings: seller.listings.map((l) => l.status === "live" || l.status === "paused" ? { ...l, status: "ended" } : l) };
+  return { ...seller, suspended_reason: reason.trim(), listings: seller.listings.map((l) => l.status === "live" || l.status === "paused" ? { ...l, status: "ended", promotion: null } : l) };
 }
 
 export function resolveReport(state: AdminState, id: string, status: "dismissed" | "removed"): AdminState {

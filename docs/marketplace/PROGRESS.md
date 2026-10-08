@@ -79,7 +79,7 @@ _Phases 0–2 implemented; Phase 3 includes P3a–P3d (listing detail, seller/re
 - **Alerts** (B4 step 4): opt-in switches on Saved: "Alert me if the price drops" for live items, "Alert me when it’s back" for unavailable ones, and "New matches" per saved search. A watcher checks when a tab opens and every 5 minutes, then posts to the existing notifications; notice ids carry the new value, so a change notifies once. Production evaluates alerts on the server and sends push/email (R-012).
 - `/notifications` replaces its placeholder with the real list (phones have no header bell), sharing the bell's list.
 - Already in place: WhatsApp sharing (ShareSheet, Phase 3).
-- Deferred to 9b/9c: promotions, CSV bulk import (R-122), seller analytics, Q&A (needs real seller accounts to answer), coupons, referrals, TrackingMap (needs a map provider), auctions (needs a product decision against the P2P model).
+- Next, 9b: promotions, CSV bulk import (R-122) and seller analytics. Waiting: Q&A (needs real seller accounts to answer) and auctions (revisited with payment requests). Removed by the owner (8 Oct): coupons, referrals, TrackingMap.
 - Verification: 6 unit tests (price-drop once, back in stock, new matches, malformed alerts, sparkline series and window) and 3 Playwright scenarios on all three viewports (compare from search to table and clear, alert notice exactly once across reloads, sparkline on the listing).
 
 ## Deviations from the docs and the design system
@@ -238,7 +238,7 @@ _Phases 0–2 implemented; Phase 3 includes P3a–P3d (listing detail, seller/re
 
 ## B. Home
 - [x] HeroCarousel w/ pause + counter
-- [ ] PromoCouponCard
+- [ ] ~~PromoCouponCard~~ (removed from scope, 8 Oct)
 - [x] TrustStrip
 - [x] CategoryTiles
 - [x] ProductRail
@@ -363,7 +363,7 @@ _Phases 0–2 implemented; Phase 3 includes P3a–P3d (listing detail, seller/re
 - [ ] CartLineItem
 - [ ] SaveForLaterList
 - [ ] CartPriceChangeBanner
-- [ ] CouponField
+- [ ] ~~CouponField~~ (removed from scope, 8 Oct)
 - [ ] OrderSummary
 - [ ] EmptyCart
 - [ ] CartRecommendations
@@ -400,7 +400,7 @@ _Phases 0–2 implemented; Phase 3 includes P3a–P3d (listing detail, seller/re
 - [x] InspectionCountdown
 - [x] ConfirmReleaseSheet
 - [x] DeliveryCard (PIN/QR)
-- [ ] TrackingMap
+- [ ] ~~TrackingMap~~ (removed from scope, 8 Oct)
 - [x] ReceiptView
 - [x] ReviewForm
 - [x] ReportProblemWizard

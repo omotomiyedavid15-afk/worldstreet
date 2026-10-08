@@ -27,6 +27,8 @@ export type SellerOrder = {
   status: OrderStatus; escrow_status: EscrowStatus; created_at: number; confirm_due_at: number; dispatch_due_at: number;
   dispatched_at: number | null; dispatch: Dispatch | null; delivered_at: number | null; released_at: number | null;
   cancel_reason: string; seller_fault: boolean; events: { at: number; label: string }[]; ledger: Ledger;
+  /** Ad rate if the listing was promoted when it sold (attributed to the promotion in this demo). */
+  promotion_rate: number | null;
 };
 export type Withdrawal = { id: string; amount_minor: number; at: number; status: "paid" | "failed"; reason: string; bank: string };
 
@@ -79,7 +81,7 @@ export function endListing(account: SellerAccount, id: string, now: number) {
   const listing = account.listings.find((l) => l.id === id) ?? fail("Listing not found.");
   if (listing.status === "ended" || listing.status === "removed") return account;
   if (account.orders.some((o) => o.listing_id === id && ["paid", "preparing"].includes(o.status))) fail(`“${listing.title}” has an order to ship. Ship or cancel it first.`);
-  return withListing(account, id, (l) => ({ ...l, status: "ended", updated_at: now }));
+  return withListing(account, id, (l) => ({ ...l, status: "ended", promotion: null, updated_at: now }));
 }
 
 /** Relisting restarts the 30-day run (R-115); an out-of-stock item comes back paused. */
@@ -95,6 +97,22 @@ export function sellSimilar(account: SellerAccount, id: string, draftId: string,
   const { photos, category_id, specifics, condition, flaws, title, description, price_minor, qty, offers_enabled, auto_accept_minor, auto_decline_minor, delivery, package: size, return_days, return_payer } = l;
   const draft = { ...newDraft(draftId, now), photos, category_id, specifics, condition, flaws, serial: "", title, description, price_minor, qty: Math.max(1, qty), offers_enabled, auto_accept_minor, auto_decline_minor, delivery, package: size, return_days, return_payer };
   return { ...account, drafts: [...account.drafts, draft] };
+}
+
+/** Promoted listings: ad rate in whole percent within the configured band. */
+export const promotionFee = (itemMinor: number, ratePercent: number) => Math.floor(itemMinor * ratePercent / 100);
+
+export function promote(account: SellerAccount, ids: readonly string[], ratePercent: number, now: number): SellerAccount {
+  const { minRatePercent: min, maxRatePercent: max } = rules.promotions;
+  if (!Number.isSafeInteger(ratePercent) || ratePercent < min || ratePercent > max) fail(`Choose an ad rate from ${min}% to ${max}%.`);
+  if (account.suspended_reason) fail("A suspended shop can’t promote listings.");
+  const eligible = ids.filter((id) => account.listings.some((l) => l.id === id && (l.status === "live" || l.status === "paused")));
+  if (!eligible.length) fail("Only live listings can be promoted.");
+  return { ...account, listings: account.listings.map((l) => eligible.includes(l.id) ? { ...l, promotion: { rate_percent: ratePercent, since: l.promotion?.since ?? now }, updated_at: now } : l) };
+}
+
+export function stopPromotion(account: SellerAccount, ids: readonly string[], now: number): SellerAccount {
+  return { ...account, listings: account.listings.map((l) => ids.includes(l.id) && l.promotion ? { ...l, promotion: null, updated_at: now } : l) };
 }
 
 /* ---------- S5: orders ---------- */
@@ -114,7 +132,7 @@ export function simulatePurchase(account: SellerAccount, listingId: string, id: 
     qty: 1, unit_minor: listing.price_minor, delivery_method: choice.method, delivery_minor: choice.fee_minor, total_minor: total,
     status: nextOrder("payment_pending", "pay"), escrow_status: nextEscrow("awaiting_payment", "capture"), created_at: now,
     confirm_due_at: now + rules.orders.sellerConfirmHours * HOUR, dispatch_due_at: now + handlingHours * HOUR,
-    dispatched_at: null, dispatch: null, delivered_at: null, released_at: null, cancel_reason: "", seller_fault: false,
+    dispatched_at: null, dispatch: null, delivered_at: null, released_at: null, cancel_reason: "", seller_fault: false, promotion_rate: listing.promotion?.rate_percent ?? null,
     events: [{ at: now, label: "Buyer paid · money held in escrow" }], ledger: captureToEscrow(createLedger(id, total), `${id}:capture`, now),
   };
   const qty = listing.qty - 1;
@@ -158,7 +176,9 @@ export function simulateDelivery(account: SellerAccount, id: string, now: number
 export function simulateBuyerConfirm(account: SellerAccount, id: string, now: number) {
   const o = find(account, id);
   const status = nextOrder(o.status, "confirm");
-  const ledger = releaseToSeller(o.ledger, o.unit_minor * o.qty, o.delivery_minor, `${o.id}:release`, now);
+  let ledger = releaseToSeller(o.ledger, o.unit_minor * o.qty, o.delivery_minor, `${o.id}:release`, now);
+  const adFee = o.promotion_rate ? promotionFee(o.unit_minor * o.qty, o.promotion_rate) : 0;
+  if (adFee) ledger = post(ledger, { idempotency_key: `${o.id}:promotion`, debit_account: "seller_pending", credit_account: "platform_revenue", amount_minor: adFee, reason_code: "promotion_fee", actor: "system", created_at: now });
   return withOrder(account, { ...o, status, escrow_status: nextEscrow(nextEscrow(o.escrow_status, "eligible"), "release"), ledger, released_at: now, events: [...o.events, { at: now, label: "Buyer confirmed · payment released to you" }] });
 }
 
@@ -287,7 +307,7 @@ export function validOrder(o: unknown) {
     && Number.isSafeInteger(o.qty) && (o.qty as number) > 0 && isMoney(o.unit_minor) && isMoney(o.delivery_minor) && o.total_minor === (o.unit_minor as number) * (o.qty as number) + (o.delivery_minor as number)
     && ["rider", "pickup_station", "meet_up", "courier"].includes(o.delivery_method as string) && ORDER_STATUSES.includes(o.status as OrderStatus) && ESCROW_STATUSES.includes(o.escrow_status as EscrowStatus)
     && isTime(o.created_at) && isTime(o.confirm_due_at) && isTime(o.dispatch_due_at) && timeOrNull(o.dispatched_at) && timeOrNull(o.delivered_at) && timeOrNull(o.released_at)
-    && validDispatch(o.dispatch) && isText(o.cancel_reason, 80) && typeof o.seller_fault === "boolean" && Array.isArray(o.events) && o.events.every((e) => isRecord(e) && isTime(e.at) && isText(e.label, 200))
+    && validDispatch(o.dispatch) && (o.promotion_rate === null || (Number.isSafeInteger(o.promotion_rate) && (o.promotion_rate as number) > 0 && (o.promotion_rate as number) <= 100)) && isText(o.cancel_reason, 80) && typeof o.seller_fault === "boolean" && Array.isArray(o.events) && o.events.every((e) => isRecord(e) && isTime(e.at) && isText(e.label, 200))
     && o.ledger.order_id === o.id && o.ledger.captured_minor === o.total_minor;
   if (!shape) return false;
   try { return assertLedgerInvariant(o.ledger as Ledger); } catch { return false; }
@@ -295,4 +315,41 @@ export function validOrder(o: unknown) {
 
 export function validWithdrawal(w: unknown) {
   return isRecord(w) && isText(w.id, 60) && isMoney(w.amount_minor) && isTime(w.at) && (w.status === "paid" || w.status === "failed") && isText(w.reason, 200) && isText(w.bank, 60);
+}
+
+/* ---------- AnalyticsDashboard ---------- */
+
+const lagosDay = new Intl.DateTimeFormat("en-CA", { timeZone: rules.time.zone }); // YYYY-MM-DD
+
+/** Sales figures from this shop's own orders and ledgers. Views and impressions need event tracking, so they aren't shown. */
+export function analytics(account: SellerAccount, now: number, days = 30) {
+  const from = now - days * DAY;
+  const recent = account.orders.filter((o) => o.created_at >= from && o.created_at <= now);
+  const sold = recent.filter((o) => !["cancelled", "refunded"].includes(o.status));
+  const sum = (orders: readonly SellerOrder[], f: (o: SellerOrder) => number) => orders.reduce((t, o) => t + f(o), 0);
+  const posted = (o: SellerOrder, code: string) => o.ledger.postings.filter((p) => p.reason_code === code).reduce((t, p) => t + p.amount_minor, 0);
+  const gross = sum(sold, (o) => o.total_minor);
+  const daily = Array.from({ length: days }, (_, i) => {
+    const day = lagosDay.format(now - (days - 1 - i) * DAY);
+    const onDay = sold.filter((o) => lagosDay.format(o.created_at) === day);
+    return { day, orders: onDay.length, gross_minor: sum(onDay, (o) => o.total_minor) };
+  });
+  const byListing = new Map<string, { title: string; units: number; gross_minor: number; promoted: boolean }>();
+  for (const o of sold) {
+    const row = byListing.get(o.listing_id) ?? { title: o.title, units: 0, gross_minor: 0, promoted: false };
+    byListing.set(o.listing_id, { ...row, units: row.units + o.qty, gross_minor: row.gross_minor + o.total_minor, promoted: row.promoted || o.promotion_rate !== null });
+  }
+  return {
+    days,
+    gross_minor: gross,
+    orders: sold.length,
+    average_minor: sold.length ? Math.round(gross / sold.length) : 0,
+    earned_minor: sum(recent, (o) => { const b = balances(o.ledger); return b.seller_pending + b.seller_available + b.seller_withdrawn; }),
+    fees_minor: sum(recent, (o) => posted(o, "fees_earned")),
+    ad_fees_minor: sum(recent, (o) => posted(o, "promotion_fee")),
+    promoted_orders: sold.filter((o) => o.promotion_rate !== null).length,
+    cancelled: recent.length - sold.length,
+    daily,
+    top: [...byListing.values()].sort((a, b) => b.gross_minor - a.gross_minor).slice(0, 5),
+  };
 }

@@ -36,3 +36,25 @@
 
 .ws-notices-page { display: grid; gap: var(--cx-s-4); width: min(100%, 680px); margin-inline: auto; padding-block: var(--cx-s-5) var(--cx-s-8); }
 .ws-notices-page h1 { font-size: var(--cx-h3); font-weight: 680; }
+
+/* 9b: listing toolbar, promotions, CSV import, analytics. */
+.ws-flow__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cx-s-2); }
+.ws-hub-status[data-status=promoted] { margin-inline-start: var(--cx-s-1); color: var(--cx-ember-text); background: color-mix(in srgb, var(--cx-ember) 14%, transparent); }
+.ws-import-steps { display: grid; gap: var(--cx-s-3); margin: 0; padding: 0; list-style: none; counter-reset: step; }
+.ws-import-steps > li { display: grid; gap: var(--cx-s-2); justify-items: start; padding: var(--cx-s-4) var(--cx-s-4) var(--cx-s-4) calc(var(--cx-s-4) + var(--cx-s-7)); border: 1px solid var(--cx-hairline); border-radius: var(--cx-r-card); background: var(--cx-surface); position: relative; counter-increment: step; }
+.ws-import-steps > li::before { content: counter(step); position: absolute; top: var(--cx-s-4); left: var(--cx-s-4); display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: var(--cx-on-primary); background: var(--cx-ember); font-size: var(--cx-caption); font-weight: 700; }
+.ws-import-steps span { color: var(--cx-text-2); font-size: var(--cx-small); }
+.ws-import-drop { justify-self: stretch; min-height: 96px; padding: var(--cx-s-4); }
+.ws-import-errors { display: grid; gap: var(--cx-s-3); margin: 0; padding: 0; list-style: none; }
+.ws-import-errors > li { padding: var(--cx-s-3); border-inline-start: 3px solid var(--cx-loss); background: var(--cx-loss-wash); }
+.ws-import-errors ul { margin: var(--cx-s-1) 0 0; padding-inline-start: var(--cx-s-5); color: var(--cx-text-2); font-size: var(--cx-small); }
+.ws-chart__readout { min-height: 1.5em; color: var(--cx-text-2); font-size: var(--cx-small); font-variant-numeric: tabular-nums; }
+.ws-chart { display: flex; align-items: stretch; gap: 2px; height: 160px; border-bottom: 1px solid var(--cx-hairline); }
+.ws-chart__bar { position: relative; flex: 1 1 0; min-width: 0; padding: 0; border: 0; background: none; cursor: default; }
+.ws-chart__bar span { position: absolute; inset-inline: 0; bottom: 0; max-width: 24px; margin-inline: auto; min-block-size: 2px; border-radius: 4px 4px 0 0; background: var(--cx-ember); }
+.ws-chart__bar span[data-empty] { background: var(--cx-hairline); }
+.ws-chart__bar:hover, .ws-chart__bar:focus-visible { background: var(--cx-row-hover); outline: none; }
+.ws-chart__bar:focus-visible span { box-shadow: var(--cx-focus-ring); }
+.ws-chart__axis { display: flex; justify-content: space-between; color: var(--cx-text-muted); font-size: var(--cx-caption); }
+.ws-chart__table summary { color: var(--cx-text-2); font-size: var(--cx-small); cursor: pointer; }
+.ws-chart__table table { margin-top: var(--cx-s-2); }
